@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { VideoCameraOutlined } from "@ant-design/icons";
-import { Card, Layout, Menu, MenuProps, theme } from "antd";
+import { Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Footer } from "antd/es/layout/layout";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -19,7 +19,7 @@ const items: MenuItem[] = [
   },
   {
     key: "/kubernetes/workload",
-    label: "workload",
+    label: "工作负载",
     icon: <VideoCameraOutlined />,
     children: [
       {
@@ -39,6 +39,10 @@ const items: MenuItem[] = [
 const GeekLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // 这句代码使用了 Ant Design 的 theme.useToken() 钩子函数来获取当前主题的 token 值。
+  // 它解构出了 token 对象中的 colorBgContainer 和 borderRadiusLG 两个属性。
+  // colorBgContainer 通常用于设置容器的背景色。
+  // borderRadiusLG 通常用于设置大尺寸的边框圆角。
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
@@ -61,6 +65,9 @@ const GeekLayout: React.FC = () => {
     }
     setOpenKeys(openKeyList);
   };
+
+  const [collapsed, setCollapsed] = useState(false);
+
   useEffect(() => {
     setSelectKeys([location.pathname]);
     const openKey = location.pathname.split("/").slice(1);
@@ -70,20 +77,10 @@ const GeekLayout: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <Layout>
-      <Sider
-        breakpoint="lg"
-        collapsedWidth="0"
-        onBreakpoint={(broken) => {
-          console.log(broken);
-        }}
-        onCollapse={(collapsed, type) => {
-          console.log(collapsed, type);
-        }}
-      >
-        <div className="demo-logo-vertical" />
+    <Layout style={{ minHeight: "100vh" }}>
+      <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           openKeys={openKeys}
           onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
@@ -94,23 +91,22 @@ const GeekLayout: React.FC = () => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Header style={{ padding: 0, background: colorBgContainer }}>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: "16px",
+              width: 64,
+              height: 64,
+            }}
+          />
+        </Header>
         <Content style={{ margin: "24px 16px 0" }} className="card-container">
           <Card className="card-container">
             <Outlet />
           </Card>
-          {/* <div
-            style={{
-              padding: 14,
-              height: '100%',
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-              marginBottom: 24,
-            }}
-          >
-            <Outlet />
-
-          </div> */}
         </Content>
       </Layout>
     </Layout>
