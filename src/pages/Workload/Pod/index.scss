@@ -22,6 +22,8 @@
 }
 
 .pod-images {
+    // width: 180px;
+    // overflow: hidden;
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -31,6 +33,4 @@
     > *:last-child {
         margin-bottom: 0;
     }
-    overflow: hidden;
- 
 }

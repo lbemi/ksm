@@ -9,36 +9,69 @@ import {
   Table,
   TableProps,
   Tag,
+  Tooltip,
 } from "antd";
 import { Pod, IContainer, IPodStatus } from "kubernetes-models/v1";
 import { FC, useEffect, useState } from "react";
-import {
-  PicRightOutlined,
-  SyncOutlined,
-  CheckCircleTwoTone,
-} from "@ant-design/icons";
+import { PicRightOutlined, SyncOutlined } from "@ant-design/icons";
 import { CheckboxOptionType } from "antd/es/checkbox/Group";
 import type { CheckboxProps } from "antd";
 import "./index.scss";
 import dayjs from "dayjs";
+import { Typography } from "antd";
+import MyIcon from "@/components/MyIcon";
+const { Paragraph, Text } = Typography;
+
+const CheckboxGroup = Checkbox.Group;
 
 const columns: TableProps<Pod>["columns"] = [
   {
     title: "名称",
     dataIndex: ["metadata", "name"],
     key: "name",
-    render: (text) => <a>{text}</a>,
+    width: 220,
+    fixed: "left",
+    render: (text) => (
+      <div>
+        <a
+          onClick={() => {
+            console.log(text);
+          }}
+        >
+          <Paragraph
+            copyable={{
+              text: text,
+            }}
+          >
+            {text}
+          </Paragraph>
+        </a>
+      </div>
+    ),
   },
   {
     title: "状态",
     dataIndex: ["status"],
-    key: "tatus",
-    render: (status) => <div>{format_status(status)}</div>,
+    key: "status",
+    width: 120,
+    render: (status, record) => <div>{formatterPodStatus(status, record)}</div>,
   },
   {
     title: "镜像",
     dataIndex: ["spec", "containers"],
     key: "image",
+    width: 100,
+    onCell: () => {
+      return {
+        style: {
+          maxWidth: 180,
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          textOverflow: "ellipsis",
+          cursor: "pointer",
+        },
+      };
+    },
     render: (containers) => <div>{get_images(containers)}</div>,
   },
   {
@@ -93,7 +126,7 @@ const columns: TableProps<Pod>["columns"] = [
     ),
   },
 ];
-const format_status = (status: IPodStatus) => {
+const format_status = (status: IPodStatus, pod: Pod) => {
   if (status.phase === "Running") {
     return (
       <div
@@ -111,22 +144,113 @@ const format_status = (status: IPodStatus) => {
     return status.phase;
   }
 };
+
+const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
+  if (pod.metadata && pod.metadata.deletionTimestamp) {
+    return (
+      <div>
+        <SyncOutlined color="#c62828" spin /> "Terminating"
+      </div>
+    );
+  }
+  let phase = status.phase;
+  switch (phase) {
+    case "Failed":
+      if (status.reason) {
+        return formatterIcon("#c62828", status.reason || "");
+      }
+      return formatterIcon(
+        "#c62828",
+        getContainerStatuses(status, false) || ""
+      );
+    case "Pending":
+      return formatterIcon("#f3d362", getContainerStatuses(status, true) || "");
+    case "Succeeded":
+      return formatterIcon(
+        "#155ec0",
+        getContainerStatuses(status, false) || ""
+      );
+    case "Running":
+      if (
+        status.conditions &&
+        status.conditions.filter((s) => s.status !== "True").length > 0
+      ) {
+        return formatterIcon(
+          "#c62828",
+          getContainerStatuses(status, true) || ""
+        );
+      }
+      return formatterIcon("#2ba552", phase || "");
+    default:
+      return formatterIcon("#c62828", phase || "");
+  }
+};
+const getContainerStatuses = (data: IPodStatus, pending: boolean) => {
+  let containers = [
+    ...(data.initContainerStatuses || []),
+    ...(data.containerStatuses || []),
+  ];
+  containers = containers.filter((s) => !s.ready);
+  const waiting = containers.find((s) => s.state!.waiting);
+  const terminated = containers.find((s) => s.state!.terminated);
+
+  if (pending) {
+    const init = (data.initContainerStatuses || []).filter(
+      (s) => s.ready
+    ).length;
+    if (init === (data.initContainerStatuses || []).length) {
+      return containers.length === 0
+        ? "Pending"
+        : waiting
+        ? waiting.state!.waiting!.reason
+        : terminated
+        ? terminated.state!.terminated!.reason
+        : "Pending";
+    }
+    return `Init:${init}/${
+      data.initContainerStatuses ? data.initContainerStatuses.length : 0
+    }`;
+  }
+
+  return containers.length === 0
+    ? "unknown"
+    : waiting
+    ? waiting.state!.waiting!.reason
+    : terminated
+    ? terminated.state!.terminated!.reason
+    : "unknown";
+};
+const formatterIcon = (color: string, text: string) => {
+  return (
+    <>
+      <Tag
+        icon={
+          <SyncOutlined
+            spin={text === "Running" || text === "ContainerCreating"}
+          />
+        }
+        color={color}
+      >
+        {text}
+      </Tag>
+    </>
+  );
+};
 const get_images = (containers: Array<IContainer>) => {
   return (
     <div className="pod-images">
       {containers.map((container, index) => (
         <div key={index}>
-          <Tag key={index} color="cyan">
-            {container.image}
-          </Tag>
+          <Tooltip placement="topLeft" title={container.image}>
+            <Tag key={index} color="geekblue">
+              {container.image}
+            </Tag>
+          </Tooltip>
         </div>
       ))}
     </div>
   );
 };
-
-const defaultCheckedList = columns!.map(({ key }) => key);
-const CheckboxGroup = Checkbox.Group;
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -141,6 +265,9 @@ const PodPage: FC = () => {
   const handleOpen = (open: boolean) => {
     setOpen(open);
   };
+  const defaultCheckedList = columns
+    .map(({ key }) => key)
+    .filter((key): key is string => key !== undefined);
   const [checkedList, setCheckedList] = useState<string[]>(defaultCheckedList);
   const checkAll = plainOptions.length === checkedList.length;
   const indeterminate =
@@ -285,11 +412,11 @@ const PodPage: FC = () => {
       </div>
       <Table
         className="table"
-        scroll={{ y: "calc(100vh - 320px)" }}
         columns={showColumn}
         dataSource={pods}
         loading={loading}
         rowKey={(record) => record.metadata!.name!}
+        scroll={{ x: "max-content", y: "calc(100vh - 320px)" }}
         pagination={{ showTotal: (total) => `共 ${total} 条` }}
       />
     </>
