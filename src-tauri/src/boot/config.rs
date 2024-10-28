@@ -1,9 +1,9 @@
 use crate::error::MyError;
 use anyhow::Result;
-use kube::config::Kubeconfig;
+use kube::{config::Kubeconfig, Config};
 use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
-use std::{fs::File, io::BufReader};
+use std::{collections::HashMap, f64::consts::E, fs::File, io::BufReader, sync::Mutex};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct KubernetesConfig {
@@ -50,10 +50,6 @@ pub fn load_k8s_config(file_name: &str) -> Result<Kubeconfig, MyError> {
             let file = File::open(file_path)?;
             let read = BufReader::new(file);
             let kubernetes_config: Kubeconfig = serde_yaml::from_reader(read)?;
-            // if kubernetes_config.active_view_context.is_none() {
-            //     kubernetes_config.active_view_context =
-            //         Some(kubernetes_config.current_context.clone());
-            // }
             KUBERNETES_LIST.get_or_init(|| kubernetes_config.clone());
             Ok(kubernetes_config)
         }
@@ -61,6 +57,21 @@ pub fn load_k8s_config(file_name: &str) -> Result<Kubeconfig, MyError> {
     }
 }
 
+pub fn load_k8s_config_hasmap(file_name: &str) -> Result<Kubeconfig, MyError> {
+    let home = dirs::home_dir();
+    // let configs = HashMap::new();
+    match home {
+        Some(path) => {
+            let file_path = path.join(file_name).display().to_string();
+            let file = File::open(file_path)?;
+            let reader = BufReader::new(file);
+            let kubernetes_config: Kubeconfig = serde_yaml::from_reader(reader)?;
+            KUBERNETES_LIST.get_or_init(|| kubernetes_config.clone());
+            Ok(kubernetes_config)
+        }
+        None => return Err(MyError::IOError("Home directory not found".to_string())),
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

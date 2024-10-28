@@ -8,6 +8,7 @@ mod error;
 mod router;
 mod service;
 mod store;
+mod tray;
 mod utils;
 fn main() {
     server::run()

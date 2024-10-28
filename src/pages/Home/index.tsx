@@ -1,14 +1,27 @@
-import { Table, TableProps } from "antd";
+import { message, Table, TableProps } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
 import { Cluster } from "@/types/cluster";
+import { useAppDispatch } from "@/store/hook";
+import { setActiveCluster } from "@/store/modules/kubernetes";
 
 export const Home: FC = () => {
+  const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
-  const redircet = (record: Cluster) => {
-    navigate(`/kubernetes?cluster=${record.name}`);
+  const dispatch = useAppDispatch();
+
+  const redircet = async (record: Cluster) => {
+    await invoke("switch_cluster", { clusterName: record.name })
+      .then(() => {
+        dispatch(setActiveCluster(record.name));
+        navigate(`/kubernetes?cluster=${record.name}`);
+      })
+      .catch((err) => {
+        messageApi.error("切换集群失败: " + err);
+      });
   };
+
   const columns: TableProps<Cluster>["columns"] = [
     {
       title: "集群名称",
@@ -38,6 +51,7 @@ export const Home: FC = () => {
 
   return (
     <>
+      {contextHolder}
       <div className="container">
         <h1>Kuberntes 列表</h1>
         <div style={{ display: "flex", justifyContent: "center" }}>
