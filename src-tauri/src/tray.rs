@@ -1,7 +1,7 @@
 use tauri::{
     menu::{Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager,
+    Emitter, Manager,
 };
 
 pub fn create_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
@@ -16,6 +16,7 @@ pub fn create_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
 
     let menu = Menu::with_items(app, &[&quit_i, &show_i, &hide_i, &a])?;
     let _ = TrayIconBuilder::with_id("tray")
+        .tooltip("something")
         .icon(app.default_window_icon().unwrap().clone())
         .menu(&menu)
         .menu_on_left_click(false)
@@ -40,19 +41,65 @@ pub fn create_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
             // Add more events here
             _ => {}
         })
-        .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click {
-                button: MouseButton::Left,
-                button_state: MouseButtonState::Up,
-                ..
-            } = event
-            {
-                let app = tray.app_handle();
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.set_focus();
+        // .on_tray_icon_event(|tray, event| {
+        //     if let TrayIconEvent::Click {
+        //         button: MouseButton::Left,
+        //         button_state: MouseButtonState::Up,
+        //         ..
+        //     } = event
+        //     {
+        //         let app = tray.app_handle();
+        //         if let Some(window) = app.get_webview_window("main") {
+        //             let _ = window.show();
+        //             let _ = window.set_focus();
+        //         }
+        //     }
+        // })
+        .on_tray_icon_event(|tray, event| match event {
+            TrayIconEvent::Click {
+                id: _,
+                position,
+                rect: _,
+                button,
+                button_state: _,
+            } => match button {
+                MouseButton::Left {} => {
+                    let windows = tray.app_handle().webview_windows();
+                    for (key, value) in windows {
+                        println!("点击左键：{}", key);
+                        if key == "main-login" || key == "main" {
+                            value.show().unwrap();
+                            value.unmaximize().unwrap();
+                            value.set_focus().unwrap();
+                        }
+                    }
                 }
+                MouseButton::Right {} => {
+                    println!("点击右键");
+                    tray.app_handle()
+                        .emit("tray_contextmenu", position)
+                        .unwrap();
+                }
+                _ => {}
+            },
+
+            TrayIconEvent::Enter {
+                id: _,
+                position,
+                rect: _,
+            } => {
+                println!("鼠标滑过托盘");
+                tray.app_handle().emit("tray_mouseenter", position).unwrap();
             }
+            TrayIconEvent::Leave {
+                id: _,
+                position,
+                rect: _,
+            } => {
+                println!("鼠标离开托盘");
+                tray.app_handle().emit("tray_mouseleave", position).unwrap();
+            }
+            _ => {}
         })
         .build(app);
     Ok(())
