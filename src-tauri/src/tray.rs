@@ -8,18 +8,19 @@ pub fn create_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let quit_i = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
     let show_i = MenuItem::with_id(app, "show", "显示", true, None::<&str>)?;
     let hide_i = MenuItem::with_id(app, "hide", "隐藏", true, None::<&str>)?;
+    let about_i = MenuItem::with_id(app, "about", "关于", true, None::<&str>)?;
 
     let edit_i = MenuItem::with_id(app, "edit_file", "编辑", true, None::<&str>)?;
     let new_i = MenuItem::with_id(app, "new_file", "添加", true, None::<&str>)?;
 
     let a = Submenu::with_id_and_items(app, "File", "文件", true, &[&edit_i, &new_i])?;
 
-    let menu = Menu::with_items(app, &[&quit_i, &show_i, &hide_i, &a])?;
+    let menu = Menu::with_items(app, &[&quit_i, &show_i, &hide_i, &about_i, &a])?;
     let _ = TrayIconBuilder::with_id("tray")
         .tooltip("something")
         .icon(app.default_window_icon().unwrap().clone())
         .menu(&menu)
-        .menu_on_left_click(false)
+        .menu_on_left_click(true)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "quit" => {
                 app.exit(0);

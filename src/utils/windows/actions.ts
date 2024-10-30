@@ -1,0 +1,18 @@
+import { emit } from "@tauri-apps/api/event";
+import WindowConfig from "./index";
+
+export const crateWin = async (args: WindowConfig) => {
+  await emit("win-create", args);
+};
+
+export const aboutWindow = async () => {
+  await crateWin({
+    label: "about",
+    title: "关于我们",
+    url: "/kubernetes",
+    width: 480,
+    height: 360,
+    x: 100,
+    y: 200,
+  });
+};

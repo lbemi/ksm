@@ -1,8 +1,23 @@
-import { useAppDispatch } from "@/store/hook";
-import { setActiveCluster } from "@/store/modules/kubernetes";
-import { Table, TableColumnsType } from "antd";
+import { Button, Table, TableColumnsType } from "antd";
 import { FC, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import Windows from "@/utils/windows";
+import { aboutWindow } from "@/utils/windows/actions";
+
+const createWindow = async () => {
+  // const window = new Windows();
+  // // await window.listen();
+  // await window.createWindow({
+  //   label: "about",
+  //   title: "关于我们",
+  //   url: "/kubernetes",
+  //   width: 480,
+  //   height: 360,
+  //   x: 100,
+  //   y: 200,
+  // });
+  await aboutWindow();
+};
 
 interface DataType {
   key: React.Key;
@@ -42,14 +57,18 @@ const Dashboard: FC = () => {
   const [params] = useSearchParams();
   const cluster = params.get("cluster");
   // const dispatch = useAppDispatch();
-
+  const w = new Windows();
   useEffect(() => {
+    w.listen();
     if (!cluster) return;
     // dispatch(setActiveCluster(cluster))
   }, [cluster]);
 
   return (
     <div>
+      <Button type="primary" size="small" onClick={createWindow}>
+        点击
+      </Button>
       <Table
         columns={columns}
         dataSource={data}

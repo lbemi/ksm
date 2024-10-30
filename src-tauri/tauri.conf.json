@@ -2,13 +2,14 @@
   "$schema": "https://schema.tauri.app/config/2.0.0",
   "productName": "ksm",
   "version": "0.1.0",
-  "identifier": "com.ksm.app",
+  "identifier": "ksm.lbemi.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
+
   "app": {
     "windows": [
       {
@@ -18,7 +19,8 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": []
     }
   },
   "bundle": {
@@ -31,6 +33,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["tray"]
-  }
+    "externalBin": [],
+    "copyright": "lbemi",
+    "category": "DeveloperTool"
+  },
+  "plugins": {}
 }
