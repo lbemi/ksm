@@ -6,6 +6,8 @@ import { Suspense, lazy } from "react";
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Deployment = lazy(() => import("@/pages/Workload/Deployment"));
 const Pod = lazy(() => import("@/pages/Workload/Pod"));
+const Message = lazy(() => import("@/pages/Message"));
+
 export const router = createBrowserRouter([
   {
     path: "/",
@@ -53,5 +55,9 @@ export const router = createBrowserRouter([
         ),
       },
     ],
+  },
+  {
+    path: "/msg",
+    element: <Message />,
   },
 ]);

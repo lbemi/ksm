@@ -3,6 +3,7 @@ import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import CreateMsgBox from "@/utils/messageBox";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -76,6 +77,9 @@ const GeekLayout: React.FC = () => {
     setLocationPath(location.pathname);
   }, [location.pathname]);
 
+  useEffect(() => {
+    CreateMsgBox();
+  });
   return (
     <Layout style={{ minHeight: "100vh" }}>
       <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>

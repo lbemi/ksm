@@ -2,7 +2,6 @@ import { listen } from "@tauri-apps/api/event";
 import { WebviewOptions } from "@tauri-apps/api/webview";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getAllWindows, getCurrentWindow } from "@tauri-apps/api/window";
-import { TauriEvent } from "@tauri-apps/api/event";
 const appWindow = getCurrentWindow();
 
 interface WindowConfig extends WebviewOptions {
