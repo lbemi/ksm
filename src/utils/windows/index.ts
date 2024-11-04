@@ -4,8 +4,8 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { getAllWindows, getCurrentWindow } from "@tauri-apps/api/window";
 const appWindow = getCurrentWindow();
 
-interface WindowConfig extends WebviewOptions {
-  label: string; // 窗口唯一label
+export interface WindowConfig extends WebviewOptions {
+  label: string;  
   title: string;
 }
 
@@ -64,7 +64,7 @@ class Windows {
     });
 
     // 显示窗体
-    await listen("win-show", async (event: any) => {
+    await listen("win-show", async () => {
       if (appWindow.label.indexOf("main") == -1) return;
       await appWindow.show();
       await appWindow.unminimize();
@@ -72,13 +72,13 @@ class Windows {
     });
 
     // 隐藏窗体
-    await listen("win-hide", async (event: any) => {
+    await listen("win-hide", async () => {
       if (appWindow.label.indexOf("main") == -1) return;
       await appWindow.hide();
     });
 
     // 关闭窗体
-    await listen("win-close", async (event: any) => {
+    await listen("win-close", async () => {
       await appWindow.close();
     });
   }

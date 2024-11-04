@@ -19,8 +19,7 @@ import type { CheckboxProps } from "antd";
 import "./index.scss";
 import dayjs from "dayjs";
 import { Typography } from "antd";
-import MyIcon from "@/components/MyIcon";
-const { Paragraph, Text } = Typography;
+const { Paragraph } = Typography;
 
 const CheckboxGroup = Checkbox.Group;
 
@@ -126,24 +125,6 @@ const columns: TableProps<Pod>["columns"] = [
     ),
   },
 ];
-const format_status = (status: IPodStatus, pod: Pod) => {
-  if (status.phase === "Running") {
-    return (
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-        }}
-      >
-        <SyncOutlined color="#52c41a" spin />
-        {/* <CheckCircleTwoTone twoToneColor="#52c41a" /> */}
-        <p>{status.phase}</p>
-      </div>
-    );
-  } else {
-    return status.phase;
-  }
-};
 
 const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
   if (pod.metadata && pod.metadata.deletionTimestamp) {

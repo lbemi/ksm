@@ -1,12 +1,12 @@
 import { emit } from "@tauri-apps/api/event";
-import WindowConfig from "./index";
+import {WindowConfig} from "./index";
 
 export const createWindow = async (args: WindowConfig) => {
   await emit("win-create", args);
 };
 
 export const aboutWindow = async () => {
-  await createWindow({
+  await createWindow( {
     label: "about",
     title: "关于我们",
     url: "/kubernetes",
@@ -14,5 +14,5 @@ export const aboutWindow = async () => {
     height: 360,
     x: 100,
     y: 200,
-  });
+});
 };

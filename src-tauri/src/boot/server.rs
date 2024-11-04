@@ -26,6 +26,7 @@ impl AppData {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point, desktop)]
 pub fn run() {
+    tracing_subscriber::fmt::init();
     tauri::Builder::default()
         .setup(|app| {
             app.manage(Mutex::new(AppData::load_config()));

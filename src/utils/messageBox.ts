@@ -36,7 +36,7 @@ export const CreateMsgBox = async () => {
     console.log("message error: ", error);
   });
 
-  let trayEnterListen = listen("tray_mouseenter", async (event) => {
+   listen("tray_mouseenter", async (event) => {
     console.log("开启监听：", event);
 
     const win = await WebviewWindow.getByLabel("trayMessageBox");

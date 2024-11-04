@@ -44,7 +44,7 @@ const GeekLayout: React.FC = () => {
   // colorBgContainer 通常用于设置容器的背景色。
   // borderRadiusLG 通常用于设置大尺寸的边框圆角。
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
 
   const [locationPath, setLocationPath] = useState<string>(location.pathname);
