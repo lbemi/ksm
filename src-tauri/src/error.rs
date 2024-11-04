@@ -1,5 +1,6 @@
 use std::io;
 
+use kube::config::KubeconfigError;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -11,6 +12,10 @@ pub enum MyError {
     IOError(String),
     #[error("SerdeYamlError: {0}")]
     SerdeYamlError(String),
+    #[error("KubeconfigError: {0}")]
+    KubeconfigError(String),
+    #[error(" OtherError: {0}")]
+    OtherError(String),
 }
 
 impl From<kube::Error> for MyError {
@@ -28,5 +33,16 @@ impl From<io::Error> for MyError {
 impl From<serde_yaml::Error> for MyError {
     fn from(value: serde_yaml::Error) -> Self {
         MyError::SerdeYamlError(value.to_string())
+    }
+}
+impl From<KubeconfigError> for MyError {
+    fn from(value: KubeconfigError) -> Self {
+        MyError::KubeconfigError(value.to_string())
+    }
+}
+
+impl From<anyhow::Error> for MyError {
+    fn from(value: anyhow::Error) -> Self {
+        MyError::OtherError(value.to_string())
     }
 }

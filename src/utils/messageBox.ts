@@ -5,6 +5,7 @@ import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
 export let messageBoxWindowWidth = 280;
 export let messageBoxWindowHeight = 100;
 export const CreateMsgBox = async () => {
+  console.log("CreateMsgBox-----");
   let webview = new WebviewWindow("trayMessageBox", {
     url: "/msg",
     title: "消息通知",
@@ -16,10 +17,8 @@ export const CreateMsgBox = async () => {
     alwaysOnTop: true,
     focus: true,
     center: false,
-    x: 100,
-    y: 200,
-    // x: window.screen.width + 50,
-    // y: window.screen.height + 50,
+    x: window.screen.width + 250,
+    y: window.screen.height + 450,
     visible: false,
   });
 
@@ -45,18 +44,18 @@ export const CreateMsgBox = async () => {
     let position: any = event.payload;
     await win.setAlwaysOnTop(true);
     await win.setFocus();
-    // await win.setPosition(
-    //   new LogicalPosition(
-    //     position.x - messageBoxWindowWidth / 2,
-    //     window.screen.availHeight - messageBoxWindowHeight
-    //   )
-    // );
+    await win.setPosition(
+      new LogicalPosition(
+        position.x - messageBoxWindowWidth / 2,
+        position.y - messageBoxWindowHeight
+      )
+    );
     await win.show();
   });
   listen("tray_mouseleave", async () => {
     const win = await WebviewWindow.getByLabel("trayMessageBox");
     if (!win) return;
-    // await win.hide();
+    await win.hide();
   });
 };
 

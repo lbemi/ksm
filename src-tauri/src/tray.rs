@@ -19,48 +19,44 @@ pub fn create_tray(app: &tauri::AppHandle) -> tauri::Result<()> {
     let _ = TrayIconBuilder::with_id("tray")
         .tooltip("something")
         .icon(app.default_window_icon().unwrap().clone())
-        // .menu(&menu)
+        .menu(&menu)
         .menu_on_left_click(true)
-        // .on_menu_event(move |app, event| match event.id.as_ref() {
-        //     "quit" => {
-        //         app.exit(0);
-        //     }
-        //     "show" => {
-        //         let window = app.get_webview_window("main").unwrap();
-        //         let _ = window.show();
-        //     }
-        //     "hide" => {
-        //         let window = app.get_webview_window("main").unwrap();
-        //         let _ = window.hide();
-        //     }
-        //     "edit_file" => {
-        //         println!("edit_file");
-        //     }
-        //     "new_file" => {
-        //         println!("new_file");
-        //     }
-        //     "about" =>{
-        //         tray.app_handle()
-        //         .emit("tray_about", a)
-        //         .unwrap();
-        //     }
-        //     // Add more events here
-        //     _ => {}
-        // })
-        // .on_tray_icon_event(|tray, event| {
-        //     if let TrayIconEvent::Click {
-        //         button: MouseButton::Left,
-        //         button_state: MouseButtonState::Up,
-        //         ..
-        //     } = event
-        //     {
-        //         let app = tray.app_handle();
-        //         if let Some(window) = app.get_webview_window("main") {
-        //             let _ = window.show();
-        //             let _ = window.set_focus();
-        //         }
-        //     }
-        // })
+        .on_menu_event(move |app, event| match event.id.as_ref() {
+            "quit" => {
+                app.exit(0);
+            }
+            "show" => {
+                let window = app.get_webview_window("main").unwrap();
+                let _ = window.show();
+            }
+            "hide" => {
+                let window = app.get_webview_window("main").unwrap();
+                let _ = window.hide();
+            }
+            "edit_file" => {
+                println!("edit_file");
+            }
+            "new_file" => {
+                println!("new_file");
+            }
+            "about" => app.emit("tary_about", ()).unwrap(),
+            // Add more events here
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                let app = tray.app_handle();
+                if let Some(window) = app.get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+        })
         .on_tray_icon_event(|tray, event| match event {
             TrayIconEvent::Click {
                 id: _,

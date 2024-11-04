@@ -216,6 +216,7 @@ async fn main() -> Result<()> {
 
     // Defer to methods for verbs
     if let Some(resource) = &app.resource {
+        tracing::info!(?resource, "requested app for resource");
         // Common discovery, parameters, and api configuration for a single resource
         let (ar, caps) = resolve_api_resource(&discovery, resource)
             .with_context(|| format!("resource {resource:?} not found in cluster"))?;

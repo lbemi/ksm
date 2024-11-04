@@ -1,19 +1,22 @@
+use crate::boot::server::AppData;
+use crate::error::MyError;
+use crate::utils;
 use k8s_openapi::api::core::v1::Pod;
 use kube::api::{DeleteParams, ListParams, PostParams};
 use kube::Api;
-
-use crate::error::MyError;
-use crate::utils;
+use std::sync::Mutex;
+use tauri::State;
 
 pub struct PodStruct {
     api: Api<Pod>,
 }
 
 impl PodStruct {
-    pub async fn new(cluster_name: &str, ns: &str) -> Self {
-        let client = utils::init_client::generate_client(cluster_name)
-            .await
-            .unwrap();
+    pub async fn new(cluster_name: &str, ns: &str, state: State<'_, Mutex<AppData>>) -> Self {
+        // let client = utils::init_client::generate_client(cluster_name)
+        //     .await
+        //     .unwrap();
+        let client = state.lock().unwrap().client.clone().unwrap();
         if ns != "all" {
             let api: Api<Pod> = Api::namespaced(client, ns);
             Self { api }

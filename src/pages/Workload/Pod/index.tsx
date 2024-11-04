@@ -343,10 +343,25 @@ const PodPage: FC = () => {
       </>
     );
   };
-  const list_pods = async (clusterName: string, namespace: string) => {
+  // const list_pods = async (clusterName: string, namespace: string) => {
+  //   setLoading(true);
+  //   await invoke("list_pods", {
+  //     clusterName: clusterName,
+  //     namespace: namespace,
+  //   })
+  //     .then((res) => {
+  //       setPods(res as Array<Pod>);
+  //     })
+  //     .catch((err) => {
+  //       console.log("err: ", err);
+  //     });
+  //   setLoading(false);
+  // };
+  const list_pods = async (namespace: string) => {
     setLoading(true);
-    await invoke("list_pods", {
-      clusterName: clusterName,
+    await invoke("kubernetes_api", {
+      resource: "pods",
+      verb: "GET",
       namespace: namespace,
     })
       .then((res) => {
@@ -359,7 +374,7 @@ const PodPage: FC = () => {
   };
   useEffect(() => {
     if (!clusterName) return;
-    list_pods(clusterName, "default");
+    list_pods("default");
     handelSelectOption();
   }, [clusterName]);
 
@@ -394,6 +409,7 @@ const PodPage: FC = () => {
             icon={<PicRightOutlined />}
             type="dashed"
             style={{ marginRight: 20 }}
+            onClick={() => list_pods("default")}
           >
             刷新
           </Button>

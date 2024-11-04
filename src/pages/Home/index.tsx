@@ -18,7 +18,7 @@ export const Home: FC = () => {
         navigate(`/kubernetes?cluster=${record.name}`);
       })
       .catch((err) => {
-        messageApi.error("切换集群失败: " + err);
+        messageApi.error("切换集群失败: " + JSON.stringify(err));
       });
   };
 
