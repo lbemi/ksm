@@ -5,7 +5,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Cluster } from "@/types/cluster";
 import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
-
+import TopBar from "@/components/TopBar";
 export const Home: FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
@@ -51,6 +51,18 @@ export const Home: FC = () => {
 
   return (
     <>
+      <TopBar
+        props={{
+          minimizable: true,
+          maximizable: true,
+          closable: true,
+          zIndex: 100,
+          beforeClose: () => {
+            console.log("beforeClose");
+            return true;
+          },
+        }}
+      />
       {contextHolder}
       <div className="container">
         <h1>Kuberntes 列表</h1>

@@ -3,6 +3,8 @@ import { VideoCameraOutlined } from "@ant-design/icons";
 import { Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import TopBar from "@/components/TopBar";
+import "./index.scss";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -77,39 +79,54 @@ const GeekLayout: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
-        <Menu
-          theme="light"
-          mode="inline"
-          openKeys={openKeys}
-          onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
-          selectedKeys={selectKeys}
-          onOpenChange={handleMenuOpenChange}
-          forceSubMenuRender
-          items={items}
-        />
-      </Sider>
-      <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }}>
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: "16px",
-              width: 64,
-              height: 64,
-            }}
+    <div>
+      <TopBar
+        props={{
+          color: colorBgContainer,
+          minimizable: true,
+          maximizable: true,
+          closable: true,
+          zIndex: 1024,
+          beforeClose: () => {
+            console.log("beforeClose");
+            return true;
+          },
+        }}
+      />
+      <Layout style={{ minHeight: "100vh" }}>
+        <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
+          <Menu
+            theme="light"
+            mode="inline"
+            openKeys={openKeys}
+            onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
+            selectedKeys={selectKeys}
+            onOpenChange={handleMenuOpenChange}
+            forceSubMenuRender
+            items={items}
           />
-        </Header>
-        <Content style={{ margin: "24px 16px 0" }} className="card-container">
-          <Card className="card-container">
-            <Outlet />
-          </Card>
-        </Content>
+        </Sider>
+        <Layout>
+          <Header style={{ padding: 0, background: colorBgContainer }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: "16px",
+                width: 64,
+                height: 64,
+              }}
+            />
+          </Header>
+          <Content style={{ margin: "24px 16px 0" }} className="card-container">
+            <Card className="card-container">
+              <Outlet />
+            </Card>
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </div>
   );
 };
 

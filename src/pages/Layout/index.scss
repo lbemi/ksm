@@ -1,3 +1,12 @@
 .card-container {
     height: 100%;
 }
+.vu__chatbox {height: calc(100vh); padding: 5px; overflow: hidden;}
+.vu__layout {
+  background-color: #df6412;
+  overflow: hidden;
+  height: 100%; width: 100%;
+  position: relative; z-index: 100;
+  border-radius: 8px;
+  box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.15),0 1px 5px -1px rgba(0, 0, 0, 0.1),0 2px 5px rgba(0, 0, 0, 0.1);
+}
