@@ -1,6 +1,5 @@
 use crate::boot::server::AppData;
 use crate::error::MyError;
-use crate::utils;
 use k8s_openapi::api::core::v1::Pod;
 use kube::api::{DeleteParams, ListParams, PostParams};
 use kube::Api;

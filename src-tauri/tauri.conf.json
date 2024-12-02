@@ -9,17 +9,16 @@
     "beforeBuildCommand": "npm run build",
     "frontendDist": "../dist"
   },
-
   "app": {
     "windows": [
       {
         "title": "kubernetes manager",
         "width": 800,
         "height": 600,
-
         "resizable": true,
         "transparent": true,
-        "shadow": false
+        "shadow": false,
+        "fullscreen": false
       }
     ],
     "security": {

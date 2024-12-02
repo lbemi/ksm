@@ -1,37 +1,12 @@
 use crate::{boot::server::AppData, error::MyError};
 use anyhow::Context;
 use kube::{
-    api::{Api, DynamicObject, ListParams, ResourceExt},
+    api::{Api, DynamicObject, ListParams},
     discovery::{ApiCapabilities, ApiResource, Scope},
     Client, Discovery,
 };
-use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
-
-#[derive(Clone, PartialEq, Eq, Debug)]
-enum Verb {
-    Get,
-    Delete,
-    Edit,
-    Watch,
-    Apply,
-}
-
-impl Serialize for Verb {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(match self {
-            Verb::Get => "get",
-            Verb::Delete => "delete",
-            Verb::Edit => "edit",
-            Verb::Watch => "watch",
-            Verb::Apply => "apply",
-        })
-    }
-}
 
 struct App {
     selector: Option<String>,
