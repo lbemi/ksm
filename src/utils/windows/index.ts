@@ -7,6 +7,11 @@ const appWindow = getCurrentWindow();
 export interface WindowConfig extends WebviewOptions {
   label: string;  
   title: string;
+  // decorations: boolean;
+  // center?: boolean;
+  // resizable?: boolean;
+  // shadow?: boolean;
+  // focus?: boolean;
 }
 
 export const windowConfig: WindowConfig = {

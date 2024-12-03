@@ -7,11 +7,15 @@ const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Deployment = lazy(() => import("@/pages/Workload/Deployment"));
 const Pod = lazy(() => import("@/pages/Workload/Pod"));
 const Message = lazy(() => import("@/pages/Message"));
-
+const About = lazy(() => import("@/pages/About"));
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <Home />,
+  },
+  {
+    path: "/about",
+    element: <About />,
   },
   {
     path: "/kubernetes",

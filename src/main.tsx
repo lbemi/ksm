@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import "./styles.scss";
+import "./assets/iconfont.css";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import "normalize.css";

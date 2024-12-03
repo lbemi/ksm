@@ -26,7 +26,7 @@ impl App {
         Self {
             selector,
             name,
-            dynamic_api: dynamic_api,
+            dynamic_api,
         }
     }
 

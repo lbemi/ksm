@@ -3,7 +3,7 @@ import { FC, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Windows from "@/utils/windows";
 import { aboutWindow } from "@/utils/windows/actions";
-
+import CreateAboutWindow from "@/pages/About/window";
 const createWindow = async () => {
   await aboutWindow();
 };
@@ -58,6 +58,9 @@ const Dashboard: FC = () => {
       <div>
         <Button type="primary" size="small" onClick={createWindow}>
           点击
+        </Button>
+        <Button type="primary" size="small" onClick={CreateAboutWindow}>
+          关于
         </Button>
         <Table
           columns={columns}

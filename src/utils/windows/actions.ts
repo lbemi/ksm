@@ -7,7 +7,7 @@ export const createWindow = async (args: WindowConfig) => {
 
 export const aboutWindow = async () => {
   await createWindow( {
-    label: "about",
+    label: "about2",
     title: "关于我们",
     url: "/kubernetes",
     width: 480,
