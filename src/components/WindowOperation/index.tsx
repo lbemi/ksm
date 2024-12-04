@@ -26,20 +26,25 @@ const WindowOperation: FC<WindowOperationProps> = ({
   style = {},
 }) => {
   const [isMax, setIsMax] = useState(false);
-  const setMaxStatus = () => {
-    let window = WebviewWindow.getCurrent();
-    window.listen("tauri://resize", async () => {
-      setIsMax(await window.isMaximized());
-    });
-  };
+  // const setMaxStatus = () => {
+  //   let window = WebviewWindow.getCurrent();
+  //   window.listen("tauri://resize", async () => {
+  //     setIsMax(await window.isMaximized());
+  //   });
+  // };
   useEffect(() => {
-    let window = WebviewWindow.getCurrent();
-    let UnlistenFn = window.listen("tauri://resize", async function () {
-      setIsMax(await window.isMaximized());
-    });
-    return async () => {
-      (await UnlistenFn)();
-    };
+    // let window = WebviewWindow.getCurrent();
+    // let unlistenFn: (() => void) | undefined;
+    // window
+    //   .listen("tauri://resize", async function () {
+    //     setIsMax(await window.isMaximized());
+    //   })
+    //   .then((fn) => {
+    //     unlistenFn = fn;
+    //   });
+    // return () => {
+    //   if (unlistenFn) unlistenFn();
+    // };
   }, []);
 
   const handleMinimize = async () => {
@@ -67,7 +72,7 @@ const WindowOperation: FC<WindowOperationProps> = ({
     if (onHide && onMinimize) {
     }
     await WebviewWindow.getCurrent().maximize();
-    setMaxStatus();
+    // setMaxStatus();
   };
 
   const handleUnMaximize = async () => {
