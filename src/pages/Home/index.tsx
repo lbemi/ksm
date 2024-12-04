@@ -6,12 +6,18 @@ import { Cluster } from "@/types/cluster";
 import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
 import TopBar from "@/components/TopBar";
+import { Typography } from "antd";
+
+const { Title } = Typography;
+import "./index.scss";
+import WindowOperation from "@/components/WindowOperation";
+
 export const Home: FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const redircet = async (record: Cluster) => {
+  const redirect = async (record: Cluster) => {
     await invoke("switch_cluster", { clusterName: record.name })
       .then(() => {
         dispatch(setActiveCluster(record.name));
@@ -28,7 +34,7 @@ export const Home: FC = () => {
       dataIndex: "name",
       key: "name",
       align: "center",
-      render: (text, record) => <a onClick={() => redircet(record)}>{text}</a>,
+      render: (text, record) => <a onClick={() => redirect(record)}>{text}</a>,
     },
     {
       title: "集群地址",
@@ -40,17 +46,31 @@ export const Home: FC = () => {
 
   const [clusters, setClusters] = useState<Array<Cluster>>([]);
 
-  const list_cluster = async () => {
-    await invoke("list_clusters").then((res) => {
-      setClusters(res as Array<Cluster>);
-    });
+  /**
+   * @description: fetch clusters list from invoke("list_clusters"), and then update state.clusters
+   * @return {Promise<void>}
+   */
+  const fetchClusters = async (): Promise<void> => {
+    try {
+      const clusters = await invoke("list_clusters");
+      setClusters(clusters as Array<Cluster>);
+    } catch (error) {
+      messageApi.error("获取集群列表失败: " + JSON.stringify(error));
+    }
   };
+
   useEffect(() => {
-    list_cluster();
+    fetchClusters();
   }, []);
 
   return (
     <>
+      <WindowOperation
+        hide={false}
+        height={40}
+        style={{ right: 10 }}
+        isMaximize={true}
+      />
       <TopBar
         props={{
           minimizable: true,
@@ -65,13 +85,13 @@ export const Home: FC = () => {
       />
       {contextHolder}
       <div className="container">
-        <h1>Kuberntes 列表</h1>
+        <Title level={1}>Kubernetes 列表</Title>
         <div style={{ display: "flex", justifyContent: "center" }}>
           <Table
             rowKey={(record) => record.name}
             columns={columns}
             dataSource={clusters}
-            style={{ width: "80%" }}
+            style={{ width: "70%" }}
             pagination={false}
           />
         </div>

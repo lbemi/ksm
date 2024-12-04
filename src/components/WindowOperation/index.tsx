@@ -2,6 +2,7 @@ import "./index.scss";
 import IconButton from "../IconButton/index.js";
 import { FC, useEffect, useState } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { listen } from "@tauri-apps/api/event";
 
 interface WindowOperationProps {
   hide?: boolean;
@@ -25,51 +26,55 @@ const WindowOperation: FC<WindowOperationProps> = ({
   style = {},
 }) => {
   const [isMax, setIsMax] = useState(false);
-
+  const setMaxStatus = () => {
+    let window = WebviewWindow.getCurrent();
+    window.listen("tauri://resize", async () => {
+      setIsMax(await window.isMaximized());
+    });
+  };
   useEffect(() => {
     let window = WebviewWindow.getCurrent();
     let UnlistenFn = window.listen("tauri://resize", async function () {
       setIsMax(await window.isMaximized());
     });
-    return () => {
-      UnlistenFn.then((unlisten) => unlisten());
+    return async () => {
+      (await UnlistenFn)();
     };
   }, []);
 
-  const handleMinimize = () => {
+  const handleMinimize = async () => {
     if (onMinimize) {
       onMinimize();
     }
-    WebviewWindow.getCurrent().minimize();
+    await WebviewWindow.getCurrent().minimize();
   };
 
-  const handleClose = () => {
+  const handleClose = async () => {
     if (onClose) {
       onClose();
     } else {
-      WebviewWindow.getCurrent().close();
+      await WebviewWindow.getCurrent().close();
     }
   };
 
-  const handleHide = () => {
+  const handleHide = async () => {
     if (onHide && onMinimize) {
-      onMinimize();
     }
-    WebviewWindow.getCurrent().hide();
+    await WebviewWindow.getCurrent().hide();
   };
 
-  const handleMaximize = () => {
+  const handleMaximize = async () => {
     if (onHide && onMinimize) {
-      onMinimize();
     }
-    WebviewWindow.getCurrent().maximize();
+    await WebviewWindow.getCurrent().maximize();
+    setMaxStatus();
   };
 
-  const handleUnMaximize = () => {
+  const handleUnMaximize = async () => {
     if (onHide && onMinimize) {
       onMinimize();
     }
-    WebviewWindow.getCurrent().unmaximize();
+    await WebviewWindow.getCurrent().unmaximize();
   };
 
   return (

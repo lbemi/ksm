@@ -40,13 +40,13 @@ class Windows {
       return;
     }
     const win = new WebviewWindow(args.label, args);
-    win.once("tauri://created", async () => {
+    await win.once("tauri://created", async () => {
       console.log("tauri:://created:  ", args.label);
       if (args.label.indexOf("main") > -1) {
         console.log("主窗口创建成功");
       }
     });
-    win.once("tauri://error", function (e) {
+    await win.once("tauri://error", function (e) {
       console.log("err: ", e);
     });
   }

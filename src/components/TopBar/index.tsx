@@ -12,11 +12,7 @@ interface Props {
   // 关闭前回调，会暂停实例关闭 function(done)，done用于关闭
   beforeClose: Function;
 }
-// interface State {
-//   hasMaximized: boolean;
-//   isResizable: boolean;
-//   isMaximizable: boolean;
-// }
+
 const TopBar: FC<{ props: Props }> = ({ props }) => {
   const [state, setState] = useState({
     hasMaximized: false,

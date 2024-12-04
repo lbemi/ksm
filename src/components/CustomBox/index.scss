@@ -1,15 +1,14 @@
 .custom-box-container {
-  padding: 5px;
+  padding: 0;
   overflow: hidden;
 
   .custom-box {
     overflow: hidden;
     border: 1px solid #E1E0E0;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
-    height: calc(100vh - 13px);
-    width: calc(100vw - 12px);
+    height: 100vh;
+    width: 100vw;
     border-radius: 10px;
-    padding: 0;
   }
 
   &.full {

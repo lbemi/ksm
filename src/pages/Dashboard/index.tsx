@@ -3,7 +3,7 @@ import { FC, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Windows from "@/utils/windows";
 import { aboutWindow } from "@/utils/windows/actions";
-import CreateAboutWindow from "@/pages/About/window";
+import CreateAboutWindow from "@/pages/About/window.ts";
 const createWindow = async () => {
   await aboutWindow();
 };
@@ -46,9 +46,7 @@ const Dashboard: FC = () => {
   const [params] = useSearchParams();
   const cluster = params.get("cluster");
   // const dispatch = useAppDispatch();
-  const w = new Windows();
   useEffect(() => {
-    w.listen();
     if (!cluster) return;
     // dispatch(setActiveCluster(cluster))
   }, [cluster]);
