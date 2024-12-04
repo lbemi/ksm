@@ -2,7 +2,6 @@ import "./index.scss";
 import IconButton from "../IconButton/index.js";
 import { FC, useEffect, useState } from "react";
 import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { listen } from "@tauri-apps/api/event";
 
 interface WindowOperationProps {
   hide?: boolean;
@@ -26,25 +25,20 @@ const WindowOperation: FC<WindowOperationProps> = ({
   style = {},
 }) => {
   const [isMax, setIsMax] = useState(false);
-  // const setMaxStatus = () => {
+  // const setMaxStatus =async () => {
   //   let window = WebviewWindow.getCurrent();
-  //   window.listen("tauri://resize", async () => {
+  //   await window.listen("tauri://resize", async () => {
   //     setIsMax(await window.isMaximized());
   //   });
   // };
   useEffect(() => {
     // let window = WebviewWindow.getCurrent();
-    // let unlistenFn: (() => void) | undefined;
-    // window
-    //   .listen("tauri://resize", async function () {
-    //     setIsMax(await window.isMaximized());
-    //   })
-    //   .then((fn) => {
-    //     unlistenFn = fn;
-    //   });
+    // let listened = window.listen("tauri://resize", async () => {
+    //   setIsMax(await window.isMaximized());
+    // })
     // return () => {
-    //   if (unlistenFn) unlistenFn();
-    // };
+    //   listened.then((unlisted) => unlisted());
+    // }
   }, []);
 
   const handleMinimize = async () => {

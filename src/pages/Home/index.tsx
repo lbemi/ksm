@@ -5,12 +5,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { Cluster } from "@/types/cluster";
 import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
-import TopBar from "@/components/TopBar";
 import { Typography } from "antd";
 
 const { Title } = Typography;
 import "./index.scss";
 import WindowOperation from "@/components/WindowOperation";
+import CustomDragDiv from "@/components/CustomDragDiv";
 
 export const Home: FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -64,38 +64,32 @@ export const Home: FC = () => {
   }, []);
 
   return (
-    <>
+    <div>
+      {contextHolder}
       <WindowOperation
-        hide={false}
+        hide={true}
         height={40}
         style={{ right: 10 }}
         isMaximize={true}
       />
-      <TopBar
-        props={{
-          minimizable: true,
-          maximizable: true,
-          closable: true,
-          zIndex: 100,
-          beforeClose: () => {
-            console.log("beforeClose");
-            return true;
-          },
-        }}
-      />
-      {contextHolder}
-      <div className="container">
-        <Title level={1}>Kubernetes 列表</Title>
-        <div style={{ display: "flex", justifyContent: "center" }}>
-          <Table
-            rowKey={(record) => record.name}
-            columns={columns}
-            dataSource={clusters}
-            style={{ width: "70%" }}
-            pagination={false}
-          />
+      <CustomDragDiv className="container">
+        <div data-tauri-drag-region>
+          <Title level={1}>Kubernetes 列表</Title>
+          <div
+            data-tauri-drag-region
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <Table
+              className="table"
+              rowKey={(record) => record.name}
+              columns={columns}
+              dataSource={clusters}
+              style={{ width: "100%" }}
+              pagination={false}
+            />
+          </div>
         </div>
-      </div>
-    </>
+      </CustomDragDiv>
+    </div>
   );
 };

@@ -18,8 +18,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       // 2. 组合使用暗色算法与紧凑算法
       algorithm: [
         // theme.darkAlgorithm,
-        // theme.compactAlgorithm,
-        theme.defaultAlgorithm,
+        theme.compactAlgorithm,
+        // theme.defaultAlgorithm,
       ],
     }}
   >

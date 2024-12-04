@@ -16,6 +16,7 @@
     "antd": "^5.22.3",
     "classnames": "^2.5.1",
     "dayjs": "^1.11.13",
+    "kubernetes-models": "^4.4.1",
     "normalize.css": "^8.0.1",
     "path": "^0.12.7",
     "react": "^18.3.1",

@@ -1,7 +1,6 @@
 import { Button, Table, TableColumnsType } from "antd";
 import { FC, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import Windows from "@/utils/windows";
 import { aboutWindow } from "@/utils/windows/actions";
 import CreateAboutWindow from "@/pages/About/window.ts";
 const createWindow = async () => {

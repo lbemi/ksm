@@ -5,6 +5,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import TopBar from "@/components/TopBar";
 import "./index.scss";
+import WindowOperation from "@/components/WindowOperation";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -80,6 +81,12 @@ const GeekLayout: React.FC = () => {
 
   return (
     <div>
+      <WindowOperation
+        hide={false}
+        height={40}
+        style={{ right: 10 }}
+        isMaximize={true}
+      />
       <TopBar
         props={{
           color: colorBgContainer,
@@ -93,6 +100,7 @@ const GeekLayout: React.FC = () => {
           },
         }}
       />
+
       <Layout style={{ minHeight: "100vh" }}>
         <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
           <Menu
@@ -105,9 +113,22 @@ const GeekLayout: React.FC = () => {
             forceSubMenuRender
             items={items}
           />
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: "16px",
+              width: 64,
+              height: 64,
+            }}
+          />
         </Sider>
         <Layout>
-          <Header style={{ padding: 0, background: colorBgContainer }}>
+          {/* <Header
+            data-tauri-drag-region
+            style={{ padding: 0, background: colorBgContainer }}
+          >
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -118,7 +139,7 @@ const GeekLayout: React.FC = () => {
                 height: 64,
               }}
             />
-          </Header>
+          </Header> */}
           <Content style={{ margin: "24px 16px 0" }} className="card-container">
             <Card className="card-container">
               <Outlet />

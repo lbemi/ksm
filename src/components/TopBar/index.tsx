@@ -1,7 +1,6 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import "./index.scss";
 import { getCurrentWindow } from "@tauri-apps/api/window";
-import { listen } from "@tauri-apps/api/event";
 interface Props {
   color?: string | undefined;
   // 窗口是否可最小化
@@ -14,54 +13,24 @@ interface Props {
 }
 
 const TopBar: FC<{ props: Props }> = ({ props }) => {
-  const [state, setState] = useState({
-    hasMaximized: false,
-    isResizable: false,
-    isMaximizable: false,
-  });
+  // const [state, setState] = useState({
+  //   hasMaximized: false,
+  //   isResizable: false,
+  //   isMaximizable: false,
+  // });
 
   // 实时监听窗口是否最大化
   useEffect(() => {
-    // listen("tauri://resize", async () => {
-    //   console.log("监听窗口是否最大化");
-    //   state.hasMaximized = await getCurrentWindow().isMaximized();
-    // });
-    // 用户是否可以手动调整窗口大小
-    // getCurrentWindow()
-    //   .isResizable()
-    //   .then((win) => {
-    //     setState({
-    //       ...state,
-    //       isResizable: win,
-    //     });
-    //   });
-    // // 窗口是否可以最大化
-    // getCurrentWindow()
-    //   .isMaximizable()
-    //   .then((res) => {
-    //     setState({
-    //       ...state,
-    //       isMaximizable: res,
-    //     });
-    //   });
-    // // 初始监听窗口是否最大化
-    // getCurrentWindow()
-    //   .isMaximized()
-    //   .then((res) => {
-    //     setState({
-    //       ...state,
-    //       hasMaximized: res,
-    //     });
-    //   });
+
   }, []);
   // 最小化
   const handleWinMin = async () => {
     await getCurrentWindow().minimize();
   };
   // 最大化/还原
-  const handleWinToggle = async () => {
-    await getCurrentWindow().toggleMaximize();
-  };
+  // const handleWinToggle = async () => {
+  //   await getCurrentWindow().toggleMaximize();
+  // };
   // 关闭
   const handleClose = async () => {
     const isMajor = getCurrentWindow().label.indexOf("main") > -1;
