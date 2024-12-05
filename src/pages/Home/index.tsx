@@ -1,4 +1,4 @@
-import { message, Table, TableProps } from "antd";
+import { message, Table, TableProps, theme } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -57,19 +57,32 @@ export const Home: FC = () => {
       messageApi.error("获取集群列表失败: " + JSON.stringify(error));
     }
   };
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   useEffect(() => {
     fetchClusters();
   }, []);
 
   return (
-    <div>
+    <div style={{ background: colorBgContainer }}>
       {contextHolder}
       <TopBar />
 
       <div data-tauri-drag-region className="container">
+        <img
+          data-tauri-drag-region
+          style={{
+            maxHeight: 100,
+            maxWidth: 100,
+            userSelect: "none",
+          }}
+          src="/ksmlog.png"
+          alt=""
+        />
         <div>
-          <Title level={1}>Kubernetes 列表</Title>
+          <Title level={1}>Kubernetes Manager</Title>
         </div>
         <div>
           <Table

@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { VideoCameraOutlined } from "@ant-design/icons";
-import { Button, Card, Layout, Menu, MenuProps, theme } from "antd";
+import { Breadcrumb, Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  DesktopOutlined,
+  FileOutlined,
+  PieChartOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
 import TopBar from "@/components/TopBar";
 import "./index.scss";
-import WindowOperation from "@/components/WindowOperation";
+import { Footer } from "antd/es/layout/layout";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -47,17 +55,15 @@ const GeekLayout: React.FC = () => {
   // colorBgContainer 通常用于设置容器的背景色。
   // borderRadiusLG 通常用于设置大尺寸的边框圆角。
   const {
-    token: { colorBgContainer },
+    token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
   const [locationPath, setLocationPath] = useState<string>(location.pathname);
   const [selectKeys, setSelectKeys] = useState<string[]>();
-  const [openKeys, setOpenKeys] = useState<string[]>([]);
   const handleOnSelect = (key: string, keyPath: string[]) => {
     setSelectKeys(keyPath);
     handleMenuOpenChange(keyPath);
     navigate(key);
-    setOpenKeys(keyPath);
   };
   const handleMenuOpenChange = (keys: string[]) => {
     let openKeyList: string[] = keys;
@@ -66,7 +72,6 @@ const GeekLayout: React.FC = () => {
       openKeyList.pop();
       openKeyList = ["/" + openKeyList.join("/")];
     }
-    setOpenKeys(openKeyList);
   };
 
   const [collapsed, setCollapsed] = useState(false);
@@ -75,73 +80,77 @@ const GeekLayout: React.FC = () => {
     setSelectKeys([location.pathname]);
     const openKey = location.pathname.split("/").slice(1);
     openKey.pop();
-    setOpenKeys(["/" + openKey.join("/")]);
     setLocationPath(location.pathname);
   }, [location.pathname]);
 
   return (
-    <div>
-      <Layout>
-        <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
+    <Layout>
+      <Header
+        // data-tauri-drag-region
+        style={{
+          // display: "flex",
+          // alignItems: "center",
+          backgroundColor: colorBgContainer,
+        }}
+      >
+        <TopBar />
+
+        <div className="logo" data-tauri-drag-region>
           <img
             data-tauri-drag-region
             style={{
               maxHeight: 30,
               maxWidth: 30,
               userSelect: "none",
-              marginLeft: 10,
-              marginTop: 10,
             }}
             src="/ksmlog.png"
             alt=""
           />
+          <div className="logo-title">KSM</div>
+        </div>
+      </Header>
+      <Layout>
+        <Sider width={200} style={{ background: colorBgContainer }}>
           <Menu
             theme="light"
             mode="inline"
-            openKeys={openKeys}
+            // openKeys={openKeys}
             onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
             selectedKeys={selectKeys}
             onOpenChange={handleMenuOpenChange}
             forceSubMenuRender
             items={items}
           />
-          <Button
-            type="text"
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
-            style={{
-              fontSize: "16px",
-              width: 64,
-              height: 64,
-            }}
-          />
         </Sider>
-        <Layout>
-          <Header
-            data-tauri-drag-region
-            style={{ padding: 0, background: colorBgContainer }}
+        <Layout style={{ padding: "0 24px 24px" }}>
+          <Breadcrumb
+            items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
+            style={{ margin: "16px 0" }}
+          />
+          <Content
+            style={{
+              margin: 0,
+              minHeight: 280,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
           >
-            <TopBar />
-
-            <Button
-              type="text"
-              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
+            <Card
               style={{
-                fontSize: "16px",
-                width: 64,
-                height: 64,
+                // height: "100%",
+                background: colorBgContainer,
+                borderRadius: borderRadiusLG,
               }}
-            />
-          </Header>
-          <Content>
-            {/* <Card className="card-container"> */}
-            <Outlet />
-            {/* </Card> */}
+            >
+              <Outlet />
+            </Card>
           </Content>
+          <Footer style={{ textAlign: "center" }}>
+            Ant Design ©{new Date().getFullYear()} Created by Ant UED
+          </Footer>
         </Layout>
       </Layout>
-    </div>
+    </Layout>
   );
 };
 

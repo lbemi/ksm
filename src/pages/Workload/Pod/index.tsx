@@ -417,7 +417,7 @@ const PodPage: FC = () => {
         dataSource={pods}
         loading={loading}
         rowKey={(record) => record.metadata!.name!}
-        scroll={{ x: "max-content", y: "calc(100vh - 230px)" }}
+        scroll={{ x: "max-content", y: "calc(100vh - 320px)" }}
         pagination={{ showTotal: (total) => `共 ${total} 条` }}
       />
     </>
