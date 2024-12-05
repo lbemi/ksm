@@ -6,11 +6,10 @@ import { Cluster } from "@/types/cluster";
 import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
 import { Typography } from "antd";
+import "./index.scss";
+import TopBar from "@/components/TopBar";
 
 const { Title } = Typography;
-import "./index.scss";
-import WindowOperation from "@/components/WindowOperation";
-import CustomDragDiv from "@/components/CustomDragDiv";
 
 export const Home: FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -66,30 +65,22 @@ export const Home: FC = () => {
   return (
     <div>
       {contextHolder}
-      <WindowOperation
-        hide={true}
-        height={40}
-        style={{ right: 10 }}
-        isMaximize={true}
-      />
-      <CustomDragDiv className="container">
-        <div data-tauri-drag-region>
+      <TopBar />
+
+      <div data-tauri-drag-region className="container">
+        <div>
           <Title level={1}>Kubernetes 列表</Title>
-          <div
-            data-tauri-drag-region
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <Table
-              className="table"
-              rowKey={(record) => record.name}
-              columns={columns}
-              dataSource={clusters}
-              style={{ width: "100%" }}
-              pagination={false}
-            />
-          </div>
         </div>
-      </CustomDragDiv>
+        <div>
+          <Table
+            rowKey={(record) => record.name}
+            columns={columns}
+            dataSource={clusters}
+            style={{ width: "50vw", marginTop: "25px" }}
+            pagination={false}
+          />
+        </div>
+      </div>
     </div>
   );
 };

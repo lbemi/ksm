@@ -81,28 +81,20 @@ const GeekLayout: React.FC = () => {
 
   return (
     <div>
-      <WindowOperation
-        hide={false}
-        height={40}
-        style={{ right: 10 }}
-        isMaximize={true}
-      />
-      <TopBar
-        props={{
-          color: colorBgContainer,
-          minimizable: true,
-          maximizable: true,
-          closable: true,
-          zIndex: 1024,
-          beforeClose: () => {
-            console.log("beforeClose");
-            return true;
-          },
-        }}
-      />
-
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout>
         <Sider collapsed={collapsed} style={{ background: colorBgContainer }}>
+          <img
+            data-tauri-drag-region
+            style={{
+              maxHeight: 30,
+              maxWidth: 30,
+              userSelect: "none",
+              marginLeft: 10,
+              marginTop: 10,
+            }}
+            src="/ksmlog.png"
+            alt=""
+          />
           <Menu
             theme="light"
             mode="inline"
@@ -125,10 +117,12 @@ const GeekLayout: React.FC = () => {
           />
         </Sider>
         <Layout>
-          {/* <Header
+          <Header
             data-tauri-drag-region
             style={{ padding: 0, background: colorBgContainer }}
           >
+            <TopBar />
+
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -139,11 +133,11 @@ const GeekLayout: React.FC = () => {
                 height: 64,
               }}
             />
-          </Header> */}
-          <Content style={{ margin: "24px 16px 0" }} className="card-container">
-            <Card className="card-container">
-              <Outlet />
-            </Card>
+          </Header>
+          <Content>
+            {/* <Card className="card-container"> */}
+            <Outlet />
+            {/* </Card> */}
           </Content>
         </Layout>
       </Layout>

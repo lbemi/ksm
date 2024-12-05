@@ -27,7 +27,7 @@ const About: FC = () => {
         >
           <img
             data-tauri-drag-region
-            style={{ maxHeight: 200, maxWidth: 200, userSelect: "none" }}
+            style={{ maxHeight: 150, maxWidth: 150, userSelect: "none" }}
             src="/logo.png"
             alt=""
           />

@@ -19,8 +19,8 @@ import type { CheckboxProps } from "antd";
 import "./index.scss";
 import dayjs from "dayjs";
 import { Typography } from "antd";
-import {IContainerStatus} from "kubernetes-models/v1/ContainerStatus";
-import {IIoK8sApiCoreV1PodCondition} from "kubernetes-models/v1/PodCondition";
+import { IContainerStatus } from "kubernetes-models/v1/ContainerStatus";
+import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 const { Paragraph } = Typography;
 
 const CheckboxGroup = Checkbox.Group;
@@ -156,7 +156,9 @@ const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
     case "Running":
       if (
         status.conditions &&
-        status.conditions.filter((s:IIoK8sApiCoreV1PodCondition) => s.status !== "True").length > 0
+        status.conditions.filter(
+          (s: IIoK8sApiCoreV1PodCondition) => s.status !== "True"
+        ).length > 0
       ) {
         return formatterIcon(
           "#c62828",
@@ -179,7 +181,7 @@ const getContainerStatuses = (data: IPodStatus, pending: boolean) => {
 
   if (pending) {
     const init = (data.initContainerStatuses || []).filter(
-      (s:IContainerStatus) => s.ready
+      (s: IContainerStatus) => s.ready
     ).length;
     if (init === (data.initContainerStatuses || []).length) {
       return containers.length === 0
@@ -415,7 +417,7 @@ const PodPage: FC = () => {
         dataSource={pods}
         loading={loading}
         rowKey={(record) => record.metadata!.name!}
-        scroll={{ x: "max-content", y: "calc(100vh - 320px)" }}
+        scroll={{ x: "max-content", y: "calc(100vh - 230px)" }}
         pagination={{ showTotal: (total) => `共 ${total} 条` }}
       />
     </>
