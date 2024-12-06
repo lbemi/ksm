@@ -82,7 +82,9 @@ export const Home: FC = () => {
           alt=""
         />
         <div>
-          <Title level={1}>Kubernetes Manager</Title>
+          <Title data-tauri-drag-region level={1}>
+            Kubernetes Manager
+          </Title>
         </div>
         <div>
           <Table

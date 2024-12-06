@@ -2,15 +2,7 @@ import React, { useEffect, useState } from "react";
 import { VideoCameraOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  DesktopOutlined,
-  FileOutlined,
-  PieChartOutlined,
-  TeamOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+
 import TopBar from "@/components/TopBar";
 import "./index.scss";
 import { Footer } from "antd/es/layout/layout";
@@ -85,19 +77,18 @@ const GeekLayout: React.FC = () => {
 
   return (
     <Layout>
+      <TopBar />
+
       <Header
-        // data-tauri-drag-region
+        data-tauri-drag-region
         style={{
-          // display: "flex",
-          // alignItems: "center",
+          display: "flex",
+          alignItems: "center",
           backgroundColor: colorBgContainer,
         }}
       >
-        <TopBar />
-
         <div className="logo" data-tauri-drag-region>
           <img
-            data-tauri-drag-region
             style={{
               maxHeight: 30,
               maxWidth: 30,
@@ -110,7 +101,7 @@ const GeekLayout: React.FC = () => {
         </div>
       </Header>
       <Layout>
-        <Sider width={200} style={{ background: colorBgContainer }}>
+        <Sider width={180} style={{ background: colorBgContainer }}>
           <Menu
             theme="light"
             mode="inline"
@@ -120,9 +111,10 @@ const GeekLayout: React.FC = () => {
             onOpenChange={handleMenuOpenChange}
             forceSubMenuRender
             items={items}
+            style={{ paddingTop: "10px" }}
           />
         </Sider>
-        <Layout style={{ padding: "0 24px 24px" }}>
+        <Layout style={{ padding: "24px 24px 24px" }}>
           <Breadcrumb
             items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
             style={{ margin: "16px 0" }}
@@ -133,11 +125,12 @@ const GeekLayout: React.FC = () => {
               minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
+              height: "calc(100vh - 180px)",
             }}
           >
             <Card
               style={{
-                // height: "100%",
+                height: "100%",
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
               }}
