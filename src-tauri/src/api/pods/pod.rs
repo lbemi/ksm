@@ -1,9 +1,14 @@
 use crate::boot::server::AppData;
 use crate::error::MyError;
 use crate::service::pod::PodStruct;
+use futures::{TryFutureExt, TryStreamExt};
+use hyper::client;
 use k8s_openapi::api::core::v1::Pod;
-use std::sync::Mutex;
+use kube::runtime::{watcher, WatchStreamExt};
+use kube::{Api, Client};
+use std::sync::{Arc, Mutex};
 use tauri::State;
+use tokio::net::TcpStream;
 
 #[tauri::command]
 pub async fn list_pods(
@@ -16,6 +21,26 @@ pub async fn list_pods(
         .await
         .list_pods()
         .await
+}
+
+#[tauri::command]
+pub async fn watch_pods(
+    strem: TcpStream,
+    namespace: &str,
+    state: State<'_, Mutex<AppData>>,
+) -> Result<(), MyError> {
+    let app_data = state.lock().unwrap();
+    let client = app_data.client.clone().unwrap();
+
+    let api = Api::<Pod>::namespaced(client, namespace);
+    watcher(api, watcher::Config::default())
+        .default_backoff()
+        .try_for_each(|event| async move {
+            println!("{:?}", event);
+            Ok(())
+        })
+        .await?;
+    Ok(())
 }
 
 // #[tauri::command]

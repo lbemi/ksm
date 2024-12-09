@@ -9,17 +9,28 @@ const getAge = (timeStamp: string) => {
   }
 
   const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
   if (minutes < 60) {
+    const remainingSeconds = seconds % 60;
     return `${minutes}m${remainingSeconds}s`;
   }
 
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours}h`;
+    const remainingMinutes = minutes % 60;
+    return `${hours}h${remainingMinutes}m`;
   }
 
   const days = Math.floor(hours / 24);
-  return `${days}d`;
+  if (days < 365*2) {
+    if (days < 30) {
+      const remainingHours = hours % 24;
+      return `${days}d${remainingHours}h`;
+    }
+    return `${days}d`;
+  }
+
+  const years = Math.floor(days / 365*2);
+  const remainingDays = days % 365*2;
+  return `${years}y${remainingDays}d`;
 };
 export default getAge;

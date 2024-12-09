@@ -16,6 +16,8 @@ pub enum MyError {
     KubeconfigError(String),
     #[error(" OtherError: {0}")]
     OtherError(String),
+    #[error("Error: {0}")]
+    WatchError(String),
 }
 
 impl From<kube::Error> for MyError {
@@ -44,5 +46,11 @@ impl From<KubeconfigError> for MyError {
 impl From<anyhow::Error> for MyError {
     fn from(value: anyhow::Error) -> Self {
         MyError::OtherError(value.to_string())
+    }
+}
+
+impl From<kube::runtime::watcher::Error> for MyError {
+    fn from(value: kube::runtime::watcher::Error) -> Self {
+        MyError::WatchError(value.to_string())
     }
 }

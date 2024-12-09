@@ -1,11 +1,12 @@
 use crate::boot::server::AppData;
 use crate::error::MyError;
+use futures::channel::mpsc;
+use futures::TryStreamExt;
 use k8s_openapi::api::core::v1::Pod;
-use kube::api::{DeleteParams, ListParams, PostParams};
+use kube::api::{DeleteParams, ListParams, PostParams, WatchEvent};
 use kube::Api;
 use std::sync::Mutex;
 use tauri::State;
-
 pub struct PodStruct {
     api: Api<Pod>,
 }

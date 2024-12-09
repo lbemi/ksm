@@ -1,4 +1,4 @@
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use kube::config::Kubeconfig;
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
@@ -69,10 +69,12 @@ pub fn run() {
             Ok(())
         })
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_websocket::init())
         .invoke_handler(tauri::generate_handler![
             cluster::switch_cluster,
             cluster::list_clusters,
             pod::list_pods,
+            pod::watch_pods,
             custom_api::kubernetes_api,
         ])
         .run(tauri::generate_context!())
