@@ -344,6 +344,11 @@ const PodPage: FC = () => {
   // };
   const list_pods = async (namespace: string) => {
     setLoading(true);
+    invoke("watch_pods", {
+      namespace: namespace,
+    }).then((res) => {
+      console.log("res: ", res);
+    });
     await invoke("kubernetes_api", {
       resource: "pods",
       verb: "GET",

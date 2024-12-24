@@ -24,13 +24,11 @@ pub async fn list_pods(
 }
 
 #[tauri::command]
-pub async fn watch_pods(
-    strem: TcpStream,
-    namespace: &str,
-    state: State<'_, Mutex<AppData>>,
-) -> Result<(), MyError> {
-    let app_data = state.lock().unwrap();
-    let client = app_data.client.clone().unwrap();
+pub async fn watch_pods(namespace: &str, state: State<'_, Mutex<AppData>>) -> Result<(), MyError> {
+    let client = {
+        let app_data = state.lock().unwrap();
+        app_data.client.clone().unwrap()
+    };
 
     let api = Api::<Pod>::namespaced(client, namespace);
     watcher(api, watcher::Config::default())
