@@ -1,4 +1,4 @@
-use crate::boot::server::AppData;
+use crate::boot::setup::AppData;
 use crate::error::MyError;
 use futures::channel::mpsc;
 use futures::TryStreamExt;

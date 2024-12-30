@@ -1,4 +1,4 @@
-use crate::boot::server::AppData;
+use crate::boot::setup::AppData;
 use crate::error::MyError;
 use crate::service::pod::PodStruct;
 use futures::{TryFutureExt, TryStreamExt};

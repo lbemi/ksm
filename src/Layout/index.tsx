@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { VideoCameraOutlined } from "@ant-design/icons";
 import { Breadcrumb, Button, Card, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-
+import {
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  VideoCameraOutlined,
+} from "@ant-design/icons";
 import TopBar from "@/components/TopBar";
 import "./index.scss";
 import { Footer } from "antd/es/layout/layout";
@@ -76,32 +79,43 @@ const GeekLayout: React.FC = () => {
   }, [location.pathname]);
 
   return (
-    <Layout>
-      <TopBar />
-
-      <Header
-        data-tauri-drag-region
-        style={{
-          display: "flex",
-          alignItems: "center",
-          backgroundColor: colorBgContainer,
-        }}
-      >
-        <div className="logo" data-tauri-drag-region>
-          <img
-            style={{
-              maxHeight: 30,
-              maxWidth: 30,
-              userSelect: "none",
-            }}
-            src="/ksmlog.png"
-            alt=""
-          />
-          <div className="logo-title">KSM</div>
-        </div>
-      </Header>
+    <>
       <Layout>
-        <Sider width={180} style={{ background: colorBgContainer }}>
+        <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          style={{ background: colorBgContainer }}
+        >
+          <div style={{ marginLeft: "80px" }}>
+            <Button
+              type="text"
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => setCollapsed(!collapsed)}
+              style={{
+                fontSize: "16px",
+                width: 64,
+                height: 64,
+                margin: 0,
+                padding: 0,
+                border: 0,
+                marginRight: "16px",
+              }}
+            />
+          </div>
+
+          <div className="logo" data-tauri-drag-region>
+            <img
+              style={{
+                maxHeight: 30,
+                maxWidth: 30,
+                userSelect: "none",
+              }}
+              src="/ksmlog.png"
+              alt=""
+            />
+            <div className="logo-title">KSM</div>
+          </div>
           <Menu
             theme="light"
             mode="inline"
@@ -114,18 +128,23 @@ const GeekLayout: React.FC = () => {
             style={{ paddingTop: "10px" }}
           />
         </Sider>
-        <Layout style={{ padding: "24px 24px 24px" }}>
-          <Breadcrumb
-            items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
-            style={{ margin: "16px 0" }}
-          />
+        <Layout>
+          <Header style={{ padding: 0, background: colorBgContainer }}>
+            <TopBar />
+
+            <Breadcrumb
+              items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
+              style={{ margin: "16px 0" }}
+            />
+          </Header>
+
           <Content
             style={{
               margin: 0,
               minHeight: 280,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
-              height: "calc(100vh - 180px)",
+              height: "calc(100vh - 80px)",
             }}
           >
             <Card
@@ -143,7 +162,7 @@ const GeekLayout: React.FC = () => {
           </Footer>
         </Layout>
       </Layout>
-    </Layout>
+    </>
   );
 };
 

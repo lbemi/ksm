@@ -68,8 +68,6 @@ export const Home: FC = () => {
   return (
     <div style={{ background: colorBgContainer }}>
       {contextHolder}
-      <TopBar />
-
       <div data-tauri-drag-region className="container">
         <img
           data-tauri-drag-region

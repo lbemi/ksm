@@ -1,4 +1,4 @@
-use crate::{boot::server::AppData, error::MyError};
+use crate::{boot::setup::AppData, error::MyError};
 use anyhow::Context;
 use kube::{
     api::{Api, DynamicObject, ListParams},
