@@ -14,28 +14,38 @@ const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 const items: MenuItem[] = [
   {
-    label: "集群列表",
-    key: "/",
-    icon: <VideoCameraOutlined />,
-  },
-  {
-    label: "Dashboard",
-    key: "/kubernetes",
-    icon: <VideoCameraOutlined />,
+    key: "/kubernetes/all",
+    label: "总览",
+    type: "group",
+    children: [
+      {
+        label: "集群列表",
+        key: "/",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        label: "Dashboard",
+        key: "/kubernetes",
+        icon: <VideoCameraOutlined />,
+      },
+    ],
   },
   {
     key: "/kubernetes/workload",
     label: "工作负载",
-    icon: <VideoCameraOutlined />,
+    type: "group",
+    // icon: <VideoCameraOutlined />,
     children: [
       {
         key: "/kubernetes/workload/deployment",
         label: "Deployment",
+
         icon: <VideoCameraOutlined />,
       },
       {
         key: "/kubernetes/workload/pod",
         label: "Pod",
+
         icon: <VideoCameraOutlined />,
       },
     ],
@@ -85,22 +95,13 @@ const GeekLayout: React.FC = () => {
           trigger={null}
           collapsible
           collapsed={collapsed}
-          style={{ background: colorBgContainer }}
+          style={{ background: colorBgContainer, width: "160px" }}
         >
           <div style={{ marginLeft: "80px" }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              style={{
-                fontSize: "16px",
-                width: 64,
-                height: 64,
-                margin: 0,
-                padding: 0,
-                border: 0,
-                marginRight: "16px",
-              }}
             />
           </div>
 
@@ -125,14 +126,18 @@ const GeekLayout: React.FC = () => {
             onOpenChange={handleMenuOpenChange}
             forceSubMenuRender
             items={items}
-            style={{ paddingTop: "10px" }}
+            style={{ paddingTop: "10px", width: "160px", marginLeft: "10px" }}
           />
         </Sider>
         <Layout>
-          <Header style={{ padding: 0, background: colorBgContainer }}>
+          <Header
+            data-tauri-drag-region
+            style={{ padding: 0, background: colorBgContainer }}
+          >
             <TopBar />
 
             <Breadcrumb
+              data-tauri-drag-region
               items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
               style={{ margin: "16px 0" }}
             />
@@ -152,14 +157,12 @@ const GeekLayout: React.FC = () => {
                 height: "100%",
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
+                margin: "10px",
               }}
             >
               <Outlet />
             </Card>
           </Content>
-          <Footer style={{ textAlign: "center" }}>
-            Ant Design ©{new Date().getFullYear()} Created by Ant UED
-          </Footer>
         </Layout>
       </Layout>
     </>

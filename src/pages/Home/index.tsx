@@ -66,7 +66,7 @@ export const Home: FC = () => {
   }, []);
 
   return (
-    <div style={{ background: colorBgContainer }}>
+    <div style={{ background: colorBgContainer, borderRadius: borderRadiusLG }}>
       {contextHolder}
       <div data-tauri-drag-region className="container">
         <img

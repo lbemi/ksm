@@ -1,5 +1,6 @@
 use crate::tray::create_tray;
 use kube::config::Kubeconfig;
+use std::sync::{Arc, Mutex};
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 
 #[derive(Default)]
@@ -8,7 +9,7 @@ pub struct AppData {
     pub client: Option<kube::Client>,
     pub discovery: Option<kube::Discovery>,
 }
-use std::sync::{Arc, Mutex};
+
 impl AppData {
     fn load_config() -> Self {
         AppData {
@@ -18,6 +19,7 @@ impl AppData {
         }
     }
 }
+
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(Mutex::new(AppData::load_config()));
     let handle = app.handle();
@@ -33,13 +35,15 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     #[cfg(target_os = "macos")]
     {
-        core_window = core_window.title_bar_style(TitleBarStyle::Overlay);
+        core_window = core_window
+            .title_bar_style(TitleBarStyle::Overlay)
+            .hidden_title(true);
     }
 
     let core_window = core_window
         .resizable(true)
         .inner_size(800.0, 600.0)
-        .min_inner_size(500.0, 400.0)
+        .min_inner_size(600.0, 400.0)
         .build()
         .expect("Failed to create core window");
     // let win_size = core_window
