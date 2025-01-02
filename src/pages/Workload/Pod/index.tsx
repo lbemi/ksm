@@ -10,10 +10,19 @@ import {
   TableProps,
   Tag,
   Tooltip,
+  Dropdown,
 } from "antd";
 import { Pod, IContainer, IPodStatus } from "kubernetes-models/v1";
 import { FC, useEffect, useState } from "react";
-import { PicRightOutlined, SyncOutlined } from "@ant-design/icons";
+import {
+  SyncOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  DownOutlined,
+  PlusOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 import { CheckboxOptionType } from "antd/es/checkbox/Group";
 import type { CheckboxProps } from "antd";
 import "./index.scss";
@@ -22,9 +31,14 @@ import { Typography } from "antd";
 import { IContainerStatus } from "kubernetes-models/v1/ContainerStatus";
 import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 import { K8sResponse } from "@/types/cluster";
+import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
+import getAge from "@/utils/k8s/date";
 const { Paragraph } = Typography;
 
 const CheckboxGroup = Checkbox.Group;
+
+const TABLE_SCROLL_HEIGHT = "calc(100vh - 320px)";
+const SEARCH_WIDTH = 300;
 
 const columns: TableProps<Pod>["columns"] = [
   {
@@ -34,20 +48,17 @@ const columns: TableProps<Pod>["columns"] = [
     width: 220,
     fixed: "left",
     render: (text) => (
-      <div>
-        <a
-          onClick={() => {
-            console.log(text);
+      <div className="pod-name-cell">
+        <Paragraph
+          copyable={{
+            text: text,
+            tooltips: ["复制名称", "已复制"],
           }}
-        >
-          <Paragraph
-            copyable={{
-              text: text,
-            }}
-          >
-            {text}
-          </Paragraph>
-        </a>
+          style={{ marginRight: 8, marginBottom: 0 }}
+        />
+        <span className="pod-name-text" title={text}>
+          {text}
+        </span>
       </div>
     ),
   },
@@ -63,6 +74,7 @@ const columns: TableProps<Pod>["columns"] = [
     dataIndex: ["spec", "containers"],
     key: "image",
     width: 100,
+    align: "center",
     onCell: () => {
       return {
         style: {
@@ -89,41 +101,45 @@ const columns: TableProps<Pod>["columns"] = [
     render: (hostIP) => <div>{hostIP}</div>,
   },
   {
-    title: "创建时间",
-    dataIndex: ["metadata", "creationTimestamp"],
-    key: "create_time",
-    defaultSortOrder: "descend",
-    sorter: (a, b) =>
-      dayjs(a.metadata?.creationTimestamp).valueOf() -
-      dayjs(b.metadata?.creationTimestamp).valueOf(),
-    render: (text) => <div>{dayjs(text).format("YYYY-MM-DD HH:mm:ss")}</div>,
+    title: "Age",
+    dataIndex: "metadata",
+    key: "creationTimestamp",
+    render: (metadata: IIoK8sApimachineryPkgApisMetaV1ObjectMeta) => {
+      if (metadata.creationTimestamp) {
+        return getAge(metadata.creationTimestamp);
+      }
+    },
   },
   {
     title: "操作",
     key: "action",
     fixed: "right",
     dataIndex: "action",
-    width: 170,
+    width: 100,
     render: () => (
-      <div>
-        <Button type="link" size="small">
-          详情
-        </Button>
-        <Button type="link" size="small">
-          编辑
-        </Button>
-        <Button color="danger" variant="link" size="small">
-          删除
-        </Button>
-        <Button type="link" size="small">
-          终端
-        </Button>
-        <Button type="link" size="small">
-          日志
-        </Button>
-        <Button type="link" size="small">
-          文件
-        </Button>
+      <div className="action-buttons">
+        <Dropdown
+          menu={{
+            items: [
+              { key: "detail", label: "详情", icon: <EyeOutlined /> },
+              { key: "edit", label: "编辑", icon: <EditOutlined /> },
+              {
+                key: "delete",
+                label: "删除",
+                icon: <DeleteOutlined />,
+                danger: true,
+              },
+              { type: "divider" },
+              { key: "terminal", label: "终端", icon: <SettingOutlined /> },
+              { key: "logs", label: "日志", icon: <SettingOutlined /> },
+              { key: "files", label: "文件", icon: <SettingOutlined /> },
+            ],
+          }}
+        >
+          <Button type="link" size="small">
+            更多 <DownOutlined />
+          </Button>
+        </Dropdown>
       </div>
     ),
   },
@@ -223,17 +239,43 @@ const formatterIcon = (color: string, text: string) => {
   );
 };
 const get_images = (containers: Array<IContainer>) => {
+  if (!containers.length) return null;
+
+  const firstImage = containers[0];
+  const remainingImages = containers.slice(1);
+
   return (
-    <div className="pod-images">
-      {containers.map((container, index) => (
-        <div key={index}>
-          <Tooltip placement="topLeft" title={container.image}>
-            <Tag key={index} color="geekblue">
-              {container.image}
+    <div
+      className="pod-images"
+      style={{ display: "flex", justifyContent: "center" }}
+    >
+      <Tooltip
+        placement="topLeft"
+        title={
+          <div className="image-tooltip">
+            <Tag color="geekblue" className="copyable-tag">
+              <Typography.Text copyable={{ text: firstImage.image }}>
+                {firstImage.image}
+              </Typography.Text>
             </Tag>
-          </Tooltip>
-        </div>
-      ))}
+            {remainingImages.length > 0 &&
+              remainingImages.map((container, index) => (
+                <Tag color="geekblue" key={index} className="copyable-tag">
+                  <Typography.Text copyable={{ text: container.image }}>
+                    {container.image}
+                  </Typography.Text>
+                </Tag>
+              ))}
+          </div>
+        }
+      >
+        <Tag color="geekblue">
+          <Typography.Text copyable={{ text: firstImage.image }}>
+            {firstImage.image}
+          </Typography.Text>
+          {remainingImages.length > 0 && ` +${remainingImages.length}`}
+        </Tag>
+      </Tooltip>
     </div>
   );
 };
@@ -243,15 +285,18 @@ const PodPage: FC = () => {
   const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
   const [pods, setPods] = useState<Array<Pod>>([]);
   const [showColumn, setShowColumn] = useState(columns);
-  const plainOptions = columns!.map(({ key, title }) => ({
-    label: title,
-    value: key,
-  }));
+  const plainOptions = columns!
+    .filter((column) => column.key !== "action")
+    .map(({ key, title }) => ({
+      label: title,
+      value: key,
+    }));
   const [open, setOpen] = useState(false);
   const handleOpen = (open: boolean) => {
     setOpen(open);
   };
   const defaultCheckedList = columns
+    .filter((column) => column.key !== "action")
     .map(({ key }) => key)
     .filter((key): key is string => key !== undefined);
   const [checkedList, setCheckedList] = useState<string[]>(defaultCheckedList);
@@ -268,6 +313,7 @@ const PodPage: FC = () => {
    * If the checkbox is unchecked, then the `checkedList` is cleared.
    * The `checkedList` is a state that keeps track of the selected column names.
    * @param e The change event of the checkbox.
+      
    */
   const onCheckAllChange: CheckboxProps["onChange"] = (e) => {
     const checkboxValues = e.target.checked
@@ -329,20 +375,7 @@ const PodPage: FC = () => {
       </>
     );
   };
-  // const list_pods = async (clusterName: string, namespace: string) => {
-  //   setLoading(true);
-  //   await invoke("list_pods", {
-  //     clusterName: clusterName,
-  //     namespace: namespace,
-  //   })
-  //     .then((res) => {
-  //       setPods(res as Array<Pod>);
-  //     })
-  //     .catch((err) => {
-  //       console.log("err: ", err);
-  //     });
-  //   setLoading(false);
-  // };
+
   const list_pods = async (namespace: string) => {
     invoke<K8sResponse>("proxy_get", {
       url: "/api/v1/namespaces/" + namespace + "/pods?limit=500",
@@ -364,7 +397,10 @@ const PodPage: FC = () => {
   const handelSelectOption = () => {
     const newColumns = columns!.map((item) => ({
       ...item,
-      hidden: !checkedList.includes(item.key as string),
+      hidden:
+        item.key === "action"
+          ? false
+          : !checkedList.includes(item.key as string),
     }));
 
     setShowColumn(newColumns);
@@ -373,52 +409,85 @@ const PodPage: FC = () => {
 
   type SearchProps = GetProps<typeof Input.Search>;
   const { Search } = Input;
-  const onSearch: SearchProps["onSearch"] = (value, _e, info) =>
-    console.log(info?.source, value);
+  const [searchText, setSearchText] = useState("");
+
+  const getFilteredPods = () => {
+    if (!searchText) return pods;
+
+    return pods.filter((pod) => {
+      const name = pod.metadata?.name?.toLowerCase() || "";
+      const status = pod.status?.phase?.toLowerCase() || "";
+      const ip = pod.status?.podIP?.toLowerCase() || "";
+      const node = pod.status?.hostIP?.toLowerCase() || "";
+      const searchLower = searchText.toLowerCase();
+
+      return (
+        name.includes(searchLower) ||
+        status.includes(searchLower) ||
+        ip.includes(searchLower) ||
+        node.includes(searchLower)
+      );
+    });
+  };
+
+  const onSearch: SearchProps["onSearch"] = (value) => {
+    setSearchText(value);
+  };
+
+  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchText(e.target.value);
+  };
 
   return (
-    <>
-      <div className="div-header">
-        <div>
-          <Button type="primary">新增</Button>
+    <div className="pod-page">
+      <div className="page-header">
+        <div className="left-section">
+          <Button type="primary" icon={<PlusOutlined />}>
+            新增 Pod
+          </Button>
           <Search
-            placeholder="input search text"
+            allowClear
+            placeholder="搜索 Pod 名称、状态、IP、节点..."
             onSearch={onSearch}
-            style={{ width: 200, marginLeft: 20 }}
+            onChange={onSearchChange}
+            value={searchText}
+            style={{ width: SEARCH_WIDTH }}
           />
         </div>
-        <div>
+        <div className="right-section">
           <Button
-            icon={<PicRightOutlined />}
-            type="dashed"
-            style={{ marginRight: 20 }}
+            icon={<SyncOutlined />}
             onClick={() => list_pods("default")}
+            className="refresh-button"
           >
             刷新
           </Button>
           <Popover
-            trigger={"click"}
-            placement="bottom"
-            content={() => rowSelection()}
+            trigger="click"
+            placement="bottomRight"
+            content={rowSelection()}
             open={open}
             onOpenChange={handleOpen}
           >
-            <Button icon={<PicRightOutlined />} type="dashed">
-              自定义列
-            </Button>
+            <Button icon={<SettingOutlined />}>自定义列</Button>
           </Popover>
         </div>
       </div>
+
       <Table
-        className="table"
+        className="pod-table"
         columns={showColumn}
-        dataSource={pods}
+        dataSource={getFilteredPods()}
         loading={loading}
         rowKey={(record) => record.metadata!.name!}
-        scroll={{ x: "max-content", y: "calc(100vh - 320px)" }}
-        pagination={{ showTotal: (total) => `共 ${total} 条` }}
+        scroll={{ x: "max-content", y: TABLE_SCROLL_HEIGHT }}
+        pagination={{
+          showTotal: (total) => `共 ${total} 条`,
+          showSizeChanger: true,
+          showQuickJumper: true,
+        }}
       />
-    </>
+    </div>
   );
 };
 

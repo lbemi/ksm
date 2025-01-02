@@ -1,7 +1,8 @@
 .select-option {
-  margin-top: 15px;
+  margin-top: 16px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 .ml10 {
@@ -33,4 +34,124 @@
     > *:last-child {
         margin-bottom: 0;
     }
+}
+
+.pod-page {
+  padding: 24px;
+  border-radius: 8px;
+  
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    
+    .left-section {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+    
+    .right-section {
+      display: flex;
+      gap: 12px;
+      
+      .refresh-button {
+        &:hover {
+          color: #1890ff;
+          border-color: #1890ff;
+        }
+      }
+    }
+  }
+  
+  .pod-table {
+    
+    .pod-name-cell {
+      display: flex;
+      align-items: center;
+      
+      .ant-typography {
+        margin-bottom: 0;
+      }
+      
+      .pod-name-text {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        
+        &:hover {
+          color: #1890ff;
+          cursor: pointer;
+        }
+      }
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+    }
+  }
+  
+  .pod-images {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    .ant-tag {
+      margin: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}
+
+.image-tooltip {
+  max-width: 500px;
+  
+  .copyable-tag {
+    display: block;
+    margin-bottom: 4px;
+    max-width: 100%;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    .ant-typography {
+      color: inherit;
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.pod-images {
+  .ant-typography {
+    color: inherit;
+  }
+  
+  .ant-typography-copy {
+    color: rgba(0, 0, 0, 0.45);
+    margin-left: 4px;
+    
+    &:hover {
+      color: #1890ff;
+    }
+  }
+}
+
+.ant-tooltip {
+  max-width: 500px;
+  
+  .ant-tooltip-inner {
+    max-width: 100%;
+  }
 }
