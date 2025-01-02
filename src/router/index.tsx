@@ -23,6 +23,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
+        path: "/kubernetes/dashboard",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <Dashboard />

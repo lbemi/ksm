@@ -13,12 +13,14 @@ const CreateAboutWindow = async () => {
     title: "关于ksm",
     width: 360,
     height: 510,
-    decorations: false,
+    decorations: true,
     center: true,
     transparent: true,
     resizable: false,
     shadow: false,
     focus: true,
+    titleBarStyle: "overlay",
+    hiddenTitle: true,
   });
 };
 

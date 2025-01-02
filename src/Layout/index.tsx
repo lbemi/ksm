@@ -1,51 +1,41 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Button, Card, Layout, Menu, MenuProps, theme } from "antd";
+import { Breadcrumb, Button, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
   VideoCameraOutlined,
+  MenuUnfoldOutlined,
+  MenuFoldOutlined,
 } from "@ant-design/icons";
-import TopBar from "@/components/TopBar";
+import Settings from "@/components/Settings";
 import "./index.scss";
-import { Footer } from "antd/es/layout/layout";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
 const items: MenuItem[] = [
   {
-    key: "/kubernetes/all",
-    label: "总览",
-    type: "group",
-    children: [
-      {
-        label: "集群列表",
-        key: "/",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        label: "Dashboard",
-        key: "/kubernetes",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
+    label: "集群列表",
+    key: "/",
+    icon: <VideoCameraOutlined />,
+  },
+  {
+    label: "Dashboard",
+    key: "/kubernetes/dashboard",
+    icon: <VideoCameraOutlined />,
   },
   {
     key: "/kubernetes/workload",
     label: "工作负载",
-    type: "group",
-    // icon: <VideoCameraOutlined />,
+    // type: "group",
+    icon: <VideoCameraOutlined />,
     children: [
       {
         key: "/kubernetes/workload/deployment",
         label: "Deployment",
-
         icon: <VideoCameraOutlined />,
       },
       {
         key: "/kubernetes/workload/pod",
         label: "Pod",
-
         icon: <VideoCameraOutlined />,
       },
     ],
@@ -90,79 +80,59 @@ const GeekLayout: React.FC = () => {
 
   return (
     <>
-      <Layout>
-        <Sider
-          trigger={null}
-          collapsible
-          collapsed={collapsed}
-          style={{ background: colorBgContainer, width: "160px" }}
+      <Layout style={{ minHeight: "100vh" }}>
+        <Header
+          data-tauri-drag-region
+          style={{
+            display: "flex",
+            alignItems: "center",
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+            height: "53px",
+          }}
         >
-          <div style={{ marginLeft: "80px" }}>
+          <div style={{ marginLeft: "160px" }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
           </div>
-
-          <div className="logo" data-tauri-drag-region>
-            <img
-              style={{
-                maxHeight: 30,
-                maxWidth: 30,
-                userSelect: "none",
-              }}
-              src="/ksmlog.png"
-              alt=""
-            />
-            <div className="logo-title">KSM</div>
-          </div>
-          <Menu
-            theme="light"
-            mode="inline"
-            // openKeys={openKeys}
-            onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
-            selectedKeys={selectKeys}
-            onOpenChange={handleMenuOpenChange}
-            forceSubMenuRender
-            items={items}
-            style={{ paddingTop: "10px", width: "160px", marginLeft: "10px" }}
-          />
-        </Sider>
+          <Settings />
+        </Header>
         <Layout>
-          <Header
-            data-tauri-drag-region
-            style={{ padding: 0, background: colorBgContainer }}
-          >
-            <TopBar />
-
-            <Breadcrumb
-              data-tauri-drag-region
-              items={[{ title: "Home" }, { title: "List" }, { title: "App" }]}
-              style={{ margin: "16px 0" }}
-            />
-          </Header>
-
-          <Content
-            style={{
-              margin: 0,
-              minHeight: 280,
-              background: colorBgContainer,
-              borderRadius: borderRadiusLG,
-              height: "calc(100vh - 80px)",
-            }}
-          >
-            <Card
+          <Sider trigger={null} collapsible collapsed={collapsed}>
+            <Menu
+              mode="inline"
+              onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
+              selectedKeys={selectKeys}
+              onOpenChange={handleMenuOpenChange}
+              forceSubMenuRender
+              items={items}
               style={{
                 height: "100%",
                 background: colorBgContainer,
+              }}
+            />
+          </Sider>
+          <Layout style={{ padding: "0 24px 24px" }}>
+            <Breadcrumb
+              items={location.pathname.split("/").map((path, _index, _arr) => ({
+                title: path,
+              }))}
+              style={{ margin: "16px 0" }}
+            />
+            <Content
+              style={{
+                padding: 24,
+                margin: 0,
+                background: colorBgContainer,
                 borderRadius: borderRadiusLG,
-                margin: "10px",
               }}
             >
               <Outlet />
-            </Card>
-          </Content>
+            </Content>
+          </Layout>
         </Layout>
       </Layout>
     </>

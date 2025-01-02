@@ -2,6 +2,7 @@ import { FC } from "react";
 import CustomBox from "@/components/CustomBox";
 import WindowOperation from "@/components/WindowOperation";
 import "./index.scss";
+import { theme } from "antd";
 const About: FC = () => {
   return (
     <>
@@ -23,17 +24,16 @@ const About: FC = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
+            userSelect: "none",
           }}
         >
           <img
             data-tauri-drag-region
-            style={{ maxHeight: 150, maxWidth: 150, userSelect: "none" }}
+            style={{ maxHeight: 120, maxWidth: 120, userSelect: "none" }}
             src="/logo.png"
             alt=""
           />
-          <div style={{ marginBottom: 20, fontSize: 30 }}>
-            Kubernetes Manager
-          </div>
+          <div className="about-title">Kubernetes Manager</div>
           <div>
             开源地址：
             <a href="https://github.com/lbemi/ksm" target="_blank">
@@ -47,9 +47,9 @@ const About: FC = () => {
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              marginTop: 30,
               color: "#9599a3",
               userSelect: "none",
+              marginTop: 80,
             }}
           >
             基于{" "}

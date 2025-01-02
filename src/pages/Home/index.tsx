@@ -7,7 +7,6 @@ import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
 import { Typography } from "antd";
 import "./index.scss";
-import TopBar from "@/components/TopBar";
 
 const { Title } = Typography;
 
@@ -20,7 +19,7 @@ export const Home: FC = () => {
     await invoke("switch_cluster", { clusterName: record.name })
       .then(() => {
         dispatch(setActiveCluster(record.name));
-        navigate(`/kubernetes?cluster=${record.name}`);
+        navigate(`/kubernetes/dashboard?cluster=${record.name}`);
       })
       .catch((err) => {
         messageApi.error("切换集群失败: " + JSON.stringify(err));
@@ -58,7 +57,7 @@ export const Home: FC = () => {
     }
   };
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
 
   useEffect(() => {
@@ -66,7 +65,7 @@ export const Home: FC = () => {
   }, []);
 
   return (
-    <div style={{ background: colorBgContainer, borderRadius: borderRadiusLG }}>
+    <div style={{ background: colorBgContainer }}>
       {contextHolder}
       <div data-tauri-drag-region className="container">
         <img

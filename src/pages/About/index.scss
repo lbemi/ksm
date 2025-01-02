@@ -57,3 +57,16 @@
     }
   }
 }
+
+
+.about-title{
+  margin: 20px 0;
+  font-size: 20px;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: non;
+  font-weight: bold;
+  pointer-events: none;
+  cursor: default;
+}

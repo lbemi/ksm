@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "16171974",
+      "name": "主题切换",
+      "font_class": "zhutiqiehuan",
+      "unicode": "e691",
+      "unicode_decimal": 59025
+    },
+    {
+      "icon_id": "40212461",
+      "name": "切换主题",
+      "font_class": "banrituo",
+      "unicode": "e605",
+      "unicode_decimal": 58885
+    },
+    {
       "icon_id": "3756717",
       "name": "bare_maetal",
       "font_class": "bare_maetal",

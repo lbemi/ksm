@@ -24,8 +24,22 @@ const MyIcon = ({
   const spinAnimation = spin ? "spin 1s linear infinite" : "none";
 
   return (
+    // <svg
+    //   className={`icon ${className || ""}`}
+    //   aria-hidden="true"
+    //   onClick={onClick}
+    //   style={{
+    //     width: `${size}px`,
+    //     height: `${size}px`,
+    //     fill: color,
+    //     animation: spinAnimation,
+    //     transformOrigin: "50% 50%",
+    //   }}
+    // >
+    //   <use xlinkHref={`#${type}`}></use>
+    // </svg>
     <svg
-      className={`icon ${className || ""}`}
+      className={`iconfont ${type} ${className || ""}`}
       aria-hidden="true"
       onClick={onClick}
       style={{

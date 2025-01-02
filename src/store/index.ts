@@ -1,10 +1,12 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import usek8sReducer from "./modules/kubernetes";
+import k8sReducer from "./modules/kubernetes";
+import themeReducer from "./modules/theme";
 
 const store = configureStore({
   reducer: {
-    kubernetes: usek8sReducer,
+    kubernetes: k8sReducer,
+    theme: themeReducer,
   },
 });
 
