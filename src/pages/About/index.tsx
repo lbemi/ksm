@@ -30,7 +30,7 @@ const About: FC = () => {
           <img
             data-tauri-drag-region
             style={{ maxHeight: 120, maxWidth: 120, userSelect: "none" }}
-            src="/logo.png"
+            src="/app-icon.png"
             alt=""
           />
           <div className="about-title">Kubernetes Manager</div>
