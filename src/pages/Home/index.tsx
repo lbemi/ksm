@@ -75,7 +75,7 @@ export const Home: FC = () => {
             maxWidth: 100,
             userSelect: "none",
           }}
-          src="/ksmlog.png"
+          src="/app-icon.png"
           alt=""
         />
         <div>
