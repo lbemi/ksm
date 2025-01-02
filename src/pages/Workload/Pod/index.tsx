@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { Typography } from "antd";
 import { IContainerStatus } from "kubernetes-models/v1/ContainerStatus";
 import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
+import { K8sResponse } from "@/types/cluster";
 const { Paragraph } = Typography;
 
 const CheckboxGroup = Checkbox.Group;
@@ -343,19 +344,11 @@ const PodPage: FC = () => {
   //   setLoading(false);
   // };
   const list_pods = async (namespace: string) => {
-    setLoading(true);
-    invoke("watch_pods", {
-      namespace: namespace,
-    }).then((res) => {
-      console.log("res: ", res);
-    });
-    await invoke("kubernetes_api", {
-      resource: "pods",
-      verb: "GET",
-      namespace: namespace,
+    invoke<K8sResponse>("proxy_get", {
+      url: "/api/v1/namespaces/" + namespace + "/pods?limit=500",
     })
       .then((res) => {
-        setPods(res as Array<Pod>);
+        setPods(res.items as Array<Pod>);
       })
       .catch((err) => {
         console.log("err: ", err);

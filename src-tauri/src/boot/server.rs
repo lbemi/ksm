@@ -1,9 +1,4 @@
-use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
-
-use crate::{
-    api::{cluster, custom_api, pods::pod},
-    tray::create_tray,
-};
+use crate::api::{cluster, custom_api, k8s_proxy, pods::pod};
 
 use super::setup;
 
@@ -20,6 +15,10 @@ pub fn run() {
             pod::list_pods,
             pod::watch_pods,
             custom_api::kubernetes_api,
+            k8s_proxy::proxy_get,
+            k8s_proxy::proxy_put,
+            k8s_proxy::proxy_post,
+            k8s_proxy::proxy_delete
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

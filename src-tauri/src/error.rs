@@ -18,6 +18,10 @@ pub enum MyError {
     OtherError(String),
     #[error("Error: {0}")]
     WatchError(String),
+    #[error("Error: {0}")]
+    HttpError(String),
+    #[error("Error: {0}")]
+    NoClient(String),
 }
 
 impl From<kube::Error> for MyError {
@@ -52,5 +56,11 @@ impl From<anyhow::Error> for MyError {
 impl From<kube::runtime::watcher::Error> for MyError {
     fn from(value: kube::runtime::watcher::Error) -> Self {
         MyError::WatchError(value.to_string())
+    }
+}
+
+impl From<http::Error> for MyError {
+    fn from(value: http::Error) -> Self {
+        MyError::HttpError(value.to_string())
     }
 }

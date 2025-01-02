@@ -13,9 +13,6 @@ pub struct PodStruct {
 
 impl PodStruct {
     pub async fn new(cluster_name: &str, ns: &str, state: State<'_, Mutex<AppData>>) -> Self {
-        // let client = utils::init_client::generate_client(cluster_name)
-        //     .await
-        //     .unwrap();
         let client = state.lock().unwrap().client.clone().unwrap();
         if ns != "all" {
             let api: Api<Pod> = Api::namespaced(client, ns);

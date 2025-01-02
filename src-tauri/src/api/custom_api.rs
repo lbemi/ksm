@@ -5,7 +5,7 @@ use kube::{
     discovery::{ApiCapabilities, ApiResource, Scope},
     Client, Discovery,
 };
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::State;
 
 struct App {

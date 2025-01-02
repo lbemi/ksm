@@ -1,6 +1,6 @@
 use crate::tray::create_tray;
 use kube::config::Kubeconfig;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 
 #[derive(Default)]
@@ -40,7 +40,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
             .hidden_title(true);
     }
 
-    let core_window = core_window
+    core_window
         .resizable(true)
         .inner_size(800.0, 600.0)
         .min_inner_size(600.0, 400.0)

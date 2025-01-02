@@ -8,6 +8,10 @@ import {
 } from "@ant-design/icons";
 import Settings from "@/components/Settings";
 import "./index.scss";
+import { list_namespaces } from "@/api/namespace";
+import { Namespace } from "kubernetes-models/v1";
+import { invoke } from "@tauri-apps/api/core";
+import { K8sResponse } from "@/types/cluster";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -70,7 +74,14 @@ const GeekLayout: React.FC = () => {
   };
 
   const [collapsed, setCollapsed] = useState(false);
-
+  const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
+  useEffect(() => {
+    invoke<K8sResponse>("proxy_get", {
+      url: "/api/v1/namespaces?limit=500",
+    }).then((res) => {
+      setNamespaces(res.items);
+    });
+  }, []);
   useEffect(() => {
     setSelectKeys([location.pathname]);
     const openKey = location.pathname.split("/").slice(1);

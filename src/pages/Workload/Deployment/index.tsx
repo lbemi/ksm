@@ -9,6 +9,7 @@ import { Deployment } from "kubernetes-models/apps/v1";
 import { invoke } from "@tauri-apps/api/core";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
+import { K8sResponse } from "@/types/cluster";
 
 const DeploymentView: FC = () => {
   const dispatch = useAppDispatch();
@@ -16,12 +17,10 @@ const DeploymentView: FC = () => {
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
   useEffect(() => {
     const namespace = searchParams.get("namespace") || "";
-    invoke("kubernetes_api", {
-      resource: "deployments",
-      verb: "GET",
-      namespace: "default",
+    invoke<K8sResponse>("proxy_get", {
+      url: "/apis/apps/v1/namespaces/" + namespace + "/deployments?limit=500",
     }).then((res) => {
-      setDeployments(res as Array<Deployment>);
+      setDeployments(res.items as Array<Deployment>);
     });
   }, [dispatch, searchParams]);
 

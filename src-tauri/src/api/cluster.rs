@@ -33,9 +33,3 @@ pub async fn switch_cluster(
     tracing::info!("Switched to cluster {}", cluster_name);
     Ok(cluster_name)
 }
-
-// async fn generate_client(config: Kubeconfig) -> anyhow::Result<Option<Client>> {
-//     let c = Config::from_custom_kubeconfig(config, &KubeConfigOptions::default()).await?;
-//     let res = Client::try_from(c);
-//     Ok(Some(res))
-// }
