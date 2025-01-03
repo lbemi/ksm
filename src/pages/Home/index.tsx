@@ -14,8 +14,10 @@ export const Home: FC = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(false);
 
   const redirect = async (record: Cluster) => {
+    setLoading(true);
     await invoke("switch_cluster", { clusterName: record.name })
       .then(() => {
         dispatch(setActiveCluster(record.name));
@@ -24,6 +26,7 @@ export const Home: FC = () => {
       .catch((err) => {
         messageApi.error("切换集群失败: " + JSON.stringify(err));
       });
+    setLoading(false);
   };
 
   const columns: TableProps<Cluster>["columns"] = [
@@ -90,6 +93,7 @@ export const Home: FC = () => {
             dataSource={clusters}
             style={{ width: "50vw", marginTop: "25px" }}
             pagination={false}
+            loading={loading}
           />
         </div>
       </div>

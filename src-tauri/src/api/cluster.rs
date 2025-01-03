@@ -17,6 +17,7 @@ pub async fn switch_cluster(
     cluster_name: String,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<String, MyError> {
+    set_no_proxy();
     let config = {
         let mut app_data = state.lock().unwrap();
         app_data.kubernetes_configs.current_context = Some(cluster_name.clone());
@@ -32,4 +33,9 @@ pub async fn switch_cluster(
     app_data.discovery = Some(discovery);
     tracing::info!("Switched to cluster {}", cluster_name);
     Ok(cluster_name)
+}
+
+fn set_no_proxy() {
+    std::env::set_var("HTTPS_PROXY", "");
+    std::env::set_var("https_proxy", "");
 }

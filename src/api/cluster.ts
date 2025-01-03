@@ -1,16 +1,23 @@
 import { invoke } from "@tauri-apps/api/core";
 
 export interface Params {
-    resource: string;
-    verb: string;
-    name?: string;
-    namespace?: string;
-    selector?: string;
+  resource: string;
+  verb: string;
+  name?: string;
+  namespace?: string;
+  selector?: string;
 }
-export const list_pods =async (namespace: string)=>{
-    await invoke("kubernetes_api", {
-        resource: "pods",
-        verb: "GET",
-        namespace: namespace
-    });
+
+export type Method = "GET" | "POST" | "DELETE" | "PUT" | "PATCH";
+
+export interface KubernetesResponse<T> {
+  items: T;
 }
+
+export const kubernetes_request = async <T>(method: Method, url: string) => {
+  const res = await invoke<KubernetesResponse<T>>("proxy_request", {
+    method: method,
+    url: url,
+  });
+  return res.items;
+};

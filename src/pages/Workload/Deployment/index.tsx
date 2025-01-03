@@ -1,15 +1,13 @@
 import { FC } from "react";
-import MyIcon from "@/components/MyIcon";
 
 import { useSearchParams } from "react-router-dom";
-import { Card, Col, Row, Table, TableProps } from "antd";
+import { Col, Row, Table, TableProps } from "antd";
 import { useEffect, useState } from "react";
 import { useAppDispatch } from "@/store/hook";
 import { Deployment } from "kubernetes-models/apps/v1";
-import { invoke } from "@tauri-apps/api/core";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
-import { K8sResponse } from "@/types/cluster";
+import { kubernetes_request } from "@/api/cluster";
 
 const DeploymentView: FC = () => {
   const dispatch = useAppDispatch();
@@ -17,10 +15,11 @@ const DeploymentView: FC = () => {
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
   useEffect(() => {
     const namespace = searchParams.get("namespace") || "";
-    invoke<K8sResponse>("proxy_get", {
-      url: "/apis/apps/v1/namespaces/" + namespace + "/deployments?limit=500",
-    }).then((res) => {
-      setDeployments(res.items as Array<Deployment>);
+    kubernetes_request<Array<Deployment>>(
+      "GET",
+      "/apis/apps/v1/namespaces/" + namespace + "/deployments?limit=500"
+    ).then((res) => {
+      setDeployments(res);
     });
   }, [dispatch, searchParams]);
 

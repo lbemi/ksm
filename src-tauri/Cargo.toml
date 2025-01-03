@@ -41,7 +41,7 @@ futures = "0.3"
 either = "1.13.0"
 edit = "0.1.5"
 tauri-plugin-websocket = "2.0.1"
+http = "1.2.0"
+
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.26.0"
-
-http = "1.2.0"

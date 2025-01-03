@@ -22,6 +22,8 @@ pub enum MyError {
     HttpError(String),
     #[error("Error: {0}")]
     NoClient(String),
+    #[error("InvalidMethod: {0}")]
+    InvalidMethod(String),
 }
 
 impl From<kube::Error> for MyError {

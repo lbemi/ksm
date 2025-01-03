@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { Breadcrumb, Button, Layout, Menu, MenuProps, theme } from "antd";
+import {
+  Breadcrumb,
+  Button,
+  Layout,
+  Menu,
+  MenuProps,
+  Select,
+  theme,
+} from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   VideoCameraOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import Settings from "@/components/Settings";
 import "./index.scss";
-import { list_namespaces } from "@/api/namespace";
 import { Namespace } from "kubernetes-models/v1";
-import { invoke } from "@tauri-apps/api/core";
-import { K8sResponse } from "@/types/cluster";
+import { kubernetes_request } from "@/api/cluster";
+import { useAppDispatch } from "@/store/hook";
+import { setActiveNamespace } from "@/store/modules/kubernetes";
+import { get } from "@/utils/localStorage";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -49,16 +59,16 @@ const items: MenuItem[] = [
 const GeekLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  // 这句代码使用了 Ant Design 的 theme.useToken() 钩子函数来获取当前主题的 token 值。
-  // 它解构出了 token 对象中的 colorBgContainer 和 borderRadiusLG 两个属性。
-  // colorBgContainer 通常用于设置容器的背景色。
-  // borderRadiusLG 通常用于设置大尺寸的边框圆角。
+  const dispatch = useAppDispatch();
+
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
   const [locationPath, setLocationPath] = useState<string>(location.pathname);
   const [selectKeys, setSelectKeys] = useState<string[]>();
+  const [collapsed, setCollapsed] = useState(false);
+  const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
+
   const handleOnSelect = (key: string, keyPath: string[]) => {
     setSelectKeys(keyPath);
     handleMenuOpenChange(keyPath);
@@ -73,15 +83,19 @@ const GeekLayout: React.FC = () => {
     }
   };
 
-  const [collapsed, setCollapsed] = useState(false);
-  const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
-  useEffect(() => {
-    invoke<K8sResponse>("proxy_get", {
-      url: "/api/v1/namespaces?limit=500",
-    }).then((res) => {
-      setNamespaces(res.items);
+  const list_namespaces = () => {
+    kubernetes_request<Array<Namespace>>(
+      "GET",
+      "/api/v1/namespaces?limit=500"
+    ).then((res) => {
+      setNamespaces(res);
     });
+  };
+
+  useEffect(() => {
+    list_namespaces();
   }, []);
+
   useEffect(() => {
     setSelectKeys([location.pathname]);
     const openKey = location.pathname.split("/").slice(1);
@@ -99,16 +113,51 @@ const GeekLayout: React.FC = () => {
             alignItems: "center",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            height: "53px",
+            height: "60px",
+            padding: "0 20px",
           }}
         >
-          <div style={{ marginLeft: "160px" }}>
+          <div style={{ marginLeft: "20px", alignItems: "center" }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
           </div>
+          <span
+            style={{ fontSize: "16px", fontWeight: "bold", margin: "0 20px" }}
+          >
+            当前集群:
+          </span>
+          <span style={{ margin: "0 30px" }}>{get("activeCluster")}</span>
+          <span
+            style={{ fontSize: "16px", fontWeight: "bold", margin: "0 20px" }}
+          >
+            命名空间:
+          </span>
+          <Select
+            style={{ width: 200 }}
+            defaultValue={get("namespace") || "default"}
+            size="small"
+            options={[
+              { value: "all", label: "全部命名空间" },
+              ...namespaces.map((namespace) => ({
+                value: namespace.metadata!.name,
+                label: <span>{namespace.metadata!.name}</span>,
+              })),
+            ]}
+            onChange={(value) => {
+              dispatch(setActiveNamespace(value));
+            }}
+          />
+          <Button
+            variant="link"
+            color="primary"
+            onClick={() => {
+              list_namespaces();
+            }}
+            icon={<ReloadOutlined />}
+          ></Button>
           <Settings />
         </Header>
         <Layout>
