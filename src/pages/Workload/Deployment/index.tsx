@@ -1,8 +1,7 @@
 import { FC } from "react";
-
 import { useSearchParams } from "react-router-dom";
-import { Col, Row, Table, TableProps } from "antd";
-import { useEffect, useState } from "react";
+import { Col, Row, Table, TableProps, Input } from "antd";
+import { useEffect, useState, useMemo } from "react";
 import { useAppDispatch } from "@/store/hook";
 import { Deployment } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
@@ -13,6 +12,8 @@ const DeploymentView: FC = () => {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
+  const [searchText, setSearchText] = useState<string>("");
+
   useEffect(() => {
     const namespace = searchParams.get("namespace") || "";
     kubernetes_request<Array<Deployment>>(
@@ -83,10 +84,29 @@ const DeploymentView: FC = () => {
     },
   ];
 
+  const filteredDeployments = useMemo(() => {
+    return deployments.filter((deployment: Deployment) =>
+      deployment.metadata?.name
+        ?.toLowerCase()
+        .includes(searchText.toLowerCase())
+    );
+  }, [deployments, searchText]);
+
   return (
     <Row gutter={16}>
       <Col span={24}>
-        <Table columns={columns} dataSource={deployments} />
+        <Input
+          placeholder="Search Deployments"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{ marginBottom: 16 }}
+        />
+        <Table
+          columns={columns}
+          rowKey={(record) => record.metadata?.uid!}
+          dataSource={filteredDeployments}
+          pagination={{ pageSize: 10 }}
+        />
       </Col>
     </Row>
   );

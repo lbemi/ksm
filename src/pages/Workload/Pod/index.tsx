@@ -22,6 +22,7 @@ import {
   DeleteOutlined,
   DownOutlined,
   PlusOutlined,
+  CheckCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 import { CheckboxOptionType } from "antd/es/checkbox/Group";
@@ -33,6 +34,7 @@ import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
+import { TableRowSelection } from "antd/es/table/interface";
 
 const PodPage: FC = () => {
   const columns: TableProps<Pod>["columns"] = [
@@ -40,7 +42,7 @@ const PodPage: FC = () => {
       title: "名称",
       dataIndex: ["metadata", "name"],
       key: "name",
-      width: 220,
+      width: 100,
       fixed: "left",
       render: (text) => (
         <div className="pod-name-cell">
@@ -169,14 +171,18 @@ const PodPage: FC = () => {
 
   const { Paragraph } = Typography;
   const CheckboxGroup = Checkbox.Group;
-  const TABLE_SCROLL_HEIGHT = "calc(100vh - 320px)";
-  const SEARCH_WIDTH = 300;
 
   const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
     if (pod.metadata && pod.metadata.deletionTimestamp) {
       return (
         <div>
-          <SyncOutlined color="#c62828" spin /> "Terminating"
+          <Tag
+            bordered={false}
+            icon={<SyncOutlined spin={true} />}
+            color="#c62828"
+          >
+            Terminating
+          </Tag>
         </div>
       );
     }
@@ -184,20 +190,20 @@ const PodPage: FC = () => {
     switch (phase) {
       case "Failed":
         if (status.reason) {
-          return formatterIcon("#c62828", status.reason || "");
+          return formatterIcon("error", status.reason || "");
         }
         return formatterIcon(
-          "#c62828",
+          "error",
           getContainerStatuses(status, false) || ""
         );
       case "Pending":
         return formatterIcon(
-          "#f3d362",
+          "magenta",
           getContainerStatuses(status, true) || ""
         );
       case "Succeeded":
         return formatterIcon(
-          "#155ec0",
+          "geekblue",
           getContainerStatuses(status, false) || ""
         );
       case "Running":
@@ -208,13 +214,13 @@ const PodPage: FC = () => {
           ).length > 0
         ) {
           return formatterIcon(
-            "#c62828",
+            "error",
             getContainerStatuses(status, true) || ""
           );
         }
-        return formatterIcon("#2ba552", phase || "");
+        return formatterIcon("green", phase || "");
       default:
-        return formatterIcon("#c62828", phase || "");
+        return formatterIcon("error", phase || "");
     }
   };
   const getContainerStatuses = (data: IPodStatus, pending: boolean) => {
@@ -256,10 +262,19 @@ const PodPage: FC = () => {
     return (
       <>
         <Tag
+          bordered={false}
           icon={
-            <SyncOutlined
-              spin={text === "Running" || text === "ContainerCreating"}
-            />
+            text === "Completed" ? (
+              <CheckCircleOutlined />
+            ) : (
+              <SyncOutlined
+                spin={
+                  text === "Running" ||
+                  text === "ContainerCreating" ||
+                  text === "Pending"
+                }
+              />
+            )
           }
           color={color}
         >
@@ -337,14 +352,7 @@ const PodPage: FC = () => {
   const onChange = (list: string[]) => {
     setCheckedList(list);
   };
-  /**
-   * When the "全选" checkbox is changed, this function is called.
-   * If the checkbox is checked, then all the column names are added to the `checkedList`.
-   * If the checkbox is unchecked, then the `checkedList` is cleared.
-   * The `checkedList` is a state that keeps track of the selected column names.
-   * @param e The change event of the checkbox.
-      
-   */
+
   const onCheckAllChange: CheckboxProps["onChange"] = (e) => {
     const checkboxValues = e.target.checked
       ? plainOptions.map((option) => option.value)
@@ -352,22 +360,6 @@ const PodPage: FC = () => {
     setCheckedList(checkboxValues as string[]);
   };
 
-  /**
-   * Returns a JSX element with a set of checkboxes for selecting columns
-   * to display in the table, and a button to confirm the selection.
-   * The checkboxes are grouped by their corresponding column titles.
-   * The button is labeled " " and is of type primary.
-   * Clicking the button will trigger the `handelSelectOption` function.
-   * The component also includes a cancel button labeled " " that
-   * will close the popover when clicked.
-   *
-   * The checkboxes are based on the `plainOptions` array, which is
-   * generated from the `columns` array.
-   *
-   * The component is wrapped in a popover with a trigger of type
-   * "click", and the popover is displayed when the user clicks on
-   * the " " button.
-   */
   const rowSelection = () => {
     return (
       <>
@@ -474,12 +466,42 @@ const PodPage: FC = () => {
     setSearchText(e.target.value);
   };
 
+  type TableRowSelection<T extends object = object> =
+    TableProps<T>["rowSelection"];
+  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+    console.log("selectedRowKeys changed: ", newSelectedRowKeys);
+    setSelectedRowKeys(newSelectedRowKeys);
+  };
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const tableRowSelection: TableRowSelection<Pod> = {
+    selectedRowKeys,
+    onChange: onSelectChange,
+  };
+
+  const hasSelected = selectedRowKeys.length > 0;
+  const deletePods = () => {
+    setLoading(true);
+    setTimeout(() => {
+      console.log("deletePods", selectedRowKeys);
+
+      setSelectedRowKeys([]);
+      setLoading(false);
+    }, 1000);
+  };
   return (
     <div className="pod-page">
       <div className="page-header">
         <div className="left-section">
-          <Button type="primary" icon={<PlusOutlined />}>
-            新增 Pod
+          <Button type="dashed" icon={<PlusOutlined />}>
+            新增
+          </Button>
+          <Button
+            type="dashed"
+            disabled={!hasSelected}
+            loading={loading}
+            icon={<DeleteOutlined />}
+          >
+            删除
           </Button>
           <Search
             allowClear
@@ -487,7 +509,8 @@ const PodPage: FC = () => {
             onSearch={onSearch}
             onChange={onSearchChange}
             value={searchText}
-            style={{ width: SEARCH_WIDTH }}
+            style={{ width: 300 }}
+            onClick={deletePods}
           />
         </div>
         <div className="right-section">
@@ -510,13 +533,14 @@ const PodPage: FC = () => {
         </div>
       </div>
 
-      <Table
+      <Table<Pod>
+        rowSelection={tableRowSelection}
         className="pod-table"
         columns={showColumn}
         dataSource={getFilteredPods()}
         loading={loading}
         rowKey={(record) => record.metadata!.name!}
-        scroll={{ x: "max-content", y: TABLE_SCROLL_HEIGHT }}
+        scroll={{ x: "max-content", y: "calc(100vh - 330px)" }}
         pagination={{
           showTotal: (total) => `共 ${total} 条`,
           showSizeChanger: true,
