@@ -22,6 +22,7 @@ import { kubernetes_request } from "@/api/cluster";
 import { useAppDispatch } from "@/store/hook";
 import { setActiveNamespace } from "@/store/modules/kubernetes";
 import { get } from "@/utils/localStorage";
+import Title from "antd/es/typography/Title";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -117,21 +118,32 @@ const GeekLayout: React.FC = () => {
             padding: "0 20px",
           }}
         >
-          <div style={{ marginLeft: "20px", alignItems: "center" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              marginLeft: "50px",
+            }}
+          >
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
           </div>
-          <span
-            style={{ fontSize: "16px", fontWeight: "bold", margin: "0 20px" }}
+          <div
+            style={{
+              textAlign: "center",
+              background: colorBgContainer,
+              marginLeft: "100px",
+            }}
           >
-            当前集群:
-          </span>
-          <span style={{ margin: "0 30px" }}>{get("activeCluster")}</span>
+            <Title level={5} style={{ margin: "0" }}>
+              当前集群: {get("activeCluster")}
+            </Title>
+          </div>
           <span
-            style={{ fontSize: "16px", fontWeight: "bold", margin: "0 20px" }}
+            style={{ fontSize: "14px", fontWeight: "bold", margin: "0 20px" }}
           >
             命名空间:
           </span>

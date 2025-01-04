@@ -37,12 +37,17 @@ import { kubernetes_request } from "@/api/cluster";
 import { TableRowSelection } from "antd/es/table/interface";
 
 const PodPage: FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [deltetLoading, setDeleteLoading] = useState(false);
+  const [pods, setPods] = useState<Array<Pod>>([]);
+  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
+  const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const columns: TableProps<Pod>["columns"] = [
     {
       title: "名称",
       dataIndex: ["metadata", "name"],
       key: "name",
-      width: 100,
+      width: 150,
       fixed: "left",
       render: (text) => (
         <div className="pod-name-cell">
@@ -59,6 +64,16 @@ const PodPage: FC = () => {
         </div>
       ),
     },
+    ...(namespace === "all"
+      ? [
+          {
+            title: "命名空间",
+            dataIndex: ["metadata", "namespace"],
+            key: "namespace",
+            render: (text: string) => <div>{text}</div>,
+          },
+        ]
+      : []),
     {
       title: "状态",
       dataIndex: ["status"],
@@ -69,10 +84,15 @@ const PodPage: FC = () => {
       ),
     },
     {
+      title: "容器IP",
+      dataIndex: ["status", "podIP"],
+      key: "ip",
+      render: (text) => <div>{text}</div>,
+    },
+    {
       title: "镜像",
       dataIndex: ["spec", "containers"],
       key: "image",
-      width: 100,
       align: "center",
       onCell: () => {
         return {
@@ -87,12 +107,7 @@ const PodPage: FC = () => {
       },
       render: (containers) => <div>{get_images(containers)}</div>,
     },
-    {
-      title: "容器IP",
-      dataIndex: ["status", "podIP"],
-      key: "ip",
-      render: (text) => <div>{text}</div>,
-    },
+
     {
       title: "所在节点",
       dataIndex: ["status", "hostIP"],
@@ -145,11 +160,7 @@ const PodPage: FC = () => {
     },
   ];
 
-  const [loading, setLoading] = useState(false);
-  const [pods, setPods] = useState<Array<Pod>>([]);
   const [showColumn, setShowColumn] = useState(columns);
-  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
-  const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const plainOptions = columns!
     .filter((column) => column.key !== "action")
     .map(({ key, title }) => ({
@@ -179,7 +190,7 @@ const PodPage: FC = () => {
           <Tag
             bordered={false}
             icon={<SyncOutlined spin={true} />}
-            color="#c62828"
+            color="volcano"
           >
             Terminating
           </Tag>
@@ -296,16 +307,17 @@ const PodPage: FC = () => {
       >
         <Tooltip
           placement="topLeft"
+          // color={token.colorBgContainer}
           title={
             <div className="image-tooltip">
-              <Tag color="geekblue" className="copyable-tag">
+              <Tag bordered={false} className="copyable-tag">
                 <Typography.Text copyable={{ text: firstImage.image }}>
                   {firstImage.image}
                 </Typography.Text>
               </Tag>
               {remainingImages.length > 0 &&
                 remainingImages.map((container, index) => (
-                  <Tag color="geekblue" key={index} className="copyable-tag">
+                  <Tag bordered={false} key={index} className="copyable-tag">
                     <Typography.Text copyable={{ text: container.image }}>
                       {container.image}
                     </Typography.Text>
@@ -314,10 +326,8 @@ const PodPage: FC = () => {
             </div>
           }
         >
-          <Tag color="geekblue">
-            <Typography.Text copyable={{ text: firstImage.image }}>
-              {firstImage.image}
-            </Typography.Text>
+          <Tag bordered={false}>
+            <Typography.Text>{firstImage.image}</Typography.Text>
             {remainingImages.length > 0 && ` +${remainingImages.length}`}
           </Tag>
         </Tooltip>
@@ -492,14 +502,15 @@ const PodPage: FC = () => {
     <div className="pod-page">
       <div className="page-header">
         <div className="left-section">
-          <Button type="dashed" icon={<PlusOutlined />}>
+          <Button color="primary" variant="outlined" icon={<PlusOutlined />}>
             新增
           </Button>
           <Button
-            type="dashed"
+            danger
             disabled={!hasSelected}
-            loading={loading}
+            loading={deltetLoading}
             icon={<DeleteOutlined />}
+            onClick={deletePods}
           >
             删除
           </Button>
@@ -510,12 +521,13 @@ const PodPage: FC = () => {
             onChange={onSearchChange}
             value={searchText}
             style={{ width: 300 }}
-            onClick={deletePods}
+            onClick={getFilteredPods}
           />
         </div>
         <div className="right-section">
           <Button
             icon={<SyncOutlined />}
+            type="dashed"
             onClick={() => list_pods(namespace)}
             className="refresh-button"
           >
@@ -528,7 +540,9 @@ const PodPage: FC = () => {
             open={open}
             onOpenChange={handleOpen}
           >
-            <Button icon={<SettingOutlined />}>自定义列</Button>
+            <Button type="dashed" icon={<SettingOutlined />}>
+              自定义列
+            </Button>
           </Popover>
         </div>
       </div>
