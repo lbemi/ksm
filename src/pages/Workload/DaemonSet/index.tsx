@@ -8,23 +8,21 @@ import {
   DownOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import { Deployment } from "kubernetes-models/apps/v1";
+import { DaemonSet } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
 
-const DeploymentPage: FC = () => {
+const DaemonSetPage: FC = () => {
   const [loading, setLoading] = useState(false);
-  const [deployments, setDeployments] = useState<Array<Deployment>>([]);
-  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
+  const [daemonSets, setDaemonSets] = useState<Array<DaemonSet>>([]);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const { Paragraph } = Typography;
 
-  const columns: TableProps<Deployment>["columns"] = [
+  const columns: TableProps<DaemonSet>["columns"] = [
     {
       title: "名称",
       dataIndex: ["metadata", "name"],
@@ -58,14 +56,14 @@ const DeploymentPage: FC = () => {
     {
       title: "状态",
       key: "status",
-      render: (record: Deployment) => {
-        const status = getDeploymentStatus(record);
+      render: (record: DaemonSet) => {
+        const status = getDaemonSetStatus(record);
         return <span style={{ color: status.color }}>{status.text}</span>;
       },
     },
     {
       title: "副本数(正常/异常)",
-      dataIndex: ["spec", "replicas"],
+      dataIndex: ["status", "numberReady"],
       width: 200,
       key: "replicas",
       render: (text) => <div>{text}</div>,
@@ -104,7 +102,7 @@ const DeploymentPage: FC = () => {
       fixed: "right",
       dataIndex: "action",
       width: 100,
-      render: (_, record: Deployment) => (
+      render: (_, record: DaemonSet) => (
         <div className="action-buttons">
           <Dropdown
             menu={{
@@ -116,7 +114,7 @@ const DeploymentPage: FC = () => {
                   label: "删除",
                   icon: <DeleteOutlined />,
                   danger: true,
-                  onClick: () => handleDeleteDeployment(record),
+                  onClick: () => handleDeleteDaemonSet(record),
                 },
                 { type: "divider" },
                 { key: "scale", label: "缩放", icon: <SettingOutlined /> },
@@ -132,33 +130,26 @@ const DeploymentPage: FC = () => {
     },
   ];
 
-  const getDeploymentStatus = (deployment: Deployment) => {
-    const status = deployment.status;
+  const getDaemonSetStatus = (daemonSet: DaemonSet) => {
+    const status = daemonSet.status;
     if (!status) return { text: "Unknown", color: "gray" };
 
-    const { replicas = 0, readyReplicas = 0, updatedReplicas = 0 } = status;
+    const { numberReady = 0, desiredNumberScheduled = 0 } = status;
 
-    if (replicas === 0) {
-      return { text: "Stopped", color: "red" };
-    }
-
-    if (readyReplicas === replicas && updatedReplicas === replicas) {
-      return { text: "Running", color: "green" };
-    }
-
-    if (readyReplicas < replicas) {
+    if (numberReady < desiredNumberScheduled) {
       return { text: "Pending", color: "orange" };
     }
 
-    return { text: "Updating", color: "blue" };
+    return { text: "Running", color: "green" };
   };
-  const handleDeleteDeployment = (deployment: Deployment) => {
+
+  const handleDeleteDaemonSet = (daemonSet: DaemonSet) => {
     Modal.confirm({
       title: "确认删除",
       content: (
         <span>
-          您确定要删除 Deployment{" "}
-          <span style={{ color: "red" }}>{deployment.metadata?.name}</span> 吗？
+          您确定要删除 DaemonSet{" "}
+          <span style={{ color: "red" }}>{daemonSet.metadata?.name}</span> 吗？
         </span>
       ),
       okText: "确认",
@@ -167,10 +158,10 @@ const DeploymentPage: FC = () => {
         try {
           await kubernetes_request(
             "DELETE",
-            `/apis/apps/v1/namespaces/${deployment.metadata?.namespace}/deployments/${deployment.metadata?.name}`
+            `/apis/apps/v1/namespaces/${daemonSet.metadata?.namespace}/daemonsets/${daemonSet.metadata?.name}`
           );
-          message.success(`Deployment ${deployment.metadata?.name} 删除成功`);
-          list_deployments();
+          message.success(`DaemonSet ${daemonSet.metadata?.name} 删除成功`);
+          list_daemonsets();
         } catch (error) {
           message.error(`删除失败: ${error}`);
         }
@@ -178,22 +169,15 @@ const DeploymentPage: FC = () => {
     });
   };
 
-  const deleteDeployments = () => {
-    setTimeout(() => {
-      console.log("deleteDeployments--");
-      // setSelectedRowKeys([]);
-    }, 1000);
-  };
-
-  const list_deployments = () => {
+  const list_daemonsets = () => {
     setLoading(true);
     let url =
       namespace === "all"
-        ? "/apis/apps/v1/deployments"
-        : `/apis/apps/v1/namespaces/${namespace}/deployments`;
-    kubernetes_request<Array<Deployment>>("GET", url)
+        ? "/apis/apps/v1/daemonsets"
+        : `/apis/apps/v1/namespaces/${namespace}/daemonsets`;
+    kubernetes_request<Array<DaemonSet>>("GET", url)
       .then((res) => {
-        setDeployments(res);
+        setDaemonSets(res);
       })
       .catch((err) => {
         console.log("err: ", err);
@@ -202,15 +186,14 @@ const DeploymentPage: FC = () => {
   };
 
   useEffect(() => {
-    if (!clusterName) return;
-    list_deployments();
+    list_daemonsets();
   }, [namespace]);
 
-  const getFilteredDeployments = (searchText: string) => {
-    if (searchText === "" || typeof searchText !== "string") return deployments;
+  const getFilteredDaemonSets = (searchText: string) => {
+    if (searchText === "" || typeof searchText !== "string") return daemonSets;
 
-    return deployments.filter((deployment: Deployment) => {
-      const name = deployment.metadata!.name!.toLowerCase() || "";
+    return daemonSets.filter((daemonSet: DaemonSet) => {
+      const name = daemonSet.metadata!.name!.toLowerCase() || "";
       const searchLower = searchText ? searchText.toLowerCase() : "";
 
       return name.includes(searchLower);
@@ -222,12 +205,12 @@ const DeploymentPage: FC = () => {
       <MyTable
         loading={loading}
         columns={columns}
-        refresh={list_deployments}
-        del={deleteDeployments}
-        filter={getFilteredDeployments}
+        del={() => {}}
+        refresh={list_daemonsets}
+        filter={getFilteredDaemonSets}
       />
     </>
   );
 };
 
-export default DeploymentPage;
+export default DaemonSetPage;

@@ -9,11 +9,11 @@ import store from "./store";
 import { ThemeProvider } from "antd-style";
 import { theme } from "antd";
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+const App = () => (
   <ThemeProvider
     defaultThemeMode={"auto"}
     theme={{
-      algorithm: theme.compactAlgorithm,
+      // algorithm: theme.compactAlgorithm,
       token: {
         // colorPrimary: "#69b4ff",
         // colorPrimary: "#0085ff",
@@ -33,4 +33,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <RouterProvider router={router} />
     </Provider>
   </ThemeProvider>
+);
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <App />
 );

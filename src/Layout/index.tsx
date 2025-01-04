@@ -53,6 +53,34 @@ const items: MenuItem[] = [
         label: "Pod",
         icon: <VideoCameraOutlined />,
       },
+      {
+        key: "/kubernetes/workload/statefulset",
+        label: "StatefulSet",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/workload/daemonset",
+        label: "DaemonSet",
+        icon: <VideoCameraOutlined />,
+      },
+    ],
+  },
+  {
+    key: "/kubernetes/network",
+    label: "网络",
+    // type: "group",
+    icon: <VideoCameraOutlined />,
+    children: [
+      {
+        key: "/kubernetes/network/service",
+        label: "Service",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/network/ingress",
+        label: "Ingress",
+        icon: <VideoCameraOutlined />,
+      },
     ],
   },
 ];

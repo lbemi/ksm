@@ -11,7 +11,6 @@ import {
   CheckCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import "./index.scss";
 import { Typography } from "antd";
 import { IContainerStatus } from "kubernetes-models/v1/ContainerStatus";
 import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
@@ -33,7 +32,7 @@ const PodPage: FC = () => {
       width: 250,
       fixed: "left",
       render: (text) => (
-        <div className="pod-name-cell">
+        <div className="table-name-cell">
           <Paragraph
             copyable={{
               text: text,
@@ -41,7 +40,7 @@ const PodPage: FC = () => {
             }}
             style={{ marginRight: 8, marginBottom: 0 }}
           />
-          <span className="pod-name-text" title={text}>
+          <span className="table-name-text" title={text}>
             {text}
           </span>
         </div>

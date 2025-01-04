@@ -61,3 +61,31 @@ img {
     text-overflow: ellipsis;
   }
 }
+
+
+
+.table-name-cell {
+  display: flex;
+  align-items: center;
+
+  .ant-typography {
+    margin-bottom: 0;
+  }
+
+  .table-name-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &:hover {
+      color: #1890ff;
+      cursor: pointer;
+    }
+  }
+}
+
+
+
+
+

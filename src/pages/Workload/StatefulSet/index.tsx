@@ -8,23 +8,21 @@ import {
   DownOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import { Deployment } from "kubernetes-models/apps/v1";
+import { StatefulSet } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
 
-const DeploymentPage: FC = () => {
+const StatefulSetPage: FC = () => {
   const [loading, setLoading] = useState(false);
-  const [deployments, setDeployments] = useState<Array<Deployment>>([]);
-  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
+  const [statefulSets, setStatefulSets] = useState<Array<StatefulSet>>([]);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const { Paragraph } = Typography;
 
-  const columns: TableProps<Deployment>["columns"] = [
+  const columns: TableProps<StatefulSet>["columns"] = [
     {
       title: "名称",
       dataIndex: ["metadata", "name"],
@@ -58,8 +56,8 @@ const DeploymentPage: FC = () => {
     {
       title: "状态",
       key: "status",
-      render: (record: Deployment) => {
-        const status = getDeploymentStatus(record);
+      render: (record: StatefulSet) => {
+        const status = getStatefulSetStatus(record);
         return <span style={{ color: status.color }}>{status.text}</span>;
       },
     },
@@ -104,7 +102,7 @@ const DeploymentPage: FC = () => {
       fixed: "right",
       dataIndex: "action",
       width: 100,
-      render: (_, record: Deployment) => (
+      render: (_, record: StatefulSet) => (
         <div className="action-buttons">
           <Dropdown
             menu={{
@@ -116,7 +114,7 @@ const DeploymentPage: FC = () => {
                   label: "删除",
                   icon: <DeleteOutlined />,
                   danger: true,
-                  onClick: () => handleDeleteDeployment(record),
+                  onClick: () => handleDeleteStatefulSet(record),
                 },
                 { type: "divider" },
                 { key: "scale", label: "缩放", icon: <SettingOutlined /> },
@@ -132,33 +130,31 @@ const DeploymentPage: FC = () => {
     },
   ];
 
-  const getDeploymentStatus = (deployment: Deployment) => {
-    const status = deployment.status;
+  const getStatefulSetStatus = (statefulSet: StatefulSet) => {
+    const status = statefulSet.status;
     if (!status) return { text: "Unknown", color: "gray" };
 
-    const { replicas = 0, readyReplicas = 0, updatedReplicas = 0 } = status;
+    const { replicas = 0, readyReplicas = 0 } = status;
 
     if (replicas === 0) {
       return { text: "Stopped", color: "red" };
     }
 
-    if (readyReplicas === replicas && updatedReplicas === replicas) {
+    if (readyReplicas === replicas) {
       return { text: "Running", color: "green" };
     }
 
-    if (readyReplicas < replicas) {
-      return { text: "Pending", color: "orange" };
-    }
-
-    return { text: "Updating", color: "blue" };
+    return { text: "Pending", color: "orange" };
   };
-  const handleDeleteDeployment = (deployment: Deployment) => {
+
+  const handleDeleteStatefulSet = (statefulSet: StatefulSet) => {
     Modal.confirm({
       title: "确认删除",
       content: (
         <span>
-          您确定要删除 Deployment{" "}
-          <span style={{ color: "red" }}>{deployment.metadata?.name}</span> 吗？
+          您确定要删除 StatefulSet{" "}
+          <span style={{ color: "red" }}>{statefulSet.metadata?.name}</span>{" "}
+          吗？
         </span>
       ),
       okText: "确认",
@@ -167,10 +163,10 @@ const DeploymentPage: FC = () => {
         try {
           await kubernetes_request(
             "DELETE",
-            `/apis/apps/v1/namespaces/${deployment.metadata?.namespace}/deployments/${deployment.metadata?.name}`
+            `/apis/apps/v1/namespaces/${statefulSet.metadata?.namespace}/statefulsets/${statefulSet.metadata?.name}`
           );
-          message.success(`Deployment ${deployment.metadata?.name} 删除成功`);
-          list_deployments();
+          message.success(`StatefulSet ${statefulSet.metadata?.name} 删除成功`);
+          list_statefulsets();
         } catch (error) {
           message.error(`删除失败: ${error}`);
         }
@@ -178,22 +174,15 @@ const DeploymentPage: FC = () => {
     });
   };
 
-  const deleteDeployments = () => {
-    setTimeout(() => {
-      console.log("deleteDeployments--");
-      // setSelectedRowKeys([]);
-    }, 1000);
-  };
-
-  const list_deployments = () => {
+  const list_statefulsets = () => {
     setLoading(true);
     let url =
       namespace === "all"
-        ? "/apis/apps/v1/deployments"
-        : `/apis/apps/v1/namespaces/${namespace}/deployments`;
-    kubernetes_request<Array<Deployment>>("GET", url)
+        ? "/apis/apps/v1/statefulsets"
+        : `/apis/apps/v1/namespaces/${namespace}/statefulsets`;
+    kubernetes_request<Array<StatefulSet>>("GET", url)
       .then((res) => {
-        setDeployments(res);
+        setStatefulSets(res);
       })
       .catch((err) => {
         console.log("err: ", err);
@@ -202,15 +191,15 @@ const DeploymentPage: FC = () => {
   };
 
   useEffect(() => {
-    if (!clusterName) return;
-    list_deployments();
+    list_statefulsets();
   }, [namespace]);
 
-  const getFilteredDeployments = (searchText: string) => {
-    if (searchText === "" || typeof searchText !== "string") return deployments;
+  const getFilteredStatefulSets = (searchText: string) => {
+    if (searchText === "" || typeof searchText !== "string")
+      return statefulSets;
 
-    return deployments.filter((deployment: Deployment) => {
-      const name = deployment.metadata!.name!.toLowerCase() || "";
+    return statefulSets.filter((statefulSet: StatefulSet) => {
+      const name = statefulSet.metadata!.name!.toLowerCase() || "";
       const searchLower = searchText ? searchText.toLowerCase() : "";
 
       return name.includes(searchLower);
@@ -222,12 +211,12 @@ const DeploymentPage: FC = () => {
       <MyTable
         loading={loading}
         columns={columns}
-        refresh={list_deployments}
-        del={deleteDeployments}
-        filter={getFilteredDeployments}
+        del={() => {}}
+        refresh={list_statefulsets}
+        filter={getFilteredStatefulSets}
       />
     </>
   );
 };
 
-export default DeploymentPage;
+export default StatefulSetPage;
