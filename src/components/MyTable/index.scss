@@ -1,0 +1,51 @@
+.select-option {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.ml10 {
+    margin-left: 20px;
+}
+
+
+.table {
+    margin: 0;
+}
+.tb-header {
+    margin-right: 20px;
+}
+
+
+
+.my-table {
+  border-radius: 8px;
+
+  .table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+
+    .left-section {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .right-section {
+      display: flex;
+      gap: 12px;
+
+      .refresh-button {
+        &:hover {
+          color: #1890ff;
+          border-color: #1890ff;
+        }
+      }
+    }
+  }
+
+}
+

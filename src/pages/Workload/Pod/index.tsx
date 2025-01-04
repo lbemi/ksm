@@ -1,19 +1,6 @@
 import { useAppSelector } from "@/store/hook";
-import {
-  Button,
-  Checkbox,
-  GetProps,
-  Input,
-  Popover,
-  Table,
-  TableProps,
-  Tag,
-  Tooltip,
-  Dropdown,
-  Modal,
-  message,
-} from "antd";
-import { Pod, IContainer, IPodStatus } from "kubernetes-models/v1";
+import { Button, TableProps, Tag, Dropdown, Modal, message } from "antd";
+import { Pod, IPodStatus } from "kubernetes-models/v1";
 import { FC, useEffect, useState } from "react";
 import {
   SyncOutlined,
@@ -21,12 +8,9 @@ import {
   EditOutlined,
   DeleteOutlined,
   DownOutlined,
-  PlusOutlined,
   CheckCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { CheckboxOptionType } from "antd/es/checkbox/Group";
-import type { CheckboxProps } from "antd";
 import "./index.scss";
 import { Typography } from "antd";
 import { IContainerStatus } from "kubernetes-models/v1/ContainerStatus";
@@ -34,20 +18,19 @@ import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
-import { TableRowSelection } from "antd/es/table/interface";
+import MyTable from "@/components/MyTable";
+import { getImages } from "@/utils/k8s/tools.tsx";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
-  const [deltetLoading, setDeleteLoading] = useState(false);
   const [pods, setPods] = useState<Array<Pod>>([]);
-  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const columns: TableProps<Pod>["columns"] = [
     {
       title: "名称",
       dataIndex: ["metadata", "name"],
       key: "name",
-      width: 150,
+      width: 250,
       fixed: "left",
       render: (text) => (
         <div className="pod-name-cell">
@@ -105,7 +88,7 @@ const PodPage: FC = () => {
           },
         };
       },
-      render: (containers) => <div>{get_images(containers)}</div>,
+      render: (containers) => <div>{getImages(containers)}</div>,
     },
 
     {
@@ -160,28 +143,7 @@ const PodPage: FC = () => {
     },
   ];
 
-  const [showColumn, setShowColumn] = useState(columns);
-  const plainOptions = columns!
-    .filter((column) => column.key !== "action")
-    .map(({ key, title }) => ({
-      label: title,
-      value: key,
-    }));
-  const [open, setOpen] = useState(false);
-  const handleOpen = (open: boolean) => {
-    setOpen(open);
-  };
-  const defaultCheckedList = columns
-    .filter((column) => column.key !== "action")
-    .map(({ key }) => key)
-    .filter((key): key is string => key !== undefined);
-  const [checkedList, setCheckedList] = useState<string[]>(defaultCheckedList);
-  const checkAll = plainOptions.length === checkedList.length;
-  const indeterminate =
-    checkedList.length > 0 && checkedList.length < plainOptions.length;
-
   const { Paragraph } = Typography;
-  const CheckboxGroup = Checkbox.Group;
 
   const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
     if (pod.metadata && pod.metadata.deletionTimestamp) {
@@ -294,46 +256,7 @@ const PodPage: FC = () => {
       </>
     );
   };
-  const get_images = (containers: Array<IContainer>) => {
-    if (!containers.length) return null;
 
-    const firstImage = containers[0];
-    const remainingImages = containers.slice(1);
-
-    return (
-      <div
-        className="pod-images"
-        style={{ display: "flex", justifyContent: "center" }}
-      >
-        <Tooltip
-          placement="topLeft"
-          // color={token.colorBgContainer}
-          title={
-            <div className="image-tooltip">
-              <Tag bordered={false} className="copyable-tag">
-                <Typography.Text copyable={{ text: firstImage.image }}>
-                  {firstImage.image}
-                </Typography.Text>
-              </Tag>
-              {remainingImages.length > 0 &&
-                remainingImages.map((container, index) => (
-                  <Tag bordered={false} key={index} className="copyable-tag">
-                    <Typography.Text copyable={{ text: container.image }}>
-                      {container.image}
-                    </Typography.Text>
-                  </Tag>
-                ))}
-            </div>
-          }
-        >
-          <Tag bordered={false}>
-            <Typography.Text>{firstImage.image}</Typography.Text>
-            {remainingImages.length > 0 && ` +${remainingImages.length}`}
-          </Tag>
-        </Tooltip>
-      </div>
-    );
-  };
   const handleDeletePod = (pod: Pod) => {
     Modal.confirm({
       title: "确认删除",
@@ -352,65 +275,17 @@ const PodPage: FC = () => {
             `/api/v1/namespaces/${pod.metadata?.namespace}/pods/${pod.metadata?.name}`
           );
           message.success(`Pod ${pod.metadata?.name} 删除成功`);
-          list_pods(namespace);
+          list_pods();
         } catch (error) {
           message.error(`删除失败: ${error}`);
         }
       },
     });
   };
-  const onChange = (list: string[]) => {
-    setCheckedList(list);
-  };
 
-  const onCheckAllChange: CheckboxProps["onChange"] = (e) => {
-    const checkboxValues = e.target.checked
-      ? plainOptions.map((option) => option.value)
-      : [];
-    setCheckedList(checkboxValues as string[]);
-  };
-
-  const rowSelection = () => {
-    return (
-      <>
-        <div>
-          <CheckboxGroup
-            options={plainOptions as CheckboxOptionType[]}
-            value={checkedList}
-            onChange={onChange}
-          />
-        </div>
-        <Checkbox
-          indeterminate={indeterminate}
-          onChange={onCheckAllChange}
-          checked={checkAll}
-        >
-          全选
-        </Checkbox>
-        <div className="select-option">
-          <Button
-            className="mr10"
-            type="primary"
-            size="small"
-            onClick={handelSelectOption}
-          >
-            确定
-          </Button>
-          <Button
-            className="ml10"
-            size="small"
-            onClick={() => handleOpen(false)}
-          >
-            取消
-          </Button>
-        </div>
-      </>
-    );
-  };
-
-  const list_pods = async (namespace: string) => {
+  const list_pods = () => {
     setLoading(true);
-    let url = "";
+    let url: string;
     if (namespace === "all") {
       url = "/api/v1/pods";
     } else {
@@ -427,30 +302,11 @@ const PodPage: FC = () => {
   };
 
   useEffect(() => {
-    if (!clusterName) return;
-    list_pods(namespace);
-    handelSelectOption();
+    list_pods();
   }, [namespace]);
 
-  const handelSelectOption = () => {
-    const newColumns = columns!.map((item) => ({
-      ...item,
-      hidden:
-        item.key === "action"
-          ? false
-          : !checkedList.includes(item.key as string),
-    }));
-
-    setShowColumn(newColumns);
-    setOpen(false);
-  };
-
-  type SearchProps = GetProps<typeof Input.Search>;
-  const { Search } = Input;
-  const [searchText, setSearchText] = useState("");
-
-  const getFilteredPods = () => {
-    if (!searchText) return pods;
+  const getFilteredPods = (searchText: string) => {
+    if (searchText === "" || typeof searchText !== "string") return pods;
 
     return pods.filter((pod) => {
       const name = pod.metadata?.name?.toLowerCase() || "";
@@ -468,100 +324,22 @@ const PodPage: FC = () => {
     });
   };
 
-  const onSearch: SearchProps["onSearch"] = (value) => {
-    setSearchText(value);
-  };
-
-  const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchText(e.target.value);
-  };
-
-  type TableRowSelection<T extends object = object> =
-    TableProps<T>["rowSelection"];
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
-    console.log("selectedRowKeys changed: ", newSelectedRowKeys);
-    setSelectedRowKeys(newSelectedRowKeys);
-  };
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const tableRowSelection: TableRowSelection<Pod> = {
-    selectedRowKeys,
-    onChange: onSelectChange,
-  };
-
-  const hasSelected = selectedRowKeys.length > 0;
   const deletePods = () => {
-    setLoading(true);
     setTimeout(() => {
-      console.log("deletePods", selectedRowKeys);
-
-      setSelectedRowKeys([]);
-      setLoading(false);
+      console.log("deletePods--");
+      // setSelectedRowKeys([]);
     }, 1000);
   };
   return (
-    <div className="pod-page">
-      <div className="page-header">
-        <div className="left-section">
-          <Button color="primary" variant="outlined" icon={<PlusOutlined />}>
-            新增
-          </Button>
-          <Button
-            danger
-            disabled={!hasSelected}
-            loading={deltetLoading}
-            icon={<DeleteOutlined />}
-            onClick={deletePods}
-          >
-            删除
-          </Button>
-          <Search
-            allowClear
-            placeholder="搜索 Pod 名称、状态、IP、节点..."
-            onSearch={onSearch}
-            onChange={onSearchChange}
-            value={searchText}
-            style={{ width: 300 }}
-            onClick={getFilteredPods}
-          />
-        </div>
-        <div className="right-section">
-          <Button
-            icon={<SyncOutlined />}
-            type="dashed"
-            onClick={() => list_pods(namespace)}
-            className="refresh-button"
-          >
-            刷新
-          </Button>
-          <Popover
-            trigger="click"
-            placement="bottomRight"
-            content={rowSelection()}
-            open={open}
-            onOpenChange={handleOpen}
-          >
-            <Button type="dashed" icon={<SettingOutlined />}>
-              自定义列
-            </Button>
-          </Popover>
-        </div>
-      </div>
-
-      <Table<Pod>
-        rowSelection={tableRowSelection}
-        className="pod-table"
-        columns={showColumn}
-        dataSource={getFilteredPods()}
+    <>
+      <MyTable
+        columns={columns}
+        refresh={list_pods}
+        del={deletePods}
+        filter={getFilteredPods}
         loading={loading}
-        rowKey={(record) => record.metadata!.name!}
-        scroll={{ x: "max-content", y: "calc(100vh - 330px)" }}
-        pagination={{
-          showTotal: (total) => `共 ${total} 条`,
-          showSizeChanger: true,
-          showQuickJumper: true,
-        }}
       />
-    </div>
+    </>
   );
 };
 

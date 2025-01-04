@@ -1,5 +1,5 @@
 
-.pod-name-cell {
+.deployment-name-cell {
   display: flex;
   align-items: center;
 
@@ -7,7 +7,7 @@
     margin-bottom: 0;
   }
 
-  .pod-name-text {
+  .deployment-name-text {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -20,7 +20,15 @@
   }
 }
 
+.deployment-images {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 
-
-
-
+  .ant-tag {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

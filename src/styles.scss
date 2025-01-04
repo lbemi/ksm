@@ -19,3 +19,45 @@ img {
 }
 
 
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.image-tooltip {
+  max-width: 500px;
+
+  .copyable-tag {
+    display: block;
+    margin-bottom: 4px;
+    max-width: 100%;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .ant-typography {
+      color: inherit;
+      display: block;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.container-images {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  .ant-tag {
+    margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
