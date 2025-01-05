@@ -72,11 +72,7 @@ const MyTable: FC<Param<any>> = ({
   };
 
   const onSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (
-      e.target.value === "" ||
-      e.target.value === undefined ||
-      typeof e.target.value !== "string"
-    ) {
+    if (e.target.value === undefined || typeof e.target.value !== "string") {
       return;
     }
     setSearchText(e.target.value);

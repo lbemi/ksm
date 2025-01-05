@@ -13,7 +13,7 @@ const App = () => (
   <ThemeProvider
     defaultThemeMode={"auto"}
     theme={{
-      // algorithm: theme.compactAlgorithm,
+      algorithm: theme.compactAlgorithm,
       token: {
         // colorPrimary: "#69b4ff",
         // colorPrimary: "#0085ff",

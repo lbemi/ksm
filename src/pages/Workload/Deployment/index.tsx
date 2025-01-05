@@ -16,10 +16,14 @@ import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/ap
 import getAge from "@/utils/k8s/date";
 import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
+import DeploymentDetailDrawer from "./DeploymentDetailDrawer";
 
 const DeploymentPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
+  const [selectedDeployment, setSelectedDeployment] =
+    useState<Deployment | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
   const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const { Paragraph } = Typography;
@@ -30,7 +34,7 @@ const DeploymentPage: FC = () => {
       dataIndex: ["metadata", "name"],
       key: "name",
       fixed: "left",
-      render: (text) => (
+      render: (text, record) => (
         <div className="table-name-cell">
           <Paragraph
             copyable={{
@@ -39,7 +43,11 @@ const DeploymentPage: FC = () => {
             }}
             style={{ marginRight: 8, marginBottom: 0 }}
           />
-          <span className="table-name-text" title={text}>
+          <span
+            className="table-name-text"
+            title={text}
+            onClick={() => handleShowDetail(record)}
+          >
             {text}
           </span>
         </div>
@@ -109,7 +117,12 @@ const DeploymentPage: FC = () => {
           <Dropdown
             menu={{
               items: [
-                { key: "detail", label: "详情", icon: <EyeOutlined /> },
+                {
+                  key: "detail",
+                  label: "详情",
+                  icon: <EyeOutlined />,
+                  onClick: () => handleShowDetail(record),
+                },
                 { key: "edit", label: "编辑", icon: <EditOutlined /> },
                 {
                   key: "delete",
@@ -132,6 +145,11 @@ const DeploymentPage: FC = () => {
     },
   ];
 
+  const handleShowDetail = (deployment: Deployment) => {
+    setSelectedDeployment(deployment);
+    setDrawerVisible(true);
+  };
+
   const getDeploymentStatus = (deployment: Deployment) => {
     const status = deployment.status;
     if (!status) return { text: "Unknown", color: "gray" };
@@ -152,6 +170,7 @@ const DeploymentPage: FC = () => {
 
     return { text: "Updating", color: "blue" };
   };
+
   const handleDeleteDeployment = (deployment: Deployment) => {
     Modal.confirm({
       title: "确认删除",
@@ -178,13 +197,6 @@ const DeploymentPage: FC = () => {
     });
   };
 
-  const deleteDeployments = () => {
-    setTimeout(() => {
-      console.log("deleteDeployments--");
-      // setSelectedRowKeys([]);
-    }, 1000);
-  };
-
   const list_deployments = () => {
     setLoading(true);
     let url =
@@ -206,25 +218,30 @@ const DeploymentPage: FC = () => {
     list_deployments();
   }, [namespace]);
 
-  const getFilteredDeployments = (searchText: string) => {
+  const filterDeployments = (searchText: string) => {
     if (searchText === "" || typeof searchText !== "string") return deployments;
 
-    return deployments.filter((deployment: Deployment) => {
-      const name = deployment.metadata!.name!.toLowerCase() || "";
-      const searchLower = searchText ? searchText.toLowerCase() : "";
+    return deployments.filter((deployment) => {
+      const name = deployment.metadata?.name?.toLowerCase() || "";
+      const namespace = deployment.metadata?.namespace?.toLowerCase() || "";
+      const searchLower = searchText.toLowerCase();
 
-      return name.includes(searchLower);
+      return name.includes(searchLower) || namespace.includes(searchLower);
     });
   };
-
   return (
     <>
       <MyTable
         loading={loading}
         columns={columns}
         refresh={list_deployments}
-        del={deleteDeployments}
-        filter={getFilteredDeployments}
+        del={() => {}}
+        filter={filterDeployments}
+      />
+      <DeploymentDetailDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        deployment={selectedDeployment}
       />
     </>
   );
