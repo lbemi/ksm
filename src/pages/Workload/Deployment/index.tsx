@@ -214,6 +214,10 @@ const DeploymentPage: FC = () => {
   };
 
   useEffect(() => {
+    const interval = setInterval(list_deployments, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  useEffect(() => {
     if (!clusterName) return;
     list_deployments();
   }, [namespace]);

@@ -14,10 +14,17 @@ export interface KubernetesResponse<T> {
   items: T;
 }
 
-export const kubernetes_request = async <T>(method: Method, url: string) => {
+export const kubernetes_request = async <T>(
+  method: Method,
+  url: string,
+  body?: T,
+  headers?: Object
+) => {
   const res = await invoke<KubernetesResponse<T>>("proxy_request", {
     method: method,
     url: url,
+    body: body,
+    headers: headers,
   });
   return res.items;
 };
