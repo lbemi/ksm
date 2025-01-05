@@ -88,7 +88,6 @@ const DeploymentDetailDrawer: React.FC<DeploymentDetailDrawerProps> = ({
         "GET",
         `/apis/apps/v1/namespaces/${deployment.metadata.namespace}/replicasets?labelSelector=${labelSelector}`
       );
-      console.log("response: ", response);
 
       // 按创建时间排序
       const sortedReplicaSets = (response || []).sort((a, b) => {
