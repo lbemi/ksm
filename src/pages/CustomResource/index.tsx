@@ -19,8 +19,6 @@ const CustomResourceDefinitionsPage: FC = () => {
   const [customResourceDefinitions, setCustomResourceDefinitions] = useState<
     Array<CustomResourceDefinition>
   >([]);
-  const [searchText, setSearchText] = useState("");
-  const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const { Paragraph } = Typography;
 
   const columns: TableProps<CustomResourceDefinition>["columns"] = [
