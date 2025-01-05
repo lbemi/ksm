@@ -83,6 +83,67 @@ const items: MenuItem[] = [
       },
     ],
   },
+  {
+    key: "/kubernetes/config",
+    label: "配置",
+    icon: <VideoCameraOutlined />,
+    children: [
+      {
+        key: "/kubernetes/config/configmap",
+        label: "ConfigMap",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/config/secret",
+        label: "Secret",
+        icon: <VideoCameraOutlined />,
+      },
+    ],
+  },
+  {
+    key: "/kubernetes/task",
+    label: "任务",
+    icon: <VideoCameraOutlined />,
+    children: [
+      {
+        key: "/kubernetes/task/job",
+        label: "Job",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/task/cronjob",
+        label: "CronJob",
+        icon: <VideoCameraOutlined />,
+      },
+    ],
+  },
+  {
+    key: "/kubernetes/storage",
+    label: "存储",
+    icon: <VideoCameraOutlined />,
+    children: [
+      {
+        key: "/kubernetes/storage/persistentvolume",
+        label: "PV",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/storage/persistentvolumeclaim",
+        label: "PVC",
+        icon: <VideoCameraOutlined />,
+      },
+      {
+        key: "/kubernetes/storage/storageclass",
+        label: "StorageClass",
+        icon: <VideoCameraOutlined />,
+      },
+    ],
+  },
+  {
+    key: "/kubernetes/crd",
+    label: "自定义资源",
+    icon: <VideoCameraOutlined />,
+  },
 ];
 
 const GeekLayout: React.FC = () => {

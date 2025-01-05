@@ -1,7 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import GeekLayout from "../Layout";
-import { Home } from "../pages/Home";
+import GeekLayout from "@/Layout";
+import { Home } from "@/pages/Home";
 import { Suspense, lazy } from "react";
+import ConfigMapPage from "@/pages/Config/ConfigMap";
+import SecretPage from "@/pages/Config/Secret";
+import JobPage from "@/pages/Task/Job";
+import CronJobPage from "@/pages/Task/CronJob";
+import StorageClassPage from "@/pages/Storage/StorageClass";
+import PersistentVolumePage from "@/pages/Storage/PersistentVolume";
+import PersistentVolumeClaimPage from "@/pages/Storage/PersistentVolumeClaims";
+import CustomResourceDefinitionsPage from "@/pages/CustomResource";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const DeploymentView = lazy(() => import("@/pages/Workload/Deployment"));
@@ -92,6 +100,61 @@ export const router = createBrowserRouter([
             ),
           },
         ],
+      },
+      {
+        path: "/kubernetes/config",
+        children: [
+          {
+            path: "configmap",
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <ConfigMapPage />
+              </Suspense>
+            ),
+          },
+          {
+            path: "secret",
+            element: (
+              <Suspense fallback={<div>Loading...</div>}>
+                <SecretPage />
+              </Suspense>
+            ),
+          },
+        ],
+      },
+      {
+        path: "/kubernetes/task",
+        children: [
+          {
+            path: "job",
+            element: <JobPage />,
+          },
+          {
+            path: "cronjob",
+            element: <CronJobPage />,
+          },
+        ],
+      },
+      {
+        path: "/kubernetes/storage",
+        children: [
+          {
+            path: "storageclass",
+            element: <StorageClassPage />,
+          },
+          {
+            path: "persistentvolume",
+            element: <PersistentVolumePage />,
+          },
+          {
+            path: "persistentvolumeclaim",
+            element: <PersistentVolumeClaimPage />,
+          },
+        ],
+      },
+      {
+        path: "/kubernetes/crd",
+        element: <CustomResourceDefinitionsPage />,
       },
     ],
   },
