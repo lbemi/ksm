@@ -75,7 +75,6 @@ const PodPage: FC = () => {
       title: "镜像",
       dataIndex: ["spec", "containers"],
       key: "image",
-      align: "center",
       onCell: () => {
         return {
           style: {

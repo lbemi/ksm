@@ -5,6 +5,7 @@ import {
   GetProps,
   Input,
   Popover,
+  Splitter,
   Table,
 } from "antd";
 import {
@@ -18,7 +19,7 @@ import { Checkbox, TableProps } from "antd";
 import { useAppSelector } from "@/store/hook";
 import "./index.scss";
 
-interface Param<T> {
+export interface MyTableProps<T> {
   columns: TableProps<T>["columns"];
   refresh: () => void;
   del: () => void;
@@ -26,7 +27,7 @@ interface Param<T> {
   loading: boolean;
 }
 
-const MyTable: FC<Param<any>> = ({
+const MyTable: FC<MyTableProps<any>> = ({
   columns,
   refresh,
   del,
@@ -209,12 +210,8 @@ const MyTable: FC<Param<any>> = ({
           dataSource={filter(searchText)}
           loading={loading}
           rowKey={(record) => record.metadata!.uid!}
-          scroll={{ x: "max-content", y: "calc(100vh - 330px)" }}
-          pagination={{
-            showTotal: (total) => `共 ${total} 条`,
-            showSizeChanger: true,
-            showQuickJumper: true,
-          }}
+          scroll={{ x: "max-content", y: "calc(100vh - 300px)" }}
+          pagination={false}
         />
       </div>
     </>

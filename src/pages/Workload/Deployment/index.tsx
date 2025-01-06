@@ -17,6 +17,7 @@ import getAge from "@/utils/k8s/date";
 import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import DeploymentDetailDrawer from "./DeploymentDetailDrawer";
+import CustomContent from "@/components/CustomContent";
 
 const DeploymentPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -72,17 +73,30 @@ const DeploymentPage: FC = () => {
       },
     },
     {
-      title: "副本数(正常/异常)",
+      title: "副本数(期望/正常)",
       dataIndex: ["spec", "replicas"],
       width: 200,
       key: "replicas",
-      render: (text) => <div>{text}</div>,
+      align: "center",
+      render: (_, record: Deployment) => {
+        const desiredReplicas = record.spec?.replicas || 0;
+        const readyReplicas = record.status?.readyReplicas || 0;
+        const isHealthy = desiredReplicas === readyReplicas;
+
+        return (
+          <span>
+            {`${desiredReplicas}/`}
+            <span style={{ color: isHealthy ? "inherit" : "red" }}>
+              {readyReplicas}
+            </span>
+          </span>
+        );
+      },
     },
     {
       title: "镜像",
       dataIndex: ["spec", "template", "spec", "containers"],
       key: "image",
-      align: "center",
       onCell: () => {
         return {
           style: {
@@ -152,23 +166,29 @@ const DeploymentPage: FC = () => {
 
   const getDeploymentStatus = (deployment: Deployment) => {
     const status = deployment.status;
-    if (!status) return { text: "Unknown", color: "gray" };
+    if (!status) return { text: "Unknown", color: "#909399" };
 
-    const { replicas = 0, readyReplicas = 0, updatedReplicas = 0 } = status;
+    const { replicas = 0, availableReplicas = 0 } = status;
+    const desiredReplicas = deployment.spec?.replicas || 0;
 
-    if (replicas === 0) {
-      return { text: "Stopped", color: "red" };
+    // Updating status
+    if (
+      replicas > availableReplicas ||
+      (replicas > desiredReplicas && availableReplicas)
+    ) {
+      return { text: "Updating", color: "#e6a23c" };
     }
 
-    if (readyReplicas === replicas && updatedReplicas === replicas) {
-      return { text: "Running", color: "green" };
+    // Running status
+    if (
+      desiredReplicas === 0 ||
+      (availableReplicas && availableReplicas === desiredReplicas)
+    ) {
+      return { text: "Running", color: "#388c04" };
     }
 
-    if (readyReplicas < replicas) {
-      return { text: "Pending", color: "orange" };
-    }
-
-    return { text: "Updating", color: "blue" };
+    // Waiting/Error status
+    return { text: "Waiting", color: "#f56c6c" };
   };
 
   const handleDeleteDeployment = (deployment: Deployment) => {
@@ -235,12 +255,19 @@ const DeploymentPage: FC = () => {
   };
   return (
     <>
-      <MyTable
+      {/* <MyTable
         loading={loading}
         columns={columns}
         refresh={list_deployments}
         del={() => {}}
         filter={filterDeployments}
+      /> */}
+      <CustomContent
+        columns={columns}
+        refresh={list_deployments}
+        del={() => {}}
+        filter={filterDeployments}
+        loading={loading}
       />
       <DeploymentDetailDrawer
         visible={drawerVisible}

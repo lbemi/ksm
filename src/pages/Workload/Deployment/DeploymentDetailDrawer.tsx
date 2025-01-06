@@ -159,14 +159,14 @@ const DeploymentDetailDrawer: React.FC<DeploymentDetailDrawerProps> = ({
         </Space>
       }
       placement="right"
-      width={900}
+      width={"50%"}
       onClose={onClose}
       open={visible}
       style={{
         position: "fixed",
         zIndex: 1001,
         top: 64,
-        width: "900px",
+        width: "50vw",
         height: "calc(100% - 64px)",
       }}
       extra={

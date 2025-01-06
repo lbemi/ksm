@@ -42,8 +42,8 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     core_window
         .resizable(true)
-        .inner_size(800.0, 600.0)
-        .min_inner_size(600.0, 400.0)
+        .inner_size(1300.0, 800.0)
+        .min_inner_size(1000.0, 600.0)
         .build()
         .expect("Failed to create core window");
     // let win_size = core_window

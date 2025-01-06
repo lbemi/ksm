@@ -23,6 +23,8 @@ import { useAppDispatch } from "@/store/hook";
 import { setActiveNamespace } from "@/store/modules/kubernetes";
 import { get } from "@/utils/localStorage";
 import Title from "antd/es/typography/Title";
+import { Footer } from "antd/es/layout/layout";
+import CustomFooter from "@/components/Footer";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
