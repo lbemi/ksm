@@ -5,7 +5,6 @@ import {
   GetProps,
   Input,
   Popover,
-  Splitter,
   Table,
 } from "antd";
 import {
@@ -14,7 +13,7 @@ import {
   PlusOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import { Checkbox, TableProps } from "antd";
 import { useAppSelector } from "@/store/hook";
 import "./index.scss";
@@ -111,6 +110,7 @@ const MyTable: FC<MyTableProps<any>> = ({
     selectedRowKeys,
     onChange: onSelectChange,
   };
+  const [y, setY] = useState("");
   const hasSelected = selectedRowKeys.length > 0;
 
   const rowSelection = () => {
@@ -150,6 +150,35 @@ const MyTable: FC<MyTableProps<any>> = ({
       </div>
     );
   };
+
+  useEffect(() => {
+    const tableElement = document.getElementById("my-table");
+    if (tableElement) {
+      const tableHeight = tableElement.offsetHeight;
+      console.log("my-table height: ", tableHeight);
+    }
+  }, [window.innerHeight]);
+  useEffect(() => {
+    const handleSplitterResize = (e: CustomEvent) => {
+      const windowHeight = window.innerHeight;
+      const tableHeight = windowHeight - e.detail - 200;
+      setY(`${tableHeight}px`);
+      console.log("tableHeight: ", tableHeight, windowHeight);
+    };
+
+    window.addEventListener(
+      "splitterResize",
+      handleSplitterResize as EventListener
+    );
+
+    return () => {
+      window.removeEventListener(
+        "splitterResize",
+        handleSplitterResize as EventListener
+      );
+    };
+  }, []);
+
   return (
     <>
       <div className={"my-table"}>
@@ -203,16 +232,18 @@ const MyTable: FC<MyTableProps<any>> = ({
             </Popover>
           </div>
         </div>
-        <Table
-          rowSelection={tableRowSelection}
-          className="table"
-          columns={showColumn}
-          dataSource={filter(searchText)}
-          loading={loading}
-          rowKey={(record) => record.metadata!.uid!}
-          scroll={{ x: "max-content", y: "calc(100vh - 300px)" }}
-          pagination={false}
-        />
+        <div id="my-table">
+          <Table
+            rowSelection={tableRowSelection}
+            className="table"
+            columns={showColumn}
+            dataSource={filter(searchText)}
+            loading={loading}
+            rowKey={(record) => record.metadata!.uid!}
+            scroll={{ x: "max-content", y: y }}
+            pagination={false}
+          />
+        </div>
       </div>
     </>
   );

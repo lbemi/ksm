@@ -12,9 +12,6 @@
 .table {
   margin: 0;
 }
-.tb-header {
-  // margin-right: 20px;
-}
 
 .my-table {
   border-radius: 8px;
@@ -42,5 +39,8 @@
         }
       }
     }
+  }
+  .ant-table-body {
+    overflow: hidden;
   }
 }
