@@ -14,13 +14,14 @@
 }
 
 .my-table {
-  border-radius: 8px;
+  // border-radius: 8px;
+  margin-left: 10px;
 
   .table-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin: 12px 50px 12px 0;
 
     .left-section {
       display: flex;

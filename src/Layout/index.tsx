@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import {
   Breadcrumb,
   Button,
+  Divider,
   Layout,
   Menu,
   MenuProps,
@@ -24,7 +25,6 @@ import { setActiveNamespace } from "@/store/modules/kubernetes";
 import { get } from "@/utils/localStorage";
 import Title from "antd/es/typography/Title";
 import { Footer } from "antd/es/layout/layout";
-import CustomFooter from "@/components/Footer";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -194,10 +194,10 @@ const GeekLayout: React.FC = () => {
     openKey.pop();
     setLocationPath(location.pathname);
   }, [location.pathname]);
-
+  const { token } = theme.useToken();
   return (
     <>
-      <Layout style={{ minHeight: "100vh" }}>
+      <Layout style={{ minHeight: "100vh", padding: "0" }}>
         <Header
           data-tauri-drag-region
           style={{
@@ -278,16 +278,16 @@ const GeekLayout: React.FC = () => {
               }}
             />
           </Sider>
-          <Layout style={{ padding: "0 24px 24px" }}>
-            <Breadcrumb
+          <Layout>
+            {/* <Breadcrumb
               items={location.pathname.split("/").map((path, _index, _arr) => ({
                 title: path,
               }))}
               style={{ margin: "16px 0" }}
-            />
+            /> */}
             <Content
               style={{
-                padding: 24,
+                padding: 0,
                 margin: 0,
                 background: colorBgContainer,
                 borderRadius: borderRadiusLG,
@@ -297,6 +297,27 @@ const GeekLayout: React.FC = () => {
             </Content>
           </Layout>
         </Layout>
+        <Footer
+          style={{
+            height: "30px",
+            padding: "0",
+            backgroundColor: token.colorBgContainer,
+          }}
+        >
+          <Divider style={{ margin: "0" }} />
+          <div
+            style={{
+              userSelect: "none",
+              cursor: "default",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "25px",
+            }}
+          >
+            <span>WRITTEN BY LBEMI @2025 版权所有</span>
+          </div>
+        </Footer>
       </Layout>
     </>
   );

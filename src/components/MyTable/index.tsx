@@ -23,6 +23,7 @@ export interface MyTableProps<T> {
   refresh: () => void;
   del: () => void;
   filter: (data: T) => Array<T>;
+  scroll: TableProps<T>["scroll"];
   loading: boolean;
 }
 
@@ -32,6 +33,7 @@ const MyTable: FC<MyTableProps<any>> = ({
   del,
   filter,
   loading,
+  scroll,
 }) => {
   const [showColumn, setShowColumn] = useState(columns);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -110,7 +112,6 @@ const MyTable: FC<MyTableProps<any>> = ({
     selectedRowKeys,
     onChange: onSelectChange,
   };
-  const [y, setY] = useState("");
   const hasSelected = selectedRowKeys.length > 0;
 
   const rowSelection = () => {
@@ -151,37 +152,9 @@ const MyTable: FC<MyTableProps<any>> = ({
     );
   };
 
-  useEffect(() => {
-    const tableElement = document.getElementById("my-table");
-    if (tableElement) {
-      const tableHeight = tableElement.offsetHeight;
-      console.log("my-table height: ", tableHeight);
-    }
-  }, [window.innerHeight]);
-  useEffect(() => {
-    const handleSplitterResize = (e: CustomEvent) => {
-      const windowHeight = window.innerHeight;
-      const tableHeight = windowHeight - e.detail - 200;
-      setY(`${tableHeight}px`);
-      console.log("tableHeight: ", tableHeight, windowHeight);
-    };
-
-    window.addEventListener(
-      "splitterResize",
-      handleSplitterResize as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "splitterResize",
-        handleSplitterResize as EventListener
-      );
-    };
-  }, []);
-
   return (
     <>
-      <div className={"my-table"}>
+      <div id="my-table" className={"my-table"}>
         <div className={"table-header"}>
           <div className="left-section">
             <Button color="primary" variant="outlined" icon={<PlusOutlined />}>
@@ -232,7 +205,7 @@ const MyTable: FC<MyTableProps<any>> = ({
             </Popover>
           </div>
         </div>
-        <div id="my-table">
+        <div>
           <Table
             rowSelection={tableRowSelection}
             className="table"
@@ -240,7 +213,7 @@ const MyTable: FC<MyTableProps<any>> = ({
             dataSource={filter(searchText)}
             loading={loading}
             rowKey={(record) => record.metadata!.uid!}
-            scroll={{ x: "max-content", y: y }}
+            scroll={scroll}
             pagination={false}
           />
         </div>
