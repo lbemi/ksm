@@ -152,9 +152,10 @@ const DeploymentDetailDrawer: React.FC<DeploymentDetailDrawerProps> = ({
 
   return (
     <Drawer
+      mask={false}
       title={
         <Space>
-          <span>Deployment 详情</span>
+          <span> 详情</span>
           <Tag>{metadata?.name}</Tag>
         </Space>
       }
@@ -162,12 +163,10 @@ const DeploymentDetailDrawer: React.FC<DeploymentDetailDrawerProps> = ({
       width={"50%"}
       onClose={onClose}
       open={visible}
+      size="large"
       style={{
-        position: "fixed",
-        zIndex: 1001,
-        top: 64,
         width: "50vw",
-        height: "calc(100% - 64px)",
+        height: "calc(100vh - 75px)",
       }}
       extra={
         <Space>

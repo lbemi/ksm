@@ -4,7 +4,9 @@
   border: 0 !important;
   margin-left: 0 !important;
 }
-
+.ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
 .ant-tabs > .ant-tabs-nav .ant-tabs-nav-add,
 .ant-tabs > div > .ant-tabs-nav .ant-tabs-nav-add {
   border-radius: 0 !important;

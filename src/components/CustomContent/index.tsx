@@ -10,7 +10,7 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
   const calculateTableHeight = (splitterHeight?: number) => {
     const headerHeight = 60;
     const breadcrumbHeight = 32;
-    const padding = 108;
+    const padding = 110;
 
     // 如果有 splitterHeight，直接使用它减去 padding
     if (splitterHeight) {
@@ -41,11 +41,12 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
       <Splitter
         layout="vertical"
         className="custom-splitter"
+        style={{ overflow: "hidden" }}
         onResizeEnd={(sizes) => {
           calculateTableHeight(sizes[0]); // 使用第一个面板的高度
         }}
       >
-        <Splitter.Panel>
+        <Splitter.Panel className="custom-splitter-panel">
           <MyTable
             {...tableParams}
             scroll={{ x: "max-content", y: tableHeight }}

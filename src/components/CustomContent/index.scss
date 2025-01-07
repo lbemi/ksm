@@ -21,6 +21,7 @@
   height: calc(100vh - 85px);
   .custom-splitter-panel {
     min-height: 34px;
+    overflow: hidden;
   }
   .ant-splitter-handle {
     height: 8px !important;
