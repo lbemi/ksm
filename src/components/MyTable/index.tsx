@@ -218,14 +218,14 @@ const MyTable: FC<MyTableProps<any>> = ({
                 dispatch(setActiveNamespace(value));
               }}
             />
-            <Button
+            {/* <Button
               variant="link"
               color="primary"
               onClick={() => {
                 list_namespaces();
               }}
               icon={<ReloadOutlined />}
-            ></Button>
+            ></Button> */}
             <Search
               allowClear
               size="small"
