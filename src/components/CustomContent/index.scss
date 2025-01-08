@@ -19,4 +19,8 @@
 }
 .custom-splitter {
   height: calc(100vh - 55px);
+  overflow: hidden;
+  .custom-splitter-panel {
+    overflow: hidden;
+  }
 }

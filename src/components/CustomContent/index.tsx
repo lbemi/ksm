@@ -8,31 +8,26 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
   const [tableHeight, setTableHeight] = useState<number>(0);
   const [localHeight, setLocalHeight] = useState<number>(0);
 
+  // todo 需要优化
   const calculateTableHeight = (splitterHeight?: number) => {
     const headerHeight = 90;
-    const padding = 90;
+    let padding = 100;
 
     if (splitterHeight) {
+      if (localHeight === 0) {
+        padding = padding + 50;
+      }
       const height = Math.max(splitterHeight - padding, 0);
       setTableHeight(height);
       return;
     }
-    console.log("计算tableHeight-------");
 
     const windowHeight = window.innerHeight;
-    const height = Math.max(
-      windowHeight - headerHeight - padding - localHeight,
-      0
-    );
+    const height = Math.max(windowHeight - headerHeight - padding, 0);
     setTableHeight(height);
   };
 
   useEffect(() => {
-    console.log(
-      "监听到窗口发生变动了: window.innerHeight: ",
-      window.innerHeight,
-      window.innerWidth
-    );
     calculateTableHeight();
   }, [window.innerHeight, window.innerWidth]);
 
@@ -44,7 +39,11 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
         style={{ overflow: "hidden" }}
         onResizeEnd={(sizes) => {
           calculateTableHeight(sizes[0]);
-          setLocalHeight(sizes[1]);
+          if (sizes[1] === 0) {
+            setLocalHeight(sizes[1] + 100);
+          } else {
+            setLocalHeight(sizes[1]);
+          }
         }}
       >
         <Splitter.Panel className="custom-splitter-panel">
@@ -56,7 +55,7 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
         <Splitter.Panel
           collapsible
           className="custom-splitter-panel"
-          defaultSize={34}
+          defaultSize={"34px"}
           style={{
             minHeight: "34px",
           }}
