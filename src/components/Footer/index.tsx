@@ -1,20 +1,13 @@
-import { Tabs, Button, TabsProps } from "antd";
-import {
-  AndroidOutlined,
-  PlusOutlined,
-  ShrinkOutlined,
-} from "@ant-design/icons";
+import { Tabs, TabsProps } from "antd";
+import { AndroidOutlined } from "@ant-design/icons";
 import { FC, useRef, useState } from "react";
 import "./index.scss";
 
 const CustomFooter: FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
   type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
   const newTabIndex = useRef(0);
   const [activeKey, setActiveKey] = useState("1");
-  const toggleCollapse = () => {
-    setCollapsed(!collapsed);
-  };
+
   const [items, setItems] = useState<TabsProps["items"]>([]);
   const add = () => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
@@ -60,17 +53,7 @@ const CustomFooter: FC = () => {
       defaultActiveKey="2"
       onEdit={onEdit}
       tabBarExtraContent={{
-        right: (
-          <>
-            <Button icon={<PlusOutlined />} onClick={add} />
-            <Button
-              icon={
-                collapsed ? <PlusOutlined rotate={45} /> : <ShrinkOutlined />
-              }
-              onClick={toggleCollapse}
-            />
-          </>
-        ),
+        right: <></>,
       }}
       onChange={onChange}
       activeKey={activeKey}

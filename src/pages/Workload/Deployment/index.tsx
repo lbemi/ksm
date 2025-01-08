@@ -14,7 +14,6 @@ import { kubernetes_request } from "@/api/cluster";
 import { Deployment } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
-import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import DeploymentDetailDrawer from "./DeploymentDetailDrawer";
 import CustomContent from "@/components/CustomContent";
@@ -25,7 +24,6 @@ const DeploymentPage: FC = () => {
   const [selectedDeployment, setSelectedDeployment] =
     useState<Deployment | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
-  const clusterName = useAppSelector((state) => state.kubernetes.activeCluster);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const { Paragraph } = Typography;
 
@@ -217,29 +215,32 @@ const DeploymentPage: FC = () => {
     });
   };
 
-  const list_deployments = () => {
-    setLoading(true);
-    let url =
-      namespace === "all"
-        ? "/apis/apps/v1/deployments"
-        : `/apis/apps/v1/namespaces/${namespace}/deployments`;
-    kubernetes_request<Array<Deployment>>("GET", url)
-      .then((res) => {
-        setDeployments(res);
-      })
-      .catch((err) => {
-        console.log("err: ", err);
-      });
-    setLoading(false);
+  const list_deployments = async (refresh = false) => {
+    if (!refresh) {
+      setLoading(true);
+    }
+    try {
+      let url =
+        namespace === "all"
+          ? "/apis/apps/v1/deployments"
+          : `/apis/apps/v1/namespaces/${namespace}/deployments`;
+      const res = await kubernetes_request<Array<Deployment>>("GET", url);
+      setDeployments(res);
+    } catch (error) {
+      message.error("获取Deployment列表失败");
+    } finally {
+      if (!refresh) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
-    const interval = setInterval(list_deployments, 5000);
-    return () => clearInterval(interval);
-  }, []);
-  useEffect(() => {
-    if (!clusterName) return;
     list_deployments();
+    const interval = setInterval(() => {
+      list_deployments(true);
+    }, 5000);
+    return () => clearInterval(interval);
   }, [namespace]);
 
   const filterDeployments = (searchText: string) => {
@@ -265,9 +266,9 @@ const DeploymentPage: FC = () => {
       <CustomContent
         columns={columns}
         refresh={list_deployments}
-        del={() => {}}
         filter={filterDeployments}
         loading={loading}
+        total={deployments.length}
       />
       <DeploymentDetailDrawer
         visible={drawerVisible}

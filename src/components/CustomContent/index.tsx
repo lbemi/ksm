@@ -6,35 +6,35 @@ import "./index.scss";
 
 const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
   const [tableHeight, setTableHeight] = useState<number>(0);
+  const [localHeight, setLocalHeight] = useState<number>(0);
 
   const calculateTableHeight = (splitterHeight?: number) => {
-    const headerHeight = 60;
-    const breadcrumbHeight = 32;
-    const padding = 110;
+    const headerHeight = 90;
+    const padding = 90;
 
-    // 如果有 splitterHeight，直接使用它减去 padding
     if (splitterHeight) {
-      const height = Math.max(splitterHeight - padding, 0); // 确保高度不会为负数
+      const height = Math.max(splitterHeight - padding, 0);
       setTableHeight(height);
       return;
     }
+    console.log("计算tableHeight-------");
 
-    // 否则使用窗口高度计算
     const windowHeight = window.innerHeight;
     const height = Math.max(
-      windowHeight - headerHeight - breadcrumbHeight - padding,
+      windowHeight - headerHeight - padding - localHeight,
       0
     );
     setTableHeight(height);
   };
 
   useEffect(() => {
-    calculateTableHeight(); // 初始计算
-
-    const handleResize = () => calculateTableHeight();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, [window.innerHeight]);
+    console.log(
+      "监听到窗口发生变动了: window.innerHeight: ",
+      window.innerHeight,
+      window.innerWidth
+    );
+    calculateTableHeight();
+  }, [window.innerHeight, window.innerWidth]);
 
   return (
     <div style={{ overflow: "hidden" }}>
@@ -43,7 +43,8 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
         className="custom-splitter"
         style={{ overflow: "hidden" }}
         onResizeEnd={(sizes) => {
-          calculateTableHeight(sizes[0]); // 使用第一个面板的高度
+          calculateTableHeight(sizes[0]);
+          setLocalHeight(sizes[1]);
         }}
       >
         <Splitter.Panel className="custom-splitter-panel">
@@ -53,11 +54,12 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
           />
         </Splitter.Panel>
         <Splitter.Panel
-          className="custom-splitter-panel"
           collapsible
-          defaultSize={"34px"}
-          min="20%"
-          style={{ minHeight: "34px" }}
+          className="custom-splitter-panel"
+          defaultSize={34}
+          style={{
+            minHeight: "34px",
+          }}
         >
           <CustomFooter />
         </Splitter.Panel>

@@ -5,26 +5,33 @@ import {
   GetProps,
   Input,
   Popover,
+  Select,
   Table,
+  Typography,
 } from "antd";
 import {
   SyncOutlined,
   DeleteOutlined,
   PlusOutlined,
   SettingOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
-import { FC, useEffect, useRef, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Checkbox, TableProps } from "antd";
-import { useAppSelector } from "@/store/hook";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
 import "./index.scss";
+import { kubernetes_request } from "@/api/cluster";
+import { Namespace } from "kubernetes-models/v1";
+import { setActiveNamespace } from "@/store/modules/kubernetes";
 
 export interface MyTableProps<T> {
   columns: TableProps<T>["columns"];
   refresh: () => void;
-  del: () => void;
+  del?: () => void;
   filter: (data: T) => Array<T>;
-  scroll: TableProps<T>["scroll"];
+  scroll?: TableProps<T>["scroll"];
   loading: boolean;
+  total?: number;
 }
 
 const MyTable: FC<MyTableProps<any>> = ({
@@ -34,16 +41,18 @@ const MyTable: FC<MyTableProps<any>> = ({
   filter,
   loading,
   scroll,
+  total,
 }) => {
   const [showColumn, setShowColumn] = useState(columns);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
   const [searchText, setSearchText] = useState<string>("");
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     handelSelectOption();
   }, [namespace]);
-
+  const { Title } = Typography;
   const plainOptions = columns!
     .filter((column) => column.key !== "action")
     .map(({ key, title }) => ({
@@ -114,6 +123,20 @@ const MyTable: FC<MyTableProps<any>> = ({
   };
   const hasSelected = selectedRowKeys.length > 0;
 
+  const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
+  const list_namespaces = () => {
+    kubernetes_request<Array<Namespace>>(
+      "GET",
+      "/api/v1/namespaces?limit=500"
+    ).then((res) => {
+      setNamespaces(res);
+    });
+  };
+
+  useEffect(() => {
+    list_namespaces();
+  }, []);
+
   const rowSelection = () => {
     return (
       <div className="pod-page">
@@ -157,31 +180,67 @@ const MyTable: FC<MyTableProps<any>> = ({
       <div id="my-table" className={"my-table"}>
         <div className={"table-header"}>
           <div className="left-section">
-            <Button color="primary" variant="outlined" icon={<PlusOutlined />}>
+            <Button
+              color="primary"
+              variant="outlined"
+              size="small"
+              icon={<PlusOutlined />}
+            >
               新增
             </Button>
             <Button
               danger
+              size="small"
               disabled={!hasSelected}
               loading={deleteLoading}
               icon={<DeleteOutlined />}
               onClick={() => {
                 setDeleteLoading(true);
-                del();
+                del?.();
                 setDeleteLoading(false);
               }}
             >
               删除
             </Button>
+            <Select
+              style={{ width: 180 }}
+              defaultValue={namespace}
+              size="small"
+              options={[
+                { value: "all", label: "全部命名空间" },
+                ...namespaces.map((namespace) => ({
+                  value: namespace.metadata!.name,
+                  label: <span>{namespace.metadata!.name}</span>,
+                })),
+              ]}
+              dropdownStyle={{ width: "250px" }}
+              onChange={(value) => {
+                dispatch(setActiveNamespace(value));
+              }}
+            />
+            <Button
+              variant="link"
+              color="primary"
+              onClick={() => {
+                list_namespaces();
+              }}
+              icon={<ReloadOutlined />}
+            ></Button>
             <Search
               allowClear
+              size="small"
               placeholder="搜索 Pod 名称、状态、IP、节点..."
               onSearch={onSearch}
               onChange={onSearchChange}
               value={searchText}
-              style={{ width: 300 }}
+              style={{ width: 200 }}
               onClick={filter}
             />
+            <div className="total-count">
+              <Title level={5} style={{ margin: 0 }}>
+                总计:{filter(searchText).length}/{total || 0}
+              </Title>
+            </div>
           </div>
           <div className="right-section">
             <Button
@@ -189,6 +248,7 @@ const MyTable: FC<MyTableProps<any>> = ({
               type="dashed"
               onClick={refresh}
               className="refresh-button"
+              size="small"
             >
               刷新
             </Button>
@@ -199,7 +259,7 @@ const MyTable: FC<MyTableProps<any>> = ({
               open={open}
               onOpenChange={handleOpen}
             >
-              <Button type="dashed" icon={<SettingOutlined />}>
+              <Button type="dashed" icon={<SettingOutlined />} size="small">
                 自定义列
               </Button>
             </Popover>

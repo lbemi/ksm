@@ -11,9 +11,9 @@ import { theme } from "antd";
 
 const App = () => (
   <ThemeProvider
-    defaultThemeMode={"auto"}
+    defaultThemeMode={"light"}
     theme={{
-      algorithm: theme.compactAlgorithm,
+      algorithm: [theme.compactAlgorithm],
       token: {
         // colorPrimary: "#69b4ff",
         // colorPrimary: "#0085ff",

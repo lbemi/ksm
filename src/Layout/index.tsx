@@ -1,27 +1,14 @@
 import React, { useEffect, useState } from "react";
-import {
-  Breadcrumb,
-  Button,
-  Divider,
-  Layout,
-  Menu,
-  MenuProps,
-  Select,
-  theme,
-} from "antd";
+import { Button, Divider, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   VideoCameraOutlined,
   MenuUnfoldOutlined,
   MenuFoldOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import Settings from "@/components/Settings";
 import "./index.scss";
-import { Namespace } from "kubernetes-models/v1";
-import { kubernetes_request } from "@/api/cluster";
-import { useAppDispatch } from "@/store/hook";
-import { setActiveNamespace } from "@/store/modules/kubernetes";
+
 import { get } from "@/utils/localStorage";
 import Title from "antd/es/typography/Title";
 import { Footer } from "antd/es/layout/layout";
@@ -151,7 +138,6 @@ const items: MenuItem[] = [
 const GeekLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -159,7 +145,7 @@ const GeekLayout: React.FC = () => {
   const [locationPath, setLocationPath] = useState<string>(location.pathname);
   const [selectKeys, setSelectKeys] = useState<string[]>();
   const [collapsed, setCollapsed] = useState(false);
-  const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
+  const [left, setLeft] = useState("174px");
 
   const handleOnSelect = (key: string, keyPath: string[]) => {
     setSelectKeys(keyPath);
@@ -174,19 +160,6 @@ const GeekLayout: React.FC = () => {
       openKeyList = ["/" + openKeyList.join("/")];
     }
   };
-
-  const list_namespaces = () => {
-    kubernetes_request<Array<Namespace>>(
-      "GET",
-      "/api/v1/namespaces?limit=500"
-    ).then((res) => {
-      setNamespaces(res);
-    });
-  };
-
-  useEffect(() => {
-    list_namespaces();
-  }, []);
 
   useEffect(() => {
     setSelectKeys([location.pathname]);
@@ -205,7 +178,7 @@ const GeekLayout: React.FC = () => {
             alignItems: "center",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            height: "60px",
+            height: "30px",
             padding: "0 20px",
           }}
         >
@@ -213,54 +186,30 @@ const GeekLayout: React.FC = () => {
             style={{
               display: "flex",
               alignItems: "center",
-              marginLeft: "50px",
+              marginLeft: left,
+              transition: "margin-left 0.3s ease-in-out",
             }}
           >
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => {
+                setCollapsed(!collapsed);
+                setLeft(collapsed ? "174px" : "53px");
+              }}
             />
           </div>
           <div
             style={{
               textAlign: "center",
               background: colorBgContainer,
-              marginLeft: "100px",
+              marginLeft: "10px",
             }}
           >
             <Title level={5} style={{ margin: "0" }}>
               当前集群: {get("activeCluster")}
             </Title>
           </div>
-          <span
-            style={{ fontSize: "14px", fontWeight: "bold", margin: "0 20px" }}
-          >
-            命名空间:
-          </span>
-          <Select
-            style={{ width: 200 }}
-            defaultValue={get("namespace") || "default"}
-            size="small"
-            options={[
-              { value: "all", label: "全部命名空间" },
-              ...namespaces.map((namespace) => ({
-                value: namespace.metadata!.name,
-                label: <span>{namespace.metadata!.name}</span>,
-              })),
-            ]}
-            onChange={(value) => {
-              dispatch(setActiveNamespace(value));
-            }}
-          />
-          <Button
-            variant="link"
-            color="primary"
-            onClick={() => {
-              list_namespaces();
-            }}
-            icon={<ReloadOutlined />}
-          ></Button>
           <Settings />
         </Header>
         <Layout>
