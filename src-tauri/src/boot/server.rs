@@ -1,4 +1,4 @@
-use crate::api::{cluster, custom_api, k8s_proxy, pods::pod};
+use crate::api::{cluster, k8s_proxy, pods::pod};
 
 use super::setup;
 
@@ -12,9 +12,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             cluster::switch_cluster,
             cluster::list_clusters,
-            pod::list_pods,
             pod::watch_pods,
-            custom_api::kubernetes_api,
             k8s_proxy::proxy_request
         ])
         .run(tauri::generate_context!())
