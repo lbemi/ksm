@@ -2,12 +2,14 @@ use crate::tray::create_tray;
 use kube::config::Kubeconfig;
 use std::sync::Mutex;
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tokio::net::TcpListener;
 
 #[derive(Default)]
 pub struct AppData {
     pub kubernetes_configs: Kubeconfig,
     pub client: Option<kube::Client>,
     pub discovery: Option<kube::Discovery>,
+    pub websocket_listener: Option<TcpListener>,
 }
 
 impl AppData {
@@ -16,6 +18,7 @@ impl AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
             discovery: None,
+            websocket_listener: None,
         }
     }
 }

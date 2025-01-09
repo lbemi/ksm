@@ -1,4 +1,4 @@
-use crate::api::{cluster, k8s_proxy, pods::pod};
+use crate::api::{cluster, k8s_proxy, pods::pod, websocket};
 
 use super::setup;
 
@@ -13,7 +13,8 @@ pub fn run() {
             cluster::switch_cluster,
             cluster::list_clusters,
             pod::watch_pods,
-            k8s_proxy::proxy_request
+            k8s_proxy::proxy_request,
+            websocket::connect_websocket
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
