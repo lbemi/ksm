@@ -19,6 +19,7 @@ import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
+import WebSocket from "@tauri-apps/plugin-websocket";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -302,9 +303,17 @@ const PodPage: FC = () => {
       }
     }
   };
+  const wb = async () => {
+    const ws = await WebSocket.connect("ws://localhost:38012");
+    ws.addListener((msg) => {
+      console.log("Received Message:", msg);
+    });
 
+    await ws.disconnect();
+  };
   useEffect(() => {
     list_pods();
+    wb();
   }, [namespace]);
 
   const getFilteredPods = (searchText: string) => {
@@ -332,6 +341,7 @@ const PodPage: FC = () => {
       // setSelectedRowKeys([]);
     }, 1000);
   };
+
   return (
     <>
       <CustomContent

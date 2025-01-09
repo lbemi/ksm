@@ -40,7 +40,7 @@ clap = { version = "4.5", features = ["derive"] }
 futures = "0.3"
 either = "1.13.0"
 edit = "0.1.5"
-tauri-plugin-websocket = "2.0.1"
+tauri-plugin-websocket = "2"
 http = "1.2.0"
 tokio-tungstenite = "0.26.1"
 
