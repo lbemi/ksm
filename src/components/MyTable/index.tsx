@@ -14,7 +14,6 @@ import {
   DeleteOutlined,
   PlusOutlined,
   SettingOutlined,
-  ReloadOutlined,
 } from "@ant-design/icons";
 import { FC, useEffect, useState } from "react";
 import { Checkbox, TableProps } from "antd";
@@ -32,6 +31,7 @@ export interface MyTableProps<T> {
   scroll?: TableProps<T>["scroll"];
   loading: boolean;
   total?: number;
+  disableNamespace?: boolean;
 }
 
 const MyTable: FC<MyTableProps<any>> = ({
@@ -42,6 +42,7 @@ const MyTable: FC<MyTableProps<any>> = ({
   loading,
   scroll,
   total,
+  disableNamespace,
 }) => {
   const [showColumn, setShowColumn] = useState(columns);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -202,30 +203,24 @@ const MyTable: FC<MyTableProps<any>> = ({
             >
               删除
             </Button>
-            <Select
-              style={{ width: 180 }}
-              defaultValue={namespace}
-              size="small"
-              options={[
-                { value: "all", label: "全部命名空间" },
-                ...namespaces.map((namespace) => ({
-                  value: namespace.metadata!.name,
-                  label: <span>{namespace.metadata!.name}</span>,
-                })),
-              ]}
-              dropdownStyle={{ width: "250px" }}
-              onChange={(value) => {
-                dispatch(setActiveNamespace(value));
-              }}
-            />
-            {/* <Button
-              variant="link"
-              color="primary"
-              onClick={() => {
-                list_namespaces();
-              }}
-              icon={<ReloadOutlined />}
-            ></Button> */}
+            {!disableNamespace && (
+              <Select
+                style={{ width: 180 }}
+                defaultValue={namespace}
+                size="small"
+                options={[
+                  { value: "all", label: "全部命名空间" },
+                  ...namespaces.map((namespace) => ({
+                    value: namespace.metadata!.name,
+                    label: <span>{namespace.metadata!.name}</span>,
+                  })),
+                ]}
+                dropdownStyle={{ width: "250px" }}
+                onChange={(value) => {
+                  dispatch(setActiveNamespace(value));
+                }}
+              />
+            )}
             <Search
               allowClear
               size="small"

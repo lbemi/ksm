@@ -10,9 +10,9 @@ import {
 } from "@ant-design/icons";
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import { ConfigMap } from "kubernetes-models/v1";
 import getAge from "@/utils/k8s/date";
+import CustomContent from "@/components/CustomContent";
 
 const ConfigMapPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -154,12 +154,11 @@ const ConfigMapPage: FC = () => {
 
   return (
     <>
-      <MyTable
-        loading={loading}
+      <CustomContent
         columns={columns}
         refresh={list_configMaps}
-        del={() => {}}
         filter={filteredConfigMaps}
+        loading={loading}
       />
     </>
   );

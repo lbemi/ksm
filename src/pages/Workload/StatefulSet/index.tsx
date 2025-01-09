@@ -13,8 +13,8 @@ import { kubernetes_request } from "@/api/cluster";
 import { StatefulSet } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
-import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
+import CustomContent from "@/components/CustomContent";
 
 const StatefulSetPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -208,12 +208,12 @@ const StatefulSetPage: FC = () => {
 
   return (
     <>
-      <MyTable
-        loading={loading}
+      <CustomContent
         columns={columns}
-        del={() => {}}
         refresh={list_statefulsets}
+        del={() => {}}
         filter={getFilteredStatefulSets}
+        loading={loading}
       />
     </>
   );

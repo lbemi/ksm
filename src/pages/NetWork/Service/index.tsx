@@ -11,8 +11,8 @@ import {
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
 import { Service } from "kubernetes-models/v1";
-import MyTable from "@/components/MyTable";
 import getAge from "@/utils/k8s/date";
+import CustomContent from "@/components/CustomContent";
 
 const ServicePage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -164,11 +164,10 @@ const ServicePage: FC = () => {
   };
   return (
     <>
-      <MyTable
+      <CustomContent
         loading={loading}
         columns={columns}
         refresh={list_services}
-        del={() => {}}
         filter={filteredServices}
       />
     </>

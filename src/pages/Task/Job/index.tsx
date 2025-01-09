@@ -10,9 +10,9 @@ import {
 } from "@ant-design/icons";
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import { Job } from "kubernetes-models/batch/v1";
 import getAge from "@/utils/k8s/date";
+import CustomContent from "@/components/CustomContent";
 
 const JobPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -151,11 +151,10 @@ const JobPage: FC = () => {
 
   return (
     <>
-      <MyTable
+      <CustomContent
         loading={loading}
         columns={columns}
         refresh={list_jobs}
-        del={() => {}}
         filter={() => jobs} // 可以根据需要添加过滤功能
       />
     </>

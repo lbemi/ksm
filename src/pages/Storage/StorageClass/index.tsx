@@ -9,9 +9,9 @@ import {
 } from "@ant-design/icons";
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import getAge from "@/utils/k8s/date";
 import { StorageClass } from "kubernetes-models/storage.k8s.io/v1";
+import CustomContent from "@/components/CustomContent";
 
 const StorageClassPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -139,12 +139,12 @@ const StorageClassPage: FC = () => {
 
   return (
     <>
-      <MyTable
+      <CustomContent
         loading={loading}
         columns={columns}
         refresh={list_storageClasses}
-        del={() => {}}
         filter={() => storageClasses} // 可以根据需要添加过滤功能
+        disableNamespace
       />
     </>
   );

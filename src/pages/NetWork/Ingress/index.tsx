@@ -10,9 +10,9 @@ import {
 } from "@ant-design/icons";
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import { Ingress } from "kubernetes-models/networking.k8s.io/v1";
 import getAge from "@/utils/k8s/date";
+import CustomContent from "@/components/CustomContent";
 
 const IngressPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -168,11 +168,10 @@ const IngressPage: FC = () => {
 
   return (
     <>
-      <MyTable
+      <CustomContent
         loading={loading}
         columns={columns}
         refresh={list_ingresses}
-        del={() => {}}
         filter={filteredIngresses}
       />
     </>

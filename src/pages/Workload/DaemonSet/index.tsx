@@ -13,8 +13,8 @@ import { kubernetes_request } from "@/api/cluster";
 import { DaemonSet } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
-import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
+import CustomContent from "@/components/CustomContent";
 
 const DaemonSetPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -202,12 +202,11 @@ const DaemonSetPage: FC = () => {
 
   return (
     <>
-      <MyTable
-        loading={loading}
+      <CustomContent
         columns={columns}
-        del={() => {}}
         refresh={list_daemonsets}
         filter={getFilteredDaemonSets}
+        loading={loading}
       />
     </>
   );

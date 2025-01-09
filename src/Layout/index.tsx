@@ -145,7 +145,7 @@ const GeekLayout: React.FC = () => {
   const [locationPath, setLocationPath] = useState<string>(location.pathname);
   const [selectKeys, setSelectKeys] = useState<string[]>();
   const [collapsed, setCollapsed] = useState(false);
-  const [left, setLeft] = useState("174px");
+  const [left, setLeft] = useState("138px");
 
   const handleOnSelect = (key: string, keyPath: string[]) => {
     setSelectKeys(keyPath);
@@ -195,7 +195,7 @@ const GeekLayout: React.FC = () => {
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => {
                 setCollapsed(!collapsed);
-                setLeft(collapsed ? "174px" : "53px");
+                setLeft(collapsed ? "138px" : "53px");
               }}
             />
           </div>
@@ -206,14 +206,18 @@ const GeekLayout: React.FC = () => {
               marginLeft: "10px",
             }}
           >
-            <Title level={5} style={{ margin: "0" }}>
+            <Title
+              level={5}
+              style={{ margin: "0", cursor: "default", userSelect: "none" }}
+            >
               当前集群: {get("activeCluster")}
             </Title>
           </div>
           <Settings />
         </Header>
+        <Divider style={{ margin: "0" }} />
         <Layout>
-          <Sider trigger={null} collapsible collapsed={collapsed}>
+          <Sider trigger={null} collapsible collapsed={collapsed} width={165}>
             <Menu
               mode="inline"
               onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
@@ -228,12 +232,6 @@ const GeekLayout: React.FC = () => {
             />
           </Sider>
           <Layout>
-            {/* <Breadcrumb
-              items={location.pathname.split("/").map((path, _index, _arr) => ({
-                title: path,
-              }))}
-              style={{ margin: "16px 0" }}
-            /> */}
             <Content
               style={{
                 padding: 0,

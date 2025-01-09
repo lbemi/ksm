@@ -1,20 +1,10 @@
 import { FC } from "react";
 import CustomBox from "@/components/CustomBox";
-import WindowOperation from "@/components/WindowOperation";
 import "./index.scss";
-import { theme } from "antd";
 const About: FC = () => {
   return (
     <>
       <CustomBox className="about">
-        <div style={{ position: "absolute", right: 5, top: 0 }}>
-          <WindowOperation
-            hide={false}
-            height={40}
-            style={{ right: 10 }}
-            isMaximize={false}
-          />
-        </div>
         <div className="about-wave"></div>
         <div className="about-wave"></div>
         <div className="about-wave"></div>

@@ -17,8 +17,8 @@ import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import { getImages } from "@/utils/k8s/tools.tsx";
+import CustomContent from "@/components/CustomContent";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -281,22 +281,26 @@ const PodPage: FC = () => {
     });
   };
 
-  const list_pods = () => {
-    setLoading(true);
+  const list_pods = async (refresh = false) => {
+    if (!refresh) {
+      setLoading(true);
+    }
     let url: string;
     if (namespace === "all") {
       url = "/api/v1/pods";
     } else {
       url = "/api/v1/namespaces/" + namespace + "/pods";
     }
-    kubernetes_request<Array<Pod>>("GET", url)
-      .then((res) => {
-        setPods(res);
-      })
-      .catch((err) => {
-        console.log("err: ", err);
-      });
-    setLoading(false);
+    try {
+      const res = await kubernetes_request<Array<Pod>>("GET", url);
+      setPods(res);
+    } catch (error) {
+      message.error("获取Pod列表失败");
+    } finally {
+      if (!refresh) {
+        setLoading(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -330,7 +334,7 @@ const PodPage: FC = () => {
   };
   return (
     <>
-      <MyTable
+      <CustomContent
         columns={columns}
         refresh={list_pods}
         del={deletePods}

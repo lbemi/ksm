@@ -10,9 +10,9 @@ import {
 } from "@ant-design/icons";
 import { Typography } from "antd";
 import { kubernetes_request } from "@/api/cluster";
-import MyTable from "@/components/MyTable";
 import { CronJob } from "kubernetes-models/batch/v1beta1";
 import getAge from "@/utils/k8s/date";
+import CustomContent from "@/components/CustomContent";
 
 const CronJobPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -151,11 +151,10 @@ const CronJobPage: FC = () => {
 
   return (
     <>
-      <MyTable
+      <CustomContent
         loading={loading}
         columns={columns}
         refresh={list_cronJobs}
-        del={() => {}}
         filter={() => cronJobs} // 可以根据需要添加过滤功能
       />
     </>
