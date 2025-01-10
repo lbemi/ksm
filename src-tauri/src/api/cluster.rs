@@ -5,7 +5,6 @@ use kube::{
 };
 use std::sync::Mutex;
 use tauri::State;
-use tokio::net::TcpListener;
 #[tauri::command]
 pub async fn list_clusters(state: State<'_, Mutex<AppData>>) -> Result<Vec<NamedCluster>, MyError> {
     let app_data = state.lock().unwrap();
@@ -27,12 +26,10 @@ pub async fn switch_cluster(
     let config = Config::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?;
     let client = Client::try_from(config)?;
     let discovery = Discovery::new(client.clone()).run().await?;
-    let listener = TcpListener::bind("0.0.0.0:38011").await?;
 
     let mut app_data = state.lock().unwrap();
     app_data.client = Some(client);
     app_data.discovery = Some(discovery);
-    app_data.websocket_listener = Some(listener);
 
     tracing::info!("Switched to cluster {}", cluster_name);
     Ok(cluster_name)

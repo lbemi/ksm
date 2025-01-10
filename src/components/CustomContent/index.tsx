@@ -1,10 +1,17 @@
 import { FC, useEffect, useState } from "react";
 import MyTable, { MyTableProps } from "../MyTable";
-import CustomFooter from "../Footer";
 import { Splitter } from "antd";
 import "./index.scss";
+import { Outlet } from "react-router-dom";
 
-const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
+interface CustomContentProps extends MyTableProps<any> {
+  children?: React.ReactNode;
+}
+
+const CustomContent: FC<CustomContentProps> = ({
+  children,
+  ...tableParams
+}) => {
   const [tableHeight, setTableHeight] = useState<number>(0);
   const [localHeight, setLocalHeight] = useState<number>(0);
 
@@ -60,7 +67,7 @@ const CustomContent: FC<MyTableProps<any>> = (tableParams) => {
             minHeight: "34px",
           }}
         >
-          <CustomFooter />
+          {children}
         </Splitter.Panel>
       </Splitter>
     </div>

@@ -6,7 +6,7 @@ use k8s_openapi::{
 };
 use kube::{api::LogParams, Api, Client};
 use serde::Deserialize;
-use std::{net::SocketAddr, sync::Mutex};
+use std::sync::Mutex;
 use tauri::State;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::tungstenite::Message;
@@ -19,10 +19,9 @@ pub struct PodLogStream {
     follow: bool,
     since: Option<i64>,
     since_time: Option<DateTime<Utc>>,
-    timestamps: bool,
+    timestamps: Option<bool>,
     pod: String,
 }
-
 #[tauri::command]
 pub async fn connect_websocket(
     pod_log_stream: PodLogStream,
@@ -32,15 +31,22 @@ pub async fn connect_websocket(
         let app_data = state.lock().unwrap();
         app_data.client.clone().unwrap()
     };
+    let listener = TcpListener::bind("127.0.0.1:38012").await.unwrap();
 
-    let listener = TcpListener::bind("0.0.0.0:38012").await?;
-    while let Ok((stream, _)) = listener.accept().await {
-        tokio::spawn(handle_connection(
-            client.clone(),
-            stream,
-            pod_log_stream.clone(),
-        ));
-    }
+    tokio::spawn(async move {
+        while let Ok((stream, addr)) = listener.accept().await {
+            let peer = stream
+                .peer_addr()
+                .expect("connected streams should have a peer address");
+            println!("Peer address: {} socket:{}", peer, addr);
+            let client_clone = client.clone();
+            let log_stream = pod_log_stream.clone();
+            tokio::spawn(async move {
+                handle_connection(client_clone, stream, log_stream).await;
+            });
+        }
+    });
+
     Ok(())
 }
 
@@ -60,7 +66,7 @@ async fn handle_connection<'a>(client: Client, stream: TcpStream, pod_log_stream
                 since_seconds: pod_log_stream.since,
                 since_time: pod_log_stream.since_time,
                 tail_lines: pod_log_stream.tail,
-                timestamps: pod_log_stream.timestamps,
+                timestamps: pod_log_stream.timestamps.unwrap_or(false),
                 ..LogParams::default()
             },
         )

@@ -20,11 +20,15 @@ import { kubernetes_request } from "@/api/cluster";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
 import WebSocket from "@tauri-apps/plugin-websocket";
+import { invoke } from "@tauri-apps/api/core";
+import CustomFooter from "@/components/Footer";
+import CustomEdit from "@/components/CustomEdit";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [pods, setPods] = useState<Array<Pod>>([]);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
+  const [log, setLog] = useState("等待日志.... \n");
   const columns: TableProps<Pod>["columns"] = [
     {
       title: "名称",
@@ -304,13 +308,30 @@ const PodPage: FC = () => {
     }
   };
   const wb = async () => {
-    const ws = await WebSocket.connect("ws://localhost:38012");
-    ws.addListener((msg) => {
-      console.log("Received Message:", msg);
+    invoke("connect_websocket", {
+      podLogStream: {
+        namespace: "default",
+        container: "nginx",
+        tail: 50,
+        follow: true,
+        timestamps: true,
+        pod: "mynginx-64c659d46f-h66rh",
+      },
+    }).then((res) => {
+      console.log("res: ", res);
     });
 
-    await ws.disconnect();
+    const ws = await WebSocket.connect("ws://localhost:38012");
+    let text = "";
+    ws.addListener((msg) => {
+      // console.log("Received Message:", msg.data);
+      text = text + msg.data?.toString() + "\n";
+      console.log("text----: ", text);
+      setLog(text);
+    });
+    // await ws.disconnect();
   };
+
   useEffect(() => {
     list_pods();
     wb();
@@ -350,7 +371,10 @@ const PodPage: FC = () => {
         del={deletePods}
         filter={getFilteredPods}
         loading={loading}
-      />
+      >
+        <CustomEdit data={log} type="json" scrollEnd />
+        {/* <CustomFooter /> */}
+      </CustomContent>
     </>
   );
 };

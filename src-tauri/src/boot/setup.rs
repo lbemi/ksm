@@ -1,6 +1,6 @@
 use crate::tray::create_tray;
 use kube::config::Kubeconfig;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tokio::net::TcpListener;
 
@@ -9,7 +9,6 @@ pub struct AppData {
     pub kubernetes_configs: Kubeconfig,
     pub client: Option<kube::Client>,
     pub discovery: Option<kube::Discovery>,
-    pub websocket_listener: Option<TcpListener>,
 }
 
 impl AppData {
@@ -18,21 +17,19 @@ impl AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
             discovery: None,
-            websocket_listener: None,
         }
     }
 }
 
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(Mutex::new(AppData::load_config()));
-    let handle = app.handle();
 
+    let handle = app.handle();
     #[cfg(all(desktop))]
     {
-        create_tray(handle)?; //注册托盘菜单
+        create_tray(handle)?;
     }
 
-    // let handle = handle.clone();
     let mut core_window =
         WebviewWindowBuilder::new(app, "core", WebviewUrl::default()).title("Kubernetes manger");
 
