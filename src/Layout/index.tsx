@@ -178,7 +178,7 @@ const GeekLayout: React.FC = () => {
             alignItems: "center",
             background: colorBgContainer,
             borderRadius: borderRadiusLG,
-            height: "30px",
+            height: "45px",
             padding: "0 20px",
           }}
         >

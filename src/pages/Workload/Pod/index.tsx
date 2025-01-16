@@ -19,9 +19,7 @@ import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
-import WebSocket from "@tauri-apps/plugin-websocket";
 import { invoke } from "@tauri-apps/api/core";
-import CustomFooter from "@/components/Footer";
 import CustomEdit from "@/components/CustomEdit";
 
 const PodPage: FC = () => {
@@ -132,7 +130,12 @@ const PodPage: FC = () => {
                 },
                 { type: "divider" },
                 { key: "terminal", label: "终端", icon: <SettingOutlined /> },
-                { key: "logs", label: "日志", icon: <SettingOutlined /> },
+                {
+                  key: "logs",
+                  label: "日志",
+                  icon: <SettingOutlined />,
+                  onClick: () => handleLog(record),
+                },
                 { key: "files", label: "文件", icon: <SettingOutlined /> },
               ],
             }}
@@ -307,34 +310,46 @@ const PodPage: FC = () => {
       }
     }
   };
-  const wb = async () => {
+  const handleLog = async (pod: Pod) => {
+    setLog("");
     invoke("connect_websocket", {
       podLogStream: {
-        namespace: "default",
-        container: "nginx",
+        namespace: pod.metadata?.namespace || "default",
+        container: pod.spec?.containers?.[0]?.name || "",
         tail: 50,
         follow: true,
-        timestamps: true,
-        pod: "mynginx-64c659d46f-h66rh",
+        timestamps: false,
+        pod: pod.metadata?.name || "",
       },
     }).then((res) => {
       console.log("res: ", res);
     });
-
-    const ws = await WebSocket.connect("ws://localhost:38012");
-    let text = "";
-    ws.addListener((msg) => {
-      // console.log("Received Message:", msg.data);
-      text = text + msg.data?.toString() + "\n";
-      console.log("text----: ", text);
-      setLog(text);
+    const ws = new WebSocket("wss://localhost:38012");
+    ws.addEventListener("open", () => {
+      console.log("open");
     });
-    // await ws.disconnect();
+    ws.addEventListener("message", (event) => {
+      console.log("message: ", event);
+    });
+    ws.addEventListener("error", (event) => {
+      console.log("error: ", event);
+    });
+    ws.addEventListener("close", (event) => {
+      console.log("close: ", event);
+    });
+
+    // const ws = await WebSocket.connect("ws://localhost:38012");
+    // let text = "";
+    // ws.addListener((msg) => {
+    //   text = text + msg.data?.toString() + "\n";
+    //   console.log("text----: ", text);
+    //   setLog(text);
+    // });
+    // return () => ws.disconnect();
   };
 
   useEffect(() => {
     list_pods();
-    wb();
   }, [namespace]);
 
   const getFilteredPods = (searchText: string) => {

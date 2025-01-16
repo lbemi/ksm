@@ -6,7 +6,7 @@ use k8s_openapi::{
 };
 use kube::{api::LogParams, Api, Client};
 use serde::Deserialize;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::State;
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::tungstenite::Message;
@@ -27,12 +27,13 @@ pub async fn connect_websocket(
     pod_log_stream: PodLogStream,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<(), MyError> {
-    let client = {
+    let (client, listener) = {
         let app_data = state.lock().unwrap();
-        app_data.client.clone().unwrap()
+        (
+            app_data.client.clone().unwrap(),
+            app_data.websocket_listener.clone().unwrap(),
+        )
     };
-    let listener = TcpListener::bind("127.0.0.1:38012").await.unwrap();
-
     tokio::spawn(async move {
         while let Ok((stream, addr)) = listener.accept().await {
             let peer = stream
@@ -46,11 +47,24 @@ pub async fn connect_websocket(
             });
         }
     });
-
     Ok(())
 }
 
-async fn handle_connection<'a>(client: Client, stream: TcpStream, pod_log_stream: PodLogStream) {
+// tokio::spawn(async move {
+//     while let Ok((stream, addr)) = listener.accept().await {
+//         let peer = stream
+//             .peer_addr()
+//             .expect("connected streams should have a peer address");
+//         println!("Peer address: {} socket:{}", peer, addr);
+//         let client_clone = client.clone();
+//         let log_stream = pod_log_stream.clone();
+//         tokio::spawn(async move {
+//             handle_connection(client_clone, stream, log_stream).await;
+//         });
+//     }
+// });
+
+async fn handle_connection(client: Client, stream: TcpStream, pod_log_stream: PodLogStream) {
     let ws_stream = tokio_tungstenite::accept_async(stream)
         .await
         .expect("Error during the websocket handshake occurred");

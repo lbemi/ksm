@@ -2,28 +2,32 @@ use crate::tray::create_tray;
 use kube::config::Kubeconfig;
 use std::sync::{Arc, Mutex};
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, runtime};
 
 #[derive(Default)]
 pub struct AppData {
     pub kubernetes_configs: Kubeconfig,
     pub client: Option<kube::Client>,
     pub discovery: Option<kube::Discovery>,
+    pub websocket_listener: Option<Arc<TcpListener>>,
 }
 
 impl AppData {
-    fn load_config() -> Self {
+    async fn load_config() -> Self {
+        let listener = TcpListener::bind("127.0.0.1:38012").await.unwrap();
         AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
             discovery: None,
+            websocket_listener: Some(Arc::new(listener)),
         }
     }
 }
 
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
-    app.manage(Mutex::new(AppData::load_config()));
-
+    let rt = runtime::Runtime::new().unwrap();
+    let app_data = rt.block_on(async move { AppData::load_config().await });
+    app.manage(Mutex::new(app_data));
     let handle = app.handle();
     #[cfg(all(desktop))]
     {
@@ -46,6 +50,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .min_inner_size(1000.0, 600.0)
         .build()
         .expect("Failed to create core window");
+
     // let win_size = core_window
     //     .inner_size()
     //     .expect("Failed to get core window size"); // 获取窗口大小

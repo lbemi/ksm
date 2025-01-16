@@ -1,7 +1,7 @@
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  background-color: transparent;
-  font-weight: 550;
+  --background: #ffffff;
+  --foreground: #171717;
+  scrollbar-gutter: auto !important;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -10,9 +10,13 @@
 }
 
 body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-weight: 550;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background-color: transparent;
 }
 
 img {
