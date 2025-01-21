@@ -2,7 +2,6 @@ import { FC, useEffect, useState } from "react";
 import MyTable, { MyTableProps } from "../MyTable";
 import { Splitter } from "antd";
 import "./index.scss";
-import { Outlet } from "react-router-dom";
 
 interface CustomContentProps extends MyTableProps<any> {
   children?: React.ReactNode;
