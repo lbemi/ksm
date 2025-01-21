@@ -21,6 +21,7 @@ import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
 import { invoke } from "@tauri-apps/api/core";
 import CustomEdit from "@/components/CustomEdit";
+import WebSocket from "@tauri-apps/plugin-websocket";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -321,31 +322,30 @@ const PodPage: FC = () => {
         timestamps: false,
         pod: pod.metadata?.name || "",
       },
-    }).then((res) => {
-      console.log("res: ", res);
     });
-    const ws = new WebSocket("wss://localhost:38012");
-    ws.addEventListener("open", () => {
-      console.log("open");
-    });
-    ws.addEventListener("message", (event) => {
-      console.log("message: ", event);
-    });
-    ws.addEventListener("error", (event) => {
-      console.log("error: ", event);
-    });
-    ws.addEventListener("close", (event) => {
-      console.log("close: ", event);
-    });
-
-    // const ws = await WebSocket.connect("ws://localhost:38012");
-    // let text = "";
-    // ws.addListener((msg) => {
-    //   text = text + msg.data?.toString() + "\n";
-    //   console.log("text----: ", text);
-    //   setLog(text);
+    // const ws = new WebSocket("ws://localhost:38012");
+    // console.log("0-----: ", ws);
+    // ws.addEventListener("open", () => {
+    //   console.log("open");
     // });
-    // return () => ws.disconnect();
+    // ws.addEventListener("message", (event) => {
+    //   console.log("message: ", event);
+    // });
+    // ws.addEventListener("error", (event) => {
+    //   console.log("error: ", event);
+    // });
+    // ws.addEventListener("close", (event) => {
+    //   console.log("close: ", event);
+    // });
+    const ws = await WebSocket.connect("wss://localhost:38012");
+    let text = "";
+    console.log("1-----: ", ws);
+    ws.addListener((msg) => {
+      text = text + msg.data?.toString() + "\n";
+      console.log("text----: ", text);
+      setLog(text);
+    });
+    return () => ws.disconnect();
   };
 
   useEffect(() => {

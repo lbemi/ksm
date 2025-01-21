@@ -1,25 +1,32 @@
 use crate::tray::create_tray;
 use kube::config::Kubeconfig;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
-use tokio::{net::TcpListener, runtime};
+use tokio::runtime;
+
+use super::websocket;
 
 #[derive(Default)]
 pub struct AppData {
     pub kubernetes_configs: Kubeconfig,
     pub client: Option<kube::Client>,
     pub discovery: Option<kube::Discovery>,
-    pub websocket_listener: Option<Arc<TcpListener>>,
+    pub websocket: Option<websocket::Websocket>,
 }
 
 impl AppData {
     async fn load_config() -> Self {
-        let listener = TcpListener::bind("127.0.0.1:38012").await.unwrap();
+        let ws = websocket::Websocket::new("127.0.0.1:38012").await;
+        let w = ws.clone();
+        tokio::spawn(async move {
+            w.listen().await;
+        });
+
         AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
             discovery: None,
-            websocket_listener: Some(Arc::new(listener)),
+            websocket: Some(ws),
         }
     }
 }
@@ -28,6 +35,12 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let rt = runtime::Runtime::new().unwrap();
     let app_data = rt.block_on(async move { AppData::load_config().await });
     app.manage(Mutex::new(app_data));
+    // let wb = rt.block_on(async {
+    //     let wb = Websocket::new("127.0.0.1:38012").await;
+    //     wb.listen().await;
+    //     wb
+    // });
+    // app.manage(wb);
     let handle = app.handle();
     #[cfg(all(desktop))]
     {

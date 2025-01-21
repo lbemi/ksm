@@ -6,9 +6,9 @@ use k8s_openapi::{
 };
 use kube::{api::LogParams, Api, Client};
 use serde::Deserialize;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use tauri::State;
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpStream;
 use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,26 +27,27 @@ pub async fn connect_websocket(
     pod_log_stream: PodLogStream,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<(), MyError> {
-    let (client, listener) = {
+    let (client, wb) = {
         let app_data = state.lock().unwrap();
         (
             app_data.client.clone().unwrap(),
-            app_data.websocket_listener.clone().unwrap(),
+            app_data.websocket.clone().unwrap(),
         )
     };
-    tokio::spawn(async move {
-        while let Ok((stream, addr)) = listener.accept().await {
-            let peer = stream
-                .peer_addr()
-                .expect("connected streams should have a peer address");
-            println!("Peer address: {} socket:{}", peer, addr);
-            let client_clone = client.clone();
-            let log_stream = pod_log_stream.clone();
-            tokio::spawn(async move {
-                handle_connection(client_clone, stream, log_stream).await;
-            });
-        }
-    });
+    // wb.clone().listen().await;
+    let listener = wb.listener.clone();
+    println!("Connecting to websocket: {:?}", listener);
+    // tokio::spawn(async move {
+    //     while let Ok((stream, addr)) = listener.lock().await.accept().await {
+    //         let peer = stream
+    //             .peer_addr()
+    //             .expect("connected streams should have a peer address");
+    //         println!("Peer address: {} socket:{}", peer, addr);
+    //         let client_clone = client.clone();
+    //         let log_stream = pod_log_stream.clone();
+    //         tokio::spawn(handle_connection(client_clone, stream, log_stream));
+    //     }
+    // });
     Ok(())
 }
 
