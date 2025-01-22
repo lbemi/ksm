@@ -6,9 +6,9 @@ use k8s_openapi::{
 };
 use kube::{api::LogParams, Api, Client};
 use serde::Deserialize;
-use std::sync::Mutex;
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use tauri::State;
-use tokio::net::TcpStream;
+use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::tungstenite::Message;
 
 #[derive(Debug, Clone, Deserialize)]
@@ -27,34 +27,28 @@ pub async fn connect_websocket(
     pod_log_stream: PodLogStream,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<(), MyError> {
-    let (client, wb) = {
-        let app_data = state.lock().unwrap();
+    let (client, wb, peer_map) = {
+        let app_data = state.lock().await;
         (
             app_data.client.clone().unwrap(),
             app_data.websocket.clone().unwrap(),
+            app_data.websocket.clone().unwrap().peer_map.clone(),
         )
     };
 
     let listener = wb.listener.clone();
-    // while let Ok((stream, addr)) = listener.lock().await.accept().await {
-    //     println!("Peer address: {:?} socket:{:?}", addr, stream);
-
-    //     tokio::spawn(handle_connection(
-    //         client.clone(),
-    //         stream,
-    //         pod_log_stream.clone(),
-    //     ));
-    // }
-
     tokio::spawn(async move {
         loop {
             match listener.lock().await.accept().await {
                 Ok((stream, addr)) => {
                     println!("----- Peer address: {:?} socket:{:?}", addr, stream);
+
                     tokio::spawn(handle_connection(
                         client.clone(),
                         stream,
                         pod_log_stream.clone(),
+                        addr,
+                        peer_map.clone(),
                     ));
                 }
                 Err(e) => {
@@ -68,7 +62,17 @@ pub async fn connect_websocket(
     Ok(())
 }
 
-async fn handle_connection(client: Client, stream: TcpStream, pod_log_stream: PodLogStream) {
+async fn handle_connection(
+    client: Client,
+    stream: TcpStream,
+    pod_log_stream: PodLogStream,
+    addr: SocketAddr,
+    peer_map: Arc<Mutex<HashMap<String, SocketAddr>>>,
+) {
+    // peer_map
+    //     .lock()
+    //     .await
+    //     .insert(pod_log_stream.pod.clone(), addr);
     let ws_stream = tokio_tungstenite::accept_async(stream)
         .await
         .expect("Error during the websocket handshake occurred");
@@ -91,9 +95,16 @@ async fn handle_connection(client: Client, stream: TcpStream, pod_log_stream: Po
         .await
         .unwrap()
         .lines();
+
     while let Some(line) = logs.try_next().await.unwrap() {
         let msg = Message::text(line);
-        println!("{} send msg: {:?}", pod_log_stream.pod, msg);
-        write.send(msg).await.unwrap();
+        // 直接发送消息给当前连接的websocket客户端
+        if let Err(e) = write.send(msg).await {
+            println!("Error sending message: {:?}", e);
+            break;
+        }
     }
+
+    // 连接关闭时，从peer_map中移除
+    // peer_map.lock().await.remove(&pod_log_stream.pod);
 }
