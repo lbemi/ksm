@@ -20,9 +20,9 @@ pub struct Websocket {
 
 impl Websocket {
     pub async fn new(addr: &str) -> Self {
-        let server = TcpListener::bind(addr).await.unwrap();
+        let listener = TcpListener::bind(addr).await.unwrap();
         Self {
-            listener: Arc::new(Mutex::new(server)),
+            listener: Arc::new(Mutex::new(listener)),
             peer_map: Arc::new(Mutex::new(HashMap::new())),
         }
     }

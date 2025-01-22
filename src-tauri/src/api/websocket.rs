@@ -34,36 +34,39 @@ pub async fn connect_websocket(
             app_data.websocket.clone().unwrap(),
         )
     };
-    // wb.clone().listen().await;
+
     let listener = wb.listener.clone();
-    println!("Connecting to websocket: {:?}", listener);
-    // tokio::spawn(async move {
-    //     while let Ok((stream, addr)) = listener.lock().await.accept().await {
-    //         let peer = stream
-    //             .peer_addr()
-    //             .expect("connected streams should have a peer address");
-    //         println!("Peer address: {} socket:{}", peer, addr);
-    //         let client_clone = client.clone();
-    //         let log_stream = pod_log_stream.clone();
-    //         tokio::spawn(handle_connection(client_clone, stream, log_stream));
-    //     }
-    // });
+    // while let Ok((stream, addr)) = listener.lock().await.accept().await {
+    //     println!("Peer address: {:?} socket:{:?}", addr, stream);
+
+    //     tokio::spawn(handle_connection(
+    //         client.clone(),
+    //         stream,
+    //         pod_log_stream.clone(),
+    //     ));
+    // }
+
+    tokio::spawn(async move {
+        loop {
+            match listener.lock().await.accept().await {
+                Ok((stream, addr)) => {
+                    println!("----- Peer address: {:?} socket:{:?}", addr, stream);
+                    tokio::spawn(handle_connection(
+                        client.clone(),
+                        stream,
+                        pod_log_stream.clone(),
+                    ));
+                }
+                Err(e) => {
+                    println!("Error accepting connection: {:?}", e);
+                    break;
+                }
+            }
+        }
+    });
+
     Ok(())
 }
-
-// tokio::spawn(async move {
-//     while let Ok((stream, addr)) = listener.accept().await {
-//         let peer = stream
-//             .peer_addr()
-//             .expect("connected streams should have a peer address");
-//         println!("Peer address: {} socket:{}", peer, addr);
-//         let client_clone = client.clone();
-//         let log_stream = pod_log_stream.clone();
-//         tokio::spawn(async move {
-//             handle_connection(client_clone, stream, log_stream).await;
-//         });
-//     }
-// });
 
 async fn handle_connection(client: Client, stream: TcpStream, pod_log_stream: PodLogStream) {
     let ws_stream = tokio_tungstenite::accept_async(stream)
@@ -90,6 +93,7 @@ async fn handle_connection(client: Client, stream: TcpStream, pod_log_stream: Po
         .lines();
     while let Some(line) = logs.try_next().await.unwrap() {
         let msg = Message::text(line);
+        println!("{} send msg: {:?}", pod_log_stream.pod, msg);
         write.send(msg).await.unwrap();
     }
 }

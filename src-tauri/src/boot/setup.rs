@@ -17,11 +17,6 @@ pub struct AppData {
 impl AppData {
     async fn load_config() -> Self {
         let ws = websocket::Websocket::new("127.0.0.1:38012").await;
-        let w = ws.clone();
-        tokio::spawn(async move {
-            w.listen().await;
-        });
-
         AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
@@ -33,14 +28,9 @@ impl AppData {
 
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let rt = runtime::Runtime::new().unwrap();
-    let app_data = rt.block_on(async move { AppData::load_config().await });
+    let app_data = rt.block_on(AppData::load_config());
     app.manage(Mutex::new(app_data));
-    // let wb = rt.block_on(async {
-    //     let wb = Websocket::new("127.0.0.1:38012").await;
-    //     wb.listen().await;
-    //     wb
-    // });
-    // app.manage(wb);
+    app.manage(rt); // Keep the runtime alive by managing it
     let handle = app.handle();
     #[cfg(all(desktop))]
     {

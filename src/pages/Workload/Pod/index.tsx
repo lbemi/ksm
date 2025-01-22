@@ -21,7 +21,6 @@ import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
 import { invoke } from "@tauri-apps/api/core";
 import CustomEdit from "@/components/CustomEdit";
-import WebSocket from "@tauri-apps/plugin-websocket";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -313,39 +312,50 @@ const PodPage: FC = () => {
   };
   const handleLog = async (pod: Pod) => {
     setLog("");
-    invoke("connect_websocket", {
-      podLogStream: {
-        namespace: pod.metadata?.namespace || "default",
-        container: pod.spec?.containers?.[0]?.name || "",
-        tail: 50,
-        follow: true,
-        timestamps: false,
-        pod: pod.metadata?.name || "",
-      },
-    });
-    // const ws = new WebSocket("ws://localhost:38012");
-    // console.log("0-----: ", ws);
-    // ws.addEventListener("open", () => {
-    //   console.log("open");
-    // });
-    // ws.addEventListener("message", (event) => {
-    //   console.log("message: ", event);
-    // });
-    // ws.addEventListener("error", (event) => {
-    //   console.log("error: ", event);
-    // });
-    // ws.addEventListener("close", (event) => {
-    //   console.log("close: ", event);
-    // });
-    const ws = await WebSocket.connect("wss://localhost:38012");
-    let text = "";
-    console.log("1-----: ", ws);
-    ws.addListener((msg) => {
-      text = text + msg.data?.toString() + "\n";
-      console.log("text----: ", text);
-      setLog(text);
-    });
-    return () => ws.disconnect();
+    try {
+      await invoke("connect_websocket", {
+        podLogStream: {
+          namespace: pod.metadata?.namespace || "default",
+          container: pod.spec?.containers?.[0]?.name || "",
+          tail: 50,
+          follow: true,
+          timestamps: false,
+          pod: pod.metadata?.name || "",
+        },
+      });
+
+      const ws = new WebSocket("ws://localhost:38012");
+
+      ws.addEventListener("open", (e) => {
+        console.log("open", e);
+      });
+      ws.addEventListener("message", (e) => {
+        console.log("message", e.data);
+      });
+      ws.addEventListener("close", () => {
+        console.log("close");
+      });
+      ws.addEventListener("error", () => {
+        console.log("error");
+      });
+      // const ws = await WebSocket.connect("ws://localhost:38012");
+      // let text = "";
+
+      // ws.addListener((msg) => {
+      //   console.log("msg", msg.data);
+      //   // text = text + msg.data?.toString() + "\n";
+      //   // setLog(text);
+      // });
+
+      // // 保存 WebSocket 实例以便后续清理
+      // return () => {
+      //   console.log("disconnect");
+      //   ws.disconnect();
+      // };
+    } catch (error) {
+      console.error("WebSocket connection error:", error);
+      message.error("连接日志失败");
+    }
   };
 
   useEffect(() => {
@@ -387,7 +397,7 @@ const PodPage: FC = () => {
         filter={getFilteredPods}
         loading={loading}
       >
-        <CustomEdit data={log} type="json" scrollEnd />
+        {/* <CustomEdit data={log} type="json" scrollEnd /> */}
         {/* <CustomFooter /> */}
       </CustomContent>
     </>
