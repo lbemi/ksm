@@ -21,6 +21,7 @@ import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
 import { invoke } from "@tauri-apps/api/core";
 import CustomEdit from "@/components/CustomEdit";
+import WebSocket from "@tauri-apps/plugin-websocket";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -312,7 +313,45 @@ const PodPage: FC = () => {
   };
   const handleLog = async (pod: Pod) => {
     setLog("");
-    try {
+    // const ws = new WebSocket("ws://localhost:38012");
+    // ws.addEventListener("open", (e) => {
+    //   console.log("open", e);
+    // });
+    // ws.addEventListener("message", (e) => {
+    //   if (clientId === "") {
+    //     clientId = e.data;
+    //     console.log("client_id", clientId);
+    //     return;
+    //   }
+    //   console.log("message", e.data);
+    // });
+    // ws.addEventListener("close", () => {
+    //   console.log("close");
+    // });
+    // ws.addEventListener("error", () => {
+    //   console.log("error");
+    // });
+
+    const ws = await WebSocket.connect("ws://localhost:38012");
+    let text = "";
+    let clientId: string | undefined;
+
+    ws.addListener((msg) => {
+      console.log("msg: ", msg);
+      if (!clientId || clientId === "") {
+        clientId = msg.data?.toString();
+        return;
+      }
+      text = text + msg.data?.toString() + "\n";
+      setLog(text);
+    });
+
+    // // 保存 WebSocket 实例以便后续清理
+
+    await ws.send("Hello World!");
+
+    console.log("client_id2222:: ", clientId);
+    if (clientId && clientId !== "") {
       await invoke("connect_websocket", {
         podLogStream: {
           namespace: pod.metadata?.namespace || "default",
@@ -322,40 +361,15 @@ const PodPage: FC = () => {
           timestamps: false,
           pod: pod.metadata?.name || "",
         },
+        clientId: clientId,
       });
-
-      const ws = new WebSocket("ws://localhost:38012");
-
-      ws.addEventListener("open", (e) => {
-        console.log("open", e);
-      });
-      ws.addEventListener("message", (e) => {
-        console.log("message", e.data);
-      });
-      ws.addEventListener("close", () => {
-        console.log("close");
-      });
-      ws.addEventListener("error", () => {
-        console.log("error");
-      });
-      // const ws = await WebSocket.connect("ws://localhost:38012");
-      // let text = "";
-
-      // ws.addListener((msg) => {
-      //   console.log("msg", msg.data);
-      //   // text = text + msg.data?.toString() + "\n";
-      //   // setLog(text);
-      // });
-
-      // // 保存 WebSocket 实例以便后续清理
-      // return () => {
-      //   console.log("disconnect");
-      //   ws.disconnect();
-      // };
-    } catch (error) {
-      console.error("WebSocket connection error:", error);
-      message.error("连接日志失败");
+    } else {
+      message.error("连接失败");
     }
+    return () => {
+      console.log("disconnect");
+      ws.disconnect();
+    };
   };
 
   useEffect(() => {

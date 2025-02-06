@@ -46,8 +46,9 @@ http = "1.2.0"
 
 tokio-tungstenite = "0.26.1"
 futures-channel = "0.3.31"
-futures-util="0.3.31"
-
+futures-util = "0.3.31"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+arc-swap = "1.0"
 
 [target."cfg(target_os = \"macos\")".dependencies]
 cocoa = "0.26.0"

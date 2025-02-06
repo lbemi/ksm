@@ -1,90 +1,89 @@
-use std::{collections::HashMap, net::SocketAddr, sync::Arc};
-use tokio::{net::TcpListener, sync::Mutex};
+use arc_swap::ArcSwap;
+use futures::{SinkExt, StreamExt};
+use std::{collections::HashMap, sync::Arc};
+use tokio::{
+    net::{TcpListener, TcpStream},
+    sync::{mpsc, Mutex},
+};
+use tokio_tungstenite::tungstenite::Message;
+use uuid::Uuid;
 
-type PeerMap = Arc<Mutex<HashMap<String, SocketAddr>>>;
+type Sender = mpsc::UnboundedSender<Message>;
+type ClientMap = Arc<Mutex<HashMap<Uuid, Sender>>>;
 
 #[derive(Clone)]
-pub struct Websocket {
-    pub listener: Arc<Mutex<TcpListener>>,
-    pub peer_map: PeerMap,
+pub struct WebsocketManager {
+    clients: Arc<ArcSwap<ClientMap>>,
 }
 
-impl Websocket {
-    pub async fn new(addr: &str) -> Self {
-        let listener = TcpListener::bind(addr).await.unwrap();
+impl WebsocketManager {
+    pub fn new() -> Self {
+        let client_map: ClientMap = Arc::new(Mutex::new(HashMap::new()));
         Self {
-            listener: Arc::new(Mutex::new(listener)),
-            peer_map: Arc::new(Mutex::new(HashMap::new())),
+            clients: Arc::new(ArcSwap::new(Arc::new(client_map))),
         }
     }
-    // pub async fn listen(&self) {
-    //     println!("websocket ----: listening on");
-    //     while let Ok((stream, addr)) = self.listener.lock().await.accept().await {
-    //         let w = self.clone();
-    //         tokio::spawn(async move { w.handle_connection(stream, addr).await });
 
-    //         // let peer = stream
-    //         //     .peer_addr()
-    //         //     .expect("connected streams should have a peer address");
-    //         // println!("websocket ----: peer address: {} socket:{}", peer, addr);
-    //     }
-    //     println!("退出监听");
-    //     // loop {
-    //     //     match self.listener.lock().await.accept().await {
-    //     //         Ok((stream, addr)) => {
-    //     //             let peer = stream
-    //     //                 .peer_addr()
-    //     //                 .expect("connected streams should have a peer address");
-    //     //             println!("websocket ----: peer address: {} socket:{}", peer, addr);
-    //     //         }
-    //     //         Err(e) => {
-    //     //             println!("websocket ----: error: {}", e);
-    //     //         }
-    //     //     }
-    //     //     sleep(Duration::from_secs(2)).await;
-    //     // }
-    // }
+    pub async fn start_server(&self, port: u16) {
+        let listener = TcpListener::bind(format!("127.0.0.1:{}", port))
+            .await
+            .unwrap();
+        while let Ok((stream, _)) = listener.accept().await {
+            let clients = self.clients.clone();
+            tokio::spawn(async move {
+                Self::handle_connection(clients, stream).await;
+            });
+        }
+    }
 
-    // async fn handle_connection(&self, raw_stream: TcpStream, addr: SocketAddr) {
-    //     println!("Incoming TCP connection from: {}", addr);
+    pub async fn handle_connection(clients: Arc<ArcSwap<ClientMap>>, stream: TcpStream) {
+        let ws_stream = tokio_tungstenite::accept_async(stream)
+            .await
+            .expect("Websocket handshake failed");
+        let (mut ws_sender, mut ws_receiver) = ws_stream.split();
+        let client_id = Uuid::new_v4();
+        let (tx, mut rx) = mpsc::unbounded_channel();
 
-    //     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
-    //         .await
-    //         .expect("Error during the websocket handshake occurred");
-    //     println!("WebSocket connection established: {}", addr);
+        let loaded_clients = clients.load();
+        {
+            let mut guard = loaded_clients.lock().await;
+            guard.insert(client_id, tx.clone());
+        }
+        if let Err(e) = tx.send(Message::Text(client_id.to_string().into())) {
+            eprintln!("Failed to send message: {}", e);
+        }
 
-    //     // Insert the write part of this peer to the peer map.
-    //     let (tx, rx) = unbounded();
-    //     self.peer_map.lock().await.insert(addr, tx);
+        let send_task = tokio::spawn(async move {
+            while let Some(msg) = rx.recv().await {
+                ws_sender.send(msg).await.unwrap();
+            }
+        });
 
-    //     let (outgoing, incoming) = ws_stream.split();
-    //     let peers = self.peer_map.lock().await.clone();
-    //     let broadcast_incoming = incoming.try_for_each(|msg| {
-    //         println!(
-    //             "Received a message from {}: {}",
-    //             addr,
-    //             msg.to_text().unwrap()
-    //         );
+        let recv_task = tokio::spawn(async move {
+            while let Some(Ok(msg)) = ws_receiver.next().await {
+                println!("Received a message from {}: {}", client_id, msg);
+            }
+        });
 
-    //         // We want to broadcast the message to everyone except ourselves.
-    //         let broadcast_recipients = peers
-    //             .iter()
-    //             .filter(|(peer_addr, _)| peer_addr != &&addr)
-    //             .map(|(_, ws_sink)| ws_sink);
+        // 等待两个任务结束
+        tokio::select! {
+            _ = send_task =>{},
+            _ = recv_task => {},
+        }
 
-    //         for recp in broadcast_recipients {
-    //             recp.unbounded_send(msg.clone()).unwrap();
-    //         }
+        let mut guard = loaded_clients.lock().await;
+        guard.remove(&client_id);
+    }
 
-    //         future::ok(())
-    //     });
-
-    //     let receive_from_others = rx.map(Ok).forward(outgoing);
-
-    //     pin_mut!(broadcast_incoming, receive_from_others);
-    //     future::select(broadcast_incoming, receive_from_others).await;
-
-    //     println!("{} disconnected", &addr);
-    //     self.peer_map.lock().await.remove(&addr);
-    // }
+    pub async fn send_message(&self, client_id: Uuid, message: String) -> Result<(), String> {
+        let guard = self.clients.load();
+        let clients = guard.lock().await;
+        if let Some(sender) = clients.get(&client_id) {
+            sender
+                .send(Message::Text(message.into()))
+                .map_err(|e| e.to_string())
+        } else {
+            Err("client not found".to_string())
+        }
+    }
 }

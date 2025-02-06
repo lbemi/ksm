@@ -10,6 +10,7 @@ use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 use tauri::State;
 use tokio::{net::TcpStream, sync::Mutex};
 use tokio_tungstenite::tungstenite::Message;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct PodLogStream {
@@ -25,39 +26,65 @@ pub struct PodLogStream {
 #[tauri::command]
 pub async fn connect_websocket(
     pod_log_stream: PodLogStream,
+    client_id: String,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<(), MyError> {
-    let (client, wb, peer_map) = {
+    let (client, ws_manager) = {
         let app_data = state.lock().await;
         (
             app_data.client.clone().unwrap(),
             app_data.websocket.clone().unwrap(),
-            app_data.websocket.clone().unwrap().peer_map.clone(),
         )
     };
+    let pods: Api<Pod> = Api::namespaced(client, &pod_log_stream.namespace);
+    let mut logs = pods
+        .log_stream(
+            &pod_log_stream.pod,
+            &LogParams {
+                follow: pod_log_stream.follow,
+                container: pod_log_stream.container,
+                since_seconds: pod_log_stream.since,
+                since_time: pod_log_stream.since_time,
+                tail_lines: pod_log_stream.tail,
+                timestamps: pod_log_stream.timestamps.unwrap_or(false),
+                ..LogParams::default()
+            },
+        )
+        .await
+        .unwrap()
+        .lines();
+    let client_id = Uuid::parse_str(&client_id).unwrap();
+    while let Some(line) = logs.try_next().await.unwrap() {
+        let msg = Message::text(line);
+        // 直接发送消息给当前连接的websocket客户端
+        ws_manager
+            .send_message(client_id, msg.to_string())
+            .await
+            .unwrap();
+    }
 
-    let listener = wb.listener.clone();
-    tokio::spawn(async move {
-        loop {
-            match listener.lock().await.accept().await {
-                Ok((stream, addr)) => {
-                    println!("----- Peer address: {:?} socket:{:?}", addr, stream);
+    // let listener = ws_manager.send_message(client_id, message).await;
+    // tokio::spawn(async move {
+    //     loop {
+    //         match listener.lock().await.accept().await {
+    //             Ok((stream, addr)) => {
+    //                 println!("----- Peer address: {:?} socket:{:?}", addr, stream);
 
-                    tokio::spawn(handle_connection(
-                        client.clone(),
-                        stream,
-                        pod_log_stream.clone(),
-                        addr,
-                        peer_map.clone(),
-                    ));
-                }
-                Err(e) => {
-                    println!("Error accepting connection: {:?}", e);
-                    break;
-                }
-            }
-        }
-    });
+    //                 tokio::spawn(handle_connection(
+    //                     client.clone(),
+    //                     stream,
+    //                     pod_log_stream.clone(),
+    //                     addr,
+    //                     peer_map.clone(),
+    //                 ));
+    //             }
+    //             Err(e) => {
+    //                 println!("Error accepting connection: {:?}", e);
+    //                 break;
+    //             }
+    //         }
+    //     }
+    // });
 
     Ok(())
 }
