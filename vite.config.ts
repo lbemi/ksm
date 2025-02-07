@@ -10,9 +10,9 @@ export default defineConfig(async () => ({
   css: {
     preprocessorOptions: {
       scss: {
-        api: 'modern-compiler'
-      }
-    }
+        api: "modern-compiler",
+      },
+    },
   },
   plugins: [react()],
   resolve: {

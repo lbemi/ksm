@@ -220,10 +220,10 @@ const PodPage: FC = () => {
         return containers.length === 0
           ? "Pending"
           : waiting
-          ? waiting.state!.waiting!.reason
-          : terminated
-          ? terminated.state!.terminated!.reason
-          : "Pending";
+            ? waiting.state!.waiting!.reason
+            : terminated
+              ? terminated.state!.terminated!.reason
+              : "Pending";
       }
       return `Init:${init}/${
         data.initContainerStatuses ? data.initContainerStatuses.length : 0
@@ -233,10 +233,10 @@ const PodPage: FC = () => {
     return containers.length === 0
       ? "unknown"
       : waiting
-      ? waiting.state!.waiting!.reason
-      : terminated
-      ? terminated.state!.terminated!.reason
-      : "unknown";
+        ? waiting.state!.waiting!.reason
+        : terminated
+          ? terminated.state!.terminated!.reason
+          : "unknown";
   };
   const formatterIcon = (color: string, text: string) => {
     return (
