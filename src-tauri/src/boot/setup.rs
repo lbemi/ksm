@@ -1,7 +1,7 @@
 use crate::tray::create_tray;
 use kube::config::Kubeconfig;
 use std::sync::Mutex;
-use tauri::{Manager, State, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{Manager, TitleBarStyle, WebviewUrl, WebviewWindowBuilder};
 use tokio::runtime;
 
 use super::websocket;
@@ -15,13 +15,12 @@ pub struct AppData {
 }
 
 impl AppData {
-    async fn load_config() -> Self {
-        let ws_manager = websocket::WebsocketManager::new();
+    fn new() -> Self {
         AppData {
             kubernetes_configs: Kubeconfig::read().unwrap_or(Kubeconfig::default()),
             client: None,
             discovery: None,
-            websocket: Some(ws_manager),
+            websocket: Some(websocket::WebsocketManager::new()),
         }
     }
 }
@@ -29,7 +28,7 @@ impl AppData {
 pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     let rt = runtime::Runtime::new().unwrap();
     let app_data = rt.block_on(async {
-        let app_data = AppData::load_config().await;
+        let app_data = AppData::new();
         // Start websocket server
         if let Some(ws) = &app_data.websocket {
             let ws_clone = ws.clone();

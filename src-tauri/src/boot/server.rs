@@ -19,7 +19,7 @@ pub fn run() {
             cluster::list_clusters,
             pod::watch_pods,
             k8s_proxy::proxy_request,
-            websocket::connect_websocket
+            websocket::log_stream
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

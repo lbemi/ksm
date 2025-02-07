@@ -311,65 +311,64 @@ const PodPage: FC = () => {
       }
     }
   };
+
+  const [logWebsocket, setLogWebsocket] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (logWebsocket) {
+        logWebsocket.disconnect();
+        setLogWebsocket(null);
+      }
+    };
+  }, []);
+
   const handleLog = async (pod: Pod) => {
     setLog("");
-    // const ws = new WebSocket("ws://localhost:38012");
-    // ws.addEventListener("open", (e) => {
-    //   console.log("open", e);
-    // });
-    // ws.addEventListener("message", (e) => {
-    //   if (clientId === "") {
-    //     clientId = e.data;
-    //     console.log("client_id", clientId);
-    //     return;
-    //   }
-    //   console.log("message", e.data);
-    // });
-    // ws.addEventListener("close", () => {
-    //   console.log("close");
-    // });
-    // ws.addEventListener("error", () => {
-    //   console.log("error");
-    // });
-
-    const ws = await WebSocket.connect("ws://localhost:38012");
-    let text = "";
-    let clientId: string | undefined;
-
-    ws.addListener((msg) => {
-      console.log("msg: ", msg);
-      if (!clientId || clientId === "") {
-        clientId = msg.data?.toString();
-        return;
-      }
-      text = text + msg.data?.toString() + "\n";
-      setLog(text);
-    });
-
-    // // 保存 WebSocket 实例以便后续清理
-
-    await ws.send("Hello World!");
-
-    console.log("client_id2222:: ", clientId);
-    if (clientId && clientId !== "") {
-      await invoke("connect_websocket", {
-        podLogStream: {
-          namespace: pod.metadata?.namespace || "default",
-          container: pod.spec?.containers?.[0]?.name || "",
-          tail: 50,
-          follow: true,
-          timestamps: false,
-          pod: pod.metadata?.name || "",
-        },
-        clientId: clientId,
-      });
-    } else {
-      message.error("连接失败");
+    if (logWebsocket) {
+      logWebsocket.disconnect();
+      setLogWebsocket(null);
     }
-    return () => {
-      console.log("disconnect");
-      ws.disconnect();
-    };
+
+    try {
+      const ws = await WebSocket.connect("ws://localhost:38012");
+      let text = "";
+      let clientId: string | undefined;
+
+      ws.addListener((msg) => {
+        if (!clientId || clientId === "") {
+          clientId = msg.data?.toString();
+          return;
+        }
+        console.log("msg: ", msg);
+        if (msg.type === "Text") {
+          text = text + msg.data?.toString() + "\n";
+          setLog(text);
+        }
+      });
+
+      setLogWebsocket(ws);
+      await ws.send(pod.metadata?.name || "");
+
+      if (clientId && clientId !== "") {
+        await invoke("log_stream", {
+          podLogStream: {
+            namespace: pod.metadata?.namespace || "default",
+            container: pod.spec?.containers?.[0]?.name || "",
+            tail: 50,
+            follow: true,
+            timestamps: false,
+            pod: pod.metadata?.name || "",
+          },
+          clientId: clientId,
+        });
+      } else {
+        message.error("连接失败");
+      }
+    } catch (error) {
+      message.error("WebSocket连接失败");
+      setLogWebsocket(null);
+    }
   };
 
   useEffect(() => {
@@ -411,7 +410,7 @@ const PodPage: FC = () => {
         filter={getFilteredPods}
         loading={loading}
       >
-        {/* <CustomEdit data={log} type="json" scrollEnd /> */}
+        <CustomEdit data={log} type="json" scrollEnd />
         {/* <CustomFooter /> */}
       </CustomContent>
     </>
