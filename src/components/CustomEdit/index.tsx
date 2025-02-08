@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import * as monaco from "monaco-editor";
+import "./monaco-config";
 
 interface CustomEditProps {
   data: string;
@@ -11,14 +12,15 @@ interface CustomEditProps {
 
 const CustomEdit = ({
   data,
-  readOnly = false,
+  readOnly = true,
   height = 450,
   type = "yaml",
   scrollEnd = false,
 }: CustomEditProps) => {
-  const [code, setCode] = useState<string | null>(null);
+  // const [code, setCode] = useState<string | null>(null);
   const editorRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastScrollPosition = useRef<number>(0);
 
   // Helper function to check if value is number
   const isNumber = (value: any): boolean => {
@@ -51,11 +53,11 @@ const CustomEdit = ({
     });
 
     editorRef.current.setModel(monaco.editor.createModel(data, type));
-    setCode(editorRef.current.getValue());
+    // setCode(editorRef.current.getValue());
 
-    editorRef.current.onDidChangeModelContent(() => {
-      setCode(editorRef.current.getValue());
-    });
+    // editorRef.current.onDidChangeModelContent(() => {
+    //   // setCode(editorRef.current.getValue());
+    // });
   };
 
   // Initialize on mount
@@ -69,12 +71,43 @@ const CustomEdit = ({
   // Watch for prop changes
   useEffect(() => {
     if (editorRef.current) {
-      editorRef.current.setModel(monaco.editor.createModel(data, type));
-      if (scrollEnd) {
-        editorRef.current.setScrollTop(editorRef.current.getScrollHeight());
+      // Store current scroll position
+      lastScrollPosition.current = editorRef.current.getScrollTop();
+
+      const currentValue = editorRef.current.getValue();
+      // Only update if content actually changed
+      if (currentValue !== data) {
+        const model = monaco.editor.createModel(data, type);
+        editorRef.current.setModel(model);
+
+        // Restore scroll position or scroll to end if requested
+        if (scrollEnd) {
+          editorRef.current.setScrollTop(editorRef.current.getScrollHeight());
+        } else {
+          editorRef.current.setScrollTop(lastScrollPosition.current);
+        }
       }
     }
   }, [data, type, scrollEnd]);
+
+  // Add configuration to enable smooth scrolling
+  useEffect(() => {
+    if (editorRef.current) {
+      editorRef.current.updateOptions({
+        smoothScrolling: true,
+        scrollbar: {
+          vertical: "visible",
+          horizontal: "visible",
+          useShadows: true,
+          verticalScrollbarSize: 10,
+          horizontalScrollbarSize: 10,
+          verticalHasArrows: false,
+          horizontalHasArrows: false,
+          arrowSize: 30,
+        },
+      });
+    }
+  }, []);
 
   return (
     <div>

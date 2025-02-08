@@ -22,6 +22,7 @@ import CustomContent from "@/components/CustomContent";
 import { invoke } from "@tauri-apps/api/core";
 import CustomEdit from "@/components/CustomEdit";
 import WebSocket from "@tauri-apps/plugin-websocket";
+import CustomFooter from "@/components/Footer";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -312,42 +313,52 @@ const PodPage: FC = () => {
     }
   };
 
-  const [logWebsocket, setLogWebsocket] = useState<WebSocket | null>(null);
+  // const [logWebsocket, setLogWebsocket] = useState<WebSocket | null>(null);
+  let logWebsocket: WebSocket | null = null;
+  const cleanupLogWebsocket = () => {
+    if (logWebsocket) {
+      try {
+        logWebsocket.disconnect();
+      } catch (error) {
+        console.error("清理logWebsocket失败", error);
+      }
+      logWebsocket = null;
+    }
+  };
 
   useEffect(() => {
     return () => {
-      if (logWebsocket) {
-        logWebsocket.disconnect();
-        setLogWebsocket(null);
-      }
+      cleanupLogWebsocket();
     };
   }, []);
 
   const handleLog = async (pod: Pod) => {
     setLog("");
-    if (logWebsocket) {
-      logWebsocket.disconnect();
-      setLogWebsocket(null);
-    }
+    cleanupLogWebsocket();
 
     try {
       const ws = await WebSocket.connect("ws://localhost:38012");
       let text = "";
       let clientId: string | undefined;
-
+      logWebsocket = ws;
       ws.addListener((msg) => {
         if (!clientId || clientId === "") {
           clientId = msg.data?.toString();
           return;
         }
-        console.log("msg: ", msg);
+
+        // 处理 Ping 消息
+        if (msg.type === "Ping") {
+          ws.send(clientId); // 发送 Pong 响应
+          return;
+        }
+
         if (msg.type === "Text") {
           text = text + msg.data?.toString() + "\n";
           setLog(text);
         }
       });
 
-      setLogWebsocket(ws);
       await ws.send(pod.metadata?.name || "");
 
       if (clientId && clientId !== "") {
@@ -367,7 +378,7 @@ const PodPage: FC = () => {
       }
     } catch (error) {
       message.error("WebSocket连接失败");
-      setLogWebsocket(null);
+      cleanupLogWebsocket();
     }
   };
 
@@ -410,8 +421,9 @@ const PodPage: FC = () => {
         filter={getFilteredPods}
         loading={loading}
       >
-        <CustomEdit data={log} type="json" scrollEnd />
-        {/* <CustomFooter /> */}
+        {/* <CustomFooter> */}
+        <CustomEdit data={log} type="plainText" scrollEnd />
+        {/* </CustomFooter> */}
       </CustomContent>
     </>
   );

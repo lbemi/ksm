@@ -3,18 +3,21 @@ import { AndroidOutlined } from "@ant-design/icons";
 import { FC, useRef, useState } from "react";
 import "./index.scss";
 
-const CustomFooter: FC = () => {
+interface CustomFooterProps {
+  children?: React.ReactNode;
+}
+const CustomFooter: FC<CustomFooterProps> = ({ children }) => {
   type TargetKey = React.MouseEvent | React.KeyboardEvent | string;
   const newTabIndex = useRef(0);
   const [activeKey, setActiveKey] = useState("1");
 
   const [items, setItems] = useState<TabsProps["items"]>([]);
-  const add = () => {
+  const add = (label: string, content: React.ReactNode) => {
     const newActiveKey = `newTab${newTabIndex.current++}`;
     const newPanes = [...(items || [])];
     newPanes.push({
-      label: "New Tab",
-      children: "Content of new Tab",
+      label: label,
+      children: content ? content : "Content of new Tab",
       key: newActiveKey,
       icon: <AndroidOutlined />,
     });
@@ -42,7 +45,7 @@ const CustomFooter: FC = () => {
   };
   const onEdit = (targetKey: TargetKey, action: "add" | "remove") => {
     if (action === "add") {
-      add();
+      // add();
     } else {
       remove(targetKey);
     }

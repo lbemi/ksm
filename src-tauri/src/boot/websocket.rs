@@ -53,24 +53,67 @@ impl WebsocketManager {
             eprintln!("Failed to send message: {}", e);
         }
 
+        let mut ping_interval = tokio::time::interval(tokio::time::Duration::from_secs(5));
+        let ping_tx = tx.clone();
+        let mut ping_failures = 0;
+
+        let heartbeat_task = tokio::spawn(async move {
+            loop {
+                ping_interval.tick().await;
+                if let Err(_) = ping_tx.send(Message::Ping("ping".into())) {
+                    ping_failures += 1;
+                    if ping_failures >= 3 {
+                        // 连续3次ping失败才断开
+                        break;
+                    }
+                } else {
+                    ping_failures = 0; // 成功发送则重置失败计数
+                }
+            }
+        });
+
         let send_task = tokio::spawn(async move {
             while let Some(msg) = rx.recv().await {
-                ws_sender.send(msg).await.unwrap();
+                match ws_sender.send(msg).await {
+                    Ok(_) => {}
+                    Err(_e) => {
+                        break;
+                    }
+                }
             }
         });
 
         let recv_task = tokio::spawn(async move {
-            while let Some(Ok(msg)) = ws_receiver.next().await {
-                println!("Received a message from {}: {}", client_id, msg);
+            while let Some(result) = ws_receiver.next().await {
+                match result {
+                    Ok(msg) => match msg {
+                        Message::Pong(_) => {
+                            continue;
+                        }
+                        Message::Close(_) => {
+                            break;
+                        }
+                        _ => {
+                            println!("Received a message from {}: {}", client_id, msg);
+                        }
+                    },
+                    Err(e) => {
+                        eprintln!("Receive error: {}", e);
+                        // 接收错误继续尝试,不立即断开
+                        continue;
+                    }
+                }
             }
         });
 
-        // 等待两个任务结束
+        // 等待任意任务结束
         tokio::select! {
-            _ = send_task =>{},
+            _ = send_task => {},
             _ = recv_task => {},
+            _ = heartbeat_task => {},
         }
 
+        // 只有在确实需要断开时才移除客户端
         let mut guard = loaded_clients.lock().await;
         guard.remove(&client_id);
     }

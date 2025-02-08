@@ -56,10 +56,12 @@ pub async fn log_stream(
     while let Some(line) = logs.try_next().await.unwrap() {
         let msg = Message::text(line);
         // 直接发送消息给当前连接的websocket客户端
-        ws_manager
-            .send_message(client_id, msg.to_string())
-            .await
-            .unwrap();
+        match ws_manager.send_message(client_id, msg.to_string()).await {
+            Ok(_) => {}
+            Err(e) => {
+                break;
+            }
+        }
     }
 
     Ok(())
