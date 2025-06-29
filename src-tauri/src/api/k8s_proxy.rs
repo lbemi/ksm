@@ -4,6 +4,7 @@ use http::{header, Request};
 use std::collections::HashMap;
 use std::sync::Mutex;
 use tauri::State;
+use tracing::info;
 
 #[tauri::command]
 pub async fn proxy_request(
@@ -13,6 +14,7 @@ pub async fn proxy_request(
     headers: Option<HashMap<String, String>>,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<serde_json::Value, MyError> {
+    info!("proxy_request url: {}", url);
     let client = {
         let app_data = state.lock().unwrap();
         app_data.client.clone().unwrap()

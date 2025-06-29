@@ -59,6 +59,7 @@ pub async fn log_stream(
         match ws_manager.send_message(client_id, msg.to_string()).await {
             Ok(_) => {}
             Err(e) => {
+                print!("{}", e);
                 break;
             }
         }

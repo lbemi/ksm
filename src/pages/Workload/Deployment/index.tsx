@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 
 import { Typography } from "antd";
-import { kubernetes_request } from "@/api/cluster";
+import { apiClient, CoreV1Url, kubernetes_request } from "@/api/cluster";
 import { Deployment } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
@@ -220,11 +220,15 @@ const DeploymentPage: FC = () => {
       setLoading(true);
     }
     try {
-      let url =
-        namespace === "all"
-          ? "/apis/apps/v1/deployments"
-          : `/apis/apps/v1/namespaces/${namespace}/deployments`;
-      const res = await kubernetes_request<Array<Deployment>>("GET", url);
+      // let url =
+      //   namespace === "all"
+      //     ? "/apis/apps/v1/deployments"
+      //     : `/apis/apps/v1/namespaces/${namespace}/deployments`;
+      const res = await apiClient.get<Deployment>(
+        CoreV1Url,
+        "deployments",
+        namespace
+      );
       setDeployments(res);
     } catch (error) {
       message.error("获取Deployment列表失败");

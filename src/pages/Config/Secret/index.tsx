@@ -9,11 +9,10 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import { Typography } from "antd";
-import { kubernetes_request } from "@/api/cluster";
-import { Secret } from "kubernetes-models/v1";
+import { apiClient, kubernetes_request } from "@/api/cluster";
+import { Secret } from "kubernetes-types/core/v1";
 import getAge from "@/utils/k8s/date";
 import CustomContent from "@/components/CustomContent";
-
 const SecretPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [secrets, setSecrets] = useState<Array<Secret>>([]);
@@ -127,21 +126,18 @@ const SecretPage: FC = () => {
     });
   };
 
-  const list_secrets = () => {
+  const list_secrets = async () => {
     setLoading(true);
-    let url: string;
-    if (namespace === "all") {
-      url = "/api/v1/secrets";
-    } else {
-      url = `/api/v1/namespaces/${namespace}/secrets`;
-    }
-    kubernetes_request<Array<Secret>>("GET", url)
+
+    await apiClient
+      .get<Secret>("secrets", namespace)
       .then((res) => {
         setSecrets(res);
       })
       .catch((err) => {
         console.log("err: ", err);
       });
+
     setLoading(false);
   };
 

@@ -19,9 +19,9 @@ import { FC, useEffect, useState } from "react";
 import { Checkbox, TableProps } from "antd";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import "./index.scss";
-import { kubernetes_request } from "@/api/cluster";
-import { Namespace } from "kubernetes-models/v1";
+import { apiClient, AppsV1Url, kubernetes_request } from "@/api/cluster";
 import { setActiveNamespace } from "@/store/modules/kubernetes";
+import { Namespace } from "kubernetes-types/core/v1";
 
 export interface MyTableProps<T> {
   columns: TableProps<T>["columns"];
@@ -125,11 +125,8 @@ const MyTable: FC<MyTableProps<any>> = ({
   const hasSelected = selectedRowKeys.length > 0;
 
   const [namespaces, setNamespaces] = useState<Array<Namespace>>([]);
-  const list_namespaces = () => {
-    kubernetes_request<Array<Namespace>>(
-      "GET",
-      "/api/v1/namespaces?limit=500"
-    ).then((res) => {
+  const list_namespaces = async () => {
+    await apiClient.get<Namespace>(AppsV1Url, "namespaces").then((res) => {
       setNamespaces(res);
     });
   };
