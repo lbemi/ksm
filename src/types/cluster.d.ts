@@ -1,6 +1,9 @@
 export interface Cluster {
   name: string;
-  cluster: ClusterInfo;
+  url: string;
+  version: string;
+  platform: string;
+  status: boolean;
 }
 
 export interface ClusterInfo {

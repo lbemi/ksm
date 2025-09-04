@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import MyTable, { MyTableProps } from "../MyTable";
-import { Splitter } from "antd";
+import { Splitter, SplitterProps } from "antd";
 import "./index.scss";
 
 interface CustomContentProps extends MyTableProps<any> {
@@ -11,45 +11,31 @@ const CustomContent: FC<CustomContentProps> = ({
   children,
   ...tableParams
 }) => {
-  const [tableHeight, setTableHeight] = useState<number>(0);
-  const [localHeight, setLocalHeight] = useState<number>(0);
+  const [tableHeight, setTableHeight] = useState<number | string>("100%");
 
-  // todo 需要优化
-  const calculateTableHeight = (splitterHeight?: number) => {
-    const headerHeight = 90;
-    let padding = 100;
-
-    if (splitterHeight) {
-      if (localHeight === 0) {
-        padding = padding + 50;
-      }
-      const height = Math.max(splitterHeight - padding, 0);
-      setTableHeight(height);
-      return;
+  const calculateTableHeight = () => {
+    // 以父容器高度为基准，减去Splitter面板/其他padding等
+    const container = document.querySelector(".ant-splitter-panel");
+    if (container) {
+      // 你可以根据实际布局调整减去的高度
+      const height = container.clientHeight - 80; // 80为预留高度
+      setTableHeight(height > 0 ? height : "100%");
     }
-
-    const windowHeight = window.innerHeight;
-    const height = Math.max(windowHeight - headerHeight - padding, 0);
-    setTableHeight(height);
   };
 
   useEffect(() => {
-    calculateTableHeight();
-  }, [window.innerHeight, window.innerWidth]);
+    calculateTableHeight(); // 初始计算
+    window.addEventListener("resize", calculateTableHeight);
+    return () => window.removeEventListener("resize", calculateTableHeight);
+  }, []);
 
   return (
     <div style={{ overflow: "hidden" }}>
       <Splitter
+        style={{ boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)", height: "92vh" }}
         layout="vertical"
-        className="custom-splitter"
-        style={{ overflow: "hidden" }}
         onResizeEnd={(sizes) => {
-          calculateTableHeight(sizes[0]);
-          if (sizes[1] === 0) {
-            setLocalHeight(sizes[1] + 100);
-          } else {
-            setLocalHeight(sizes[1]);
-          }
+          setTableHeight(sizes[0] - 80);
         }}
       >
         <Splitter.Panel className="custom-splitter-panel">
@@ -58,14 +44,7 @@ const CustomContent: FC<CustomContentProps> = ({
             scroll={{ x: "max-content", y: tableHeight }}
           />
         </Splitter.Panel>
-        <Splitter.Panel
-          collapsible
-          className="custom-splitter-panel"
-          defaultSize={"34px"}
-          style={{
-            minHeight: "34px",
-          }}
-        >
+        <Splitter.Panel max="70%" collapsible defaultSize={"34px"}>
           {children}
         </Splitter.Panel>
       </Splitter>

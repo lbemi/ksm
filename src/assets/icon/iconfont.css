@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3756452 */
-  src: url('iconfont.woff2?t=1735797654732') format('woff2'),
-       url('iconfont.woff?t=1735797654732') format('woff'),
-       url('iconfont.ttf?t=1735797654732') format('truetype');
+  src: url('iconfont.woff2?t=1756892672127') format('woff2'),
+       url('iconfont.woff?t=1756892672127') format('woff'),
+       url('iconfont.ttf?t=1756892672127') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,126 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-mofabang:before {
+  content: "\e64a";
+}
+
+.icon-mofabang1:before {
+  content: "\e608";
+}
+
+.icon-mofabang2:before {
+  content: "\e7f0";
+}
+
+.icon-zhuti2:before {
+  content: "\eaed";
+}
+
+.icon-qiansezhuti1:before {
+  content: "\e9ef";
+}
+
+.icon-suoxiao:before {
+  content: "\e63c";
+}
+
+.icon-a-zhongyingwenyingwen:before {
+  content: "\e7a2";
+}
+
+.icon-a-zhongyingwenzhongwen:before {
+  content: "\e7a3";
+}
+
+.icon-dashboard:before {
+  content: "\e6bc";
+}
+
+.icon-wangluo:before {
+  content: "\e617";
+}
+
+.icon-renwu:before {
+  content: "\e654";
+}
+
+.icon-dashboard1:before {
+  content: "\e78b";
+}
+
+.icon-zidingyiziyuan:before {
+  content: "\e9f2";
+}
+
+.icon-jiqun:before {
+  content: "\e67a";
+}
+
+.icon-24gl-network2:before {
+  content: "\e99b";
+}
+
+.icon-pvc:before {
+  content: "\e687";
+}
+
+.icon-peizhi:before {
+  content: "\e6db";
+}
+
+.icon-configMap:before {
+  content: "\e60e";
+}
+
+.icon-zhuti:before {
+  content: "\e753";
+}
+
+.icon-zhuti1:before {
+  content: "\e614";
+}
+
+.icon-ingress:before {
+  content: "\f37a";
+}
+
+.icon-heisezhuti:before {
+  content: "\e652";
+}
+
+.icon-zhutise:before {
+  content: "\e649";
+}
+
+.icon-gongzuofuzai:before {
+  content: "\e607";
+}
+
+.icon-lianbanggongzuofuzai:before {
+  content: "\e7e0";
+}
+
+.icon-deploymentunit:before {
+  content: "\e67c";
+}
+
+.icon-qiansezhuti:before {
+  content: "\e696";
+}
+
+.icon-cunchu:before {
+  content: "\e60a";
+}
+
+.icon-kubernetes1:before {
+  content: "\e88a";
+}
+
+.icon-theme:before {
+  content: "\e606";
 }
 
 .icon-zhutiqiehuan:before {

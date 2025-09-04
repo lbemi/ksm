@@ -1,141 +1,126 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Divider, Layout, Menu, MenuProps, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import {
-  VideoCameraOutlined,
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-} from "@ant-design/icons";
+import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import Settings from "@/components/Settings";
 import "./index.scss";
 
 import { get } from "@/utils/localStorage";
 import Title from "antd/es/typography/Title";
-import { Footer } from "antd/es/layout/layout";
+import { useLocale } from "@/locales";
+import UIcon from "@/components/UIcon";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
-const items: MenuItem[] = [
-  {
-    label: "集群列表",
-    key: "/",
-    icon: <VideoCameraOutlined />,
-  },
-  {
-    label: "Dashboard",
-    key: "/kubernetes/dashboard",
-    icon: <VideoCameraOutlined />,
-  },
-  {
-    key: "/kubernetes/workload",
-    label: "工作负载",
-    // type: "group",
-    icon: <VideoCameraOutlined />,
-    children: [
-      {
-        key: "/kubernetes/workload/deployment",
-        label: "Deployment",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/workload/pod",
-        label: "Pod",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/workload/statefulset",
-        label: "StatefulSet",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/workload/daemonset",
-        label: "DaemonSet",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
-  },
-  {
-    key: "/kubernetes/network",
-    label: "网络",
-    // type: "group",
-    icon: <VideoCameraOutlined />,
-    children: [
-      {
-        key: "/kubernetes/network/service",
-        label: "Service",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/network/ingress",
-        label: "Ingress",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
-  },
-  {
-    key: "/kubernetes/config",
-    label: "配置",
-    icon: <VideoCameraOutlined />,
-    children: [
-      {
-        key: "/kubernetes/config/configmap",
-        label: "ConfigMap",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/config/secret",
-        label: "Secret",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
-  },
-  {
-    key: "/kubernetes/task",
-    label: "任务",
-    icon: <VideoCameraOutlined />,
-    children: [
-      {
-        key: "/kubernetes/task/job",
-        label: "Job",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/task/cronjob",
-        label: "CronJob",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
-  },
-  {
-    key: "/kubernetes/storage",
-    label: "存储",
-    icon: <VideoCameraOutlined />,
-    children: [
-      {
-        key: "/kubernetes/storage/persistentvolume",
-        label: "PV",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/storage/persistentvolumeclaim",
-        label: "PVC",
-        icon: <VideoCameraOutlined />,
-      },
-      {
-        key: "/kubernetes/storage/storageclass",
-        label: "StorageClass",
-        icon: <VideoCameraOutlined />,
-      },
-    ],
-  },
-  {
-    key: "/kubernetes/crd",
-    label: "自定义资源",
-    icon: <VideoCameraOutlined />,
-  },
-];
 
-const GeekLayout: React.FC = () => {
+const GeekLayout = () => {
+  const { formatMessage } = useLocale();
+  const items: MenuItem[] = [
+    {
+      label: formatMessage({ id: "menu.clusters" }),
+      key: "/",
+      icon: <UIcon type="icon-jiqun" />,
+    },
+    {
+      label: formatMessage({ id: "menu.dashboard" }),
+      key: "/kubernetes/dashboard",
+      icon: <UIcon type="icon-dashboard" />,
+    },
+    {
+      key: "/kubernetes/workload",
+      label: formatMessage({ id: "menu.workload" }),
+      // type: "group",
+      icon: <UIcon type="icon-lianbanggongzuofuzai" />,
+      children: [
+        {
+          key: "/kubernetes/workload/deployment",
+          label: formatMessage({ id: "menu.deployment" }),
+        },
+        {
+          key: "/kubernetes/workload/pod",
+          label: formatMessage({ id: "menu.pod" }),
+        },
+        {
+          key: "/kubernetes/workload/statefulset",
+          label: formatMessage({ id: "menu.statefulset" }),
+        },
+        {
+          key: "/kubernetes/workload/daemonset",
+          label: formatMessage({ id: "menu.daemonset" }),
+        },
+      ],
+    },
+    {
+      key: "/kubernetes/network",
+      label: formatMessage({ id: "menu.network" }),
+      // type: "group",
+      icon: <UIcon type="icon-wangluo" />,
+      children: [
+        {
+          key: "/kubernetes/network/service",
+          label: formatMessage({ id: "menu.service" }),
+        },
+        {
+          key: "/kubernetes/network/ingress",
+          label: formatMessage({ id: "menu.ingress" }),
+        },
+      ],
+    },
+    {
+      key: "/kubernetes/config",
+      label: formatMessage({ id: "menu.config" }),
+      icon: <UIcon type="icon-peizhi" />,
+      children: [
+        {
+          key: "/kubernetes/config/configmap",
+          label: formatMessage({ id: "menu.configmap" }),
+        },
+        {
+          key: "/kubernetes/config/secret",
+          label: formatMessage({ id: "menu.secret" }),
+        },
+      ],
+    },
+    {
+      key: "/kubernetes/task",
+      label: formatMessage({ id: "menu.task" }),
+      icon: <UIcon type="icon-renwu" />,
+      children: [
+        {
+          key: "/kubernetes/task/job",
+          label: formatMessage({ id: "menu.job" }),
+        },
+        {
+          key: "/kubernetes/task/cronjob",
+          label: formatMessage({ id: "menu.cronjob" }),
+        },
+      ],
+    },
+    {
+      key: "/kubernetes/storage",
+      label: formatMessage({ id: "menu.storage" }),
+      icon: <UIcon type="icon-cunchu" />,
+      children: [
+        {
+          key: "/kubernetes/storage/persistentvolume",
+          label: formatMessage({ id: "menu.persistentvolume" }),
+        },
+        {
+          key: "/kubernetes/storage/persistentvolumeclaim",
+          label: formatMessage({ id: "menu.persistentvolumeclaim" }),
+        },
+        {
+          key: "/kubernetes/storage/storageclass",
+          label: formatMessage({ id: "menu.storageclass" }),
+        },
+      ],
+    },
+    {
+      key: "/kubernetes/crd",
+      label: formatMessage({ id: "menu.crd" }),
+      icon: <UIcon type="icon-zidingyiziyuan" />,
+    },
+  ];
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -170,7 +155,7 @@ const GeekLayout: React.FC = () => {
   const { token } = theme.useToken();
   return (
     <>
-      <Layout style={{ minHeight: "100vh", padding: "0" }}>
+      <Layout style={{ minHeight: "100vh", background: colorBgContainer }}>
         <Header
           data-tauri-drag-region
           style={{
@@ -225,12 +210,10 @@ const GeekLayout: React.FC = () => {
               onOpenChange={handleMenuOpenChange}
               forceSubMenuRender
               items={items}
-              style={{
-                height: "100%",
-                background: colorBgContainer,
-              }}
+              className="h-full bg-theme-bg"
             />
           </Sider>
+
           <Layout>
             <Content
               style={{
@@ -242,29 +225,29 @@ const GeekLayout: React.FC = () => {
             >
               <Outlet />
             </Content>
+            <div
+              style={{
+                height: "30px",
+                padding: "0",
+                backgroundColor: token.colorBgContainer,
+              }}
+            >
+              <Divider style={{ margin: "0" }} />
+              <div
+                style={{
+                  userSelect: "none",
+                  cursor: "default",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: "25px",
+                }}
+              >
+                <span>Kubernetes Manager - v0.0.1</span>
+              </div>
+            </div>
           </Layout>
         </Layout>
-        <Footer
-          style={{
-            height: "30px",
-            padding: "0",
-            backgroundColor: token.colorBgContainer,
-          }}
-        >
-          <Divider style={{ margin: "0" }} />
-          <div
-            style={{
-              userSelect: "none",
-              cursor: "default",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              height: "25px",
-            }}
-          >
-            <span>WRITTEN BY LBEMI @2025 版权所有</span>
-          </div>
-        </Footer>
       </Layout>
     </>
   );

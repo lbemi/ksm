@@ -5,6 +5,8 @@ use boot::server;
 mod api;
 mod boot;
 mod error;
+mod handler;
+mod resource;
 mod tray;
 mod utils;
 fn main() {

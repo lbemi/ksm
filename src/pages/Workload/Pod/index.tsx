@@ -422,7 +422,7 @@ const PodPage: FC = () => {
         loading={loading}
       >
         {/* <CustomFooter> */}
-        <CustomEdit data={log} type="plainText" scrollEnd />
+        {/* <CustomEdit data={log} type="plainText" scrollEnd /> */}
         {/* </CustomFooter> */}
       </CustomContent>
     </>

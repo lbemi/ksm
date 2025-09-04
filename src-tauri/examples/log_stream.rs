@@ -1,10 +1,10 @@
 use futures::{AsyncBufReadExt, TryStreamExt};
 use k8s_openapi::{
-    api::core::v1::Pod,
+    api::core::v1::{Node, Pod},
     chrono::{DateTime, Utc},
 };
 use kube::{
-    api::{Api, LogParams},
+    api::{Api, ApiResource, LogParams},
     Client,
 };
 use tracing::*;

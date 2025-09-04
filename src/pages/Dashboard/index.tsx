@@ -1,73 +1,46 @@
-import { Button, Table, TableColumnsType } from "antd";
-import { FC, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
-import { aboutWindow } from "@/utils/windows/actions";
-import CreateAboutWindow from "@/pages/About/window.ts";
-const createWindow = async () => {
-  await aboutWindow();
-};
+import React from "react";
+import { Flex, Splitter, Typography } from "antd";
+import type { SplitterProps } from "antd";
+import { useLocale } from "@/locales";
 
-interface DataType {
-  key: React.Key;
-  name: string;
-  age: number;
-  address: string;
-}
+const Desc: React.FC<Readonly<{ text?: string | number }>> = (props) => (
+  <Flex justify="center" align="center" style={{ height: "100%" }}>
+    <Typography.Title
+      type="secondary"
+      level={5}
+      style={{ whiteSpace: "nowrap" }}
+    >
+      {props.text}
+    </Typography.Title>
+  </Flex>
+);
 
-const columns: TableColumnsType<DataType> = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    width: 150,
-  },
-  {
-    title: "Age",
-    dataIndex: "age",
-    width: 150,
-  },
-  {
-    title: "Address",
-    dataIndex: "address",
-  },
-];
-
-const data: DataType[] = [];
-for (let i = 0; i < 100; i++) {
-  data.push({
-    key: i,
-    name: `Edward King ${i}`,
-    age: 32,
-    address: `London, Park Lane no. ${i}`,
-  });
-}
-
-const Dashboard: FC = () => {
-  const [params] = useSearchParams();
-  const cluster = params.get("cluster");
-  // const dispatch = useAppDispatch();
-  useEffect(() => {
-    if (!cluster) return;
-    // dispatch(setActiveCluster(cluster))
-  }, [cluster]);
-
+const CustomSplitter: React.FC<Readonly<SplitterProps>> = ({
+  style,
+  ...restProps
+}) => {
+  const { formatMessage } = useLocale();
   return (
-    <>
-      <div>
-        <Button type="primary" size="small" onClick={createWindow}>
-          点击
-        </Button>
-        <Button type="primary" size="small" onClick={CreateAboutWindow}>
-          关于
-        </Button>
-        <Table
-          columns={columns}
-          dataSource={data}
-          pagination={{ pageSize: 50 }}
-          scroll={{ y: 240 }}
-        />{" "}
-      </div>
-    </>
+    <Splitter
+      style={{ boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)", ...style }}
+      {...restProps}
+    >
+      <Splitter.Panel collapsible min="20%">
+        <Desc text="First" />
+        <div className="bg-amber-400 ml-2.5"> AAAA</div>
+        {formatMessage({ id: "menu.workload" })}
+      </Splitter.Panel>
+      <Splitter.Panel collapsible>
+        <Desc text="Second" />
+      </Splitter.Panel>
+    </Splitter>
   );
 };
+
+const Dashboard: React.FC = () => (
+  <Flex gap="large" vertical>
+    <CustomSplitter style={{ height: "100%" }} layout="vertical" />
+  </Flex>
+);
 
 export default Dashboard;

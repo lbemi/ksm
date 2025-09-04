@@ -1,4 +1,4 @@
-import { message, Table, TableProps, theme } from "antd";
+import { message, Table, TableProps, Tag, theme } from "antd";
 import { FC, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
@@ -7,56 +7,97 @@ import { useAppDispatch } from "@/store/hook";
 import { setActiveCluster } from "@/store/modules/kubernetes";
 import { Typography } from "antd";
 import "./index.scss";
+import { useLocale } from "@/locales";
 
 const { Title } = Typography;
 
 export const Home: FC = () => {
+  const { formatMessage } = useLocale();
   const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const redirect = async (record: Cluster) => {
-    setLoading(true);
-    await invoke("switch_cluster", { clusterName: record.name })
+    invoke("switch_cluster", { clusterName: record.name })
       .then(() => {
         dispatch(setActiveCluster(record.name));
         navigate(`/kubernetes/dashboard?cluster=${record.name}`);
       })
       .catch((err) => {
-        messageApi.error("切换集群失败: " + JSON.stringify(err));
+        messageApi.error(
+          formatMessage({ id: "cluster.switch_failed" }) +
+            ": " +
+            JSON.stringify(err)
+        );
       });
-    setLoading(false);
   };
 
   const columns: TableProps<Cluster>["columns"] = [
     {
-      title: "集群名称",
+      title: formatMessage({ id: "cluster.name" }),
       dataIndex: "name",
       key: "name",
       align: "center",
-      render: (text, record) => <a onClick={() => redirect(record)}>{text}</a>,
+      render: (text, record) =>
+        record.status ? (
+          <a onClick={() => redirect(record)}>{text}</a>
+        ) : (
+          <span style={{ color: "#aaa", cursor: "not-allowed" }}>{text}</span>
+        ),
     },
     {
-      title: "集群地址",
-      dataIndex: ["cluster", "server"],
-      key: "server",
+      title: formatMessage({ id: "cluster.status" }),
+      dataIndex: "status",
+      key: "status",
+      align: "center",
+      render: (_, record) => {
+        if (record.status) {
+          return (
+            <Tag color="green">{formatMessage({ id: "cluster.online" })}</Tag>
+          );
+        } else {
+          return (
+            <Tag color="red">{formatMessage({ id: "cluster.offline" })}</Tag>
+          );
+        }
+      },
+    },
+    {
+      title: formatMessage({ id: "cluster.version" }),
+      dataIndex: "version",
+      key: "version",
+      align: "center",
+    },
+    {
+      title: formatMessage({ id: "cluster.platform" }),
+      dataIndex: "platform",
+      key: "platform",
+      align: "center",
+    },
+    {
+      title: formatMessage({ id: "cluster.url" }),
+      dataIndex: "url",
+      key: "url",
       align: "center",
     },
   ];
 
   const [clusters, setClusters] = useState<Array<Cluster>>([]);
 
-  /**
-   * @description: fetch clusters list from invoke("list_clusters"), and then update state.clusters
-   * @return {Promise<void>}
-   */
   const fetchClusters = async (): Promise<void> => {
+    setLoading(true);
     try {
       const clusters = await invoke("list_clusters");
       setClusters(clusters as Array<Cluster>);
     } catch (error) {
-      messageApi.error("获取集群列表失败: " + JSON.stringify(error));
+      messageApi.error(
+        formatMessage({ id: "cluster.get_clusters_failed" }) +
+          ": " +
+          JSON.stringify(error)
+      );
+    } finally {
+      setLoading(false);
     }
   };
   const {

@@ -6,6 +6,216 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "2120515",
+      "name": "魔法棒3",
+      "font_class": "mofabang",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "21728341",
+      "name": "魔法棒",
+      "font_class": "mofabang1",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "41573766",
+      "name": "魔法棒",
+      "font_class": "mofabang2",
+      "unicode": "e7f0",
+      "unicode_decimal": 59376
+    },
+    {
+      "icon_id": "5387496",
+      "name": "主题",
+      "font_class": "zhuti2",
+      "unicode": "eaed",
+      "unicode_decimal": 60141
+    },
+    {
+      "icon_id": "32759511",
+      "name": "浅色主题",
+      "font_class": "qiansezhuti1",
+      "unicode": "e9ef",
+      "unicode_decimal": 59887
+    },
+    {
+      "icon_id": "6999203",
+      "name": "缩小",
+      "font_class": "suoxiao",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
+      "icon_id": "35497608",
+      "name": "中英文 英文",
+      "font_class": "a-zhongyingwenyingwen",
+      "unicode": "e7a2",
+      "unicode_decimal": 59298
+    },
+    {
+      "icon_id": "35497610",
+      "name": "中英文 中文",
+      "font_class": "a-zhongyingwenzhongwen",
+      "unicode": "e7a3",
+      "unicode_decimal": 59299
+    },
+    {
+      "icon_id": "929213",
+      "name": "dashboard",
+      "font_class": "dashboard",
+      "unicode": "e6bc",
+      "unicode_decimal": 59068
+    },
+    {
+      "icon_id": "1248734",
+      "name": "网络",
+      "font_class": "wangluo",
+      "unicode": "e617",
+      "unicode_decimal": 58903
+    },
+    {
+      "icon_id": "1526269",
+      "name": "任务",
+      "font_class": "renwu",
+      "unicode": "e654",
+      "unicode_decimal": 58964
+    },
+    {
+      "icon_id": "4765881",
+      "name": "dashboard",
+      "font_class": "dashboard1",
+      "unicode": "e78b",
+      "unicode_decimal": 59275
+    },
+    {
+      "icon_id": "5604198",
+      "name": "自定义资源",
+      "font_class": "zidingyiziyuan",
+      "unicode": "e9f2",
+      "unicode_decimal": 59890
+    },
+    {
+      "icon_id": "6487820",
+      "name": "集群",
+      "font_class": "jiqun",
+      "unicode": "e67a",
+      "unicode_decimal": 59002
+    },
+    {
+      "icon_id": "7575023",
+      "name": "24gl-network2",
+      "font_class": "24gl-network2",
+      "unicode": "e99b",
+      "unicode_decimal": 59803
+    },
+    {
+      "icon_id": "8036224",
+      "name": "pvc",
+      "font_class": "pvc",
+      "unicode": "e687",
+      "unicode_decimal": 59015
+    },
+    {
+      "icon_id": "8329623",
+      "name": "配置",
+      "font_class": "peizhi",
+      "unicode": "e6db",
+      "unicode_decimal": 59099
+    },
+    {
+      "icon_id": "13841325",
+      "name": "configMap",
+      "font_class": "configMap",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "14163802",
+      "name": "主题",
+      "font_class": "zhuti",
+      "unicode": "e753",
+      "unicode_decimal": 59219
+    },
+    {
+      "icon_id": "14943185",
+      "name": "主题",
+      "font_class": "zhuti1",
+      "unicode": "e614",
+      "unicode_decimal": 58900
+    },
+    {
+      "icon_id": "15229485",
+      "name": "ingress",
+      "font_class": "ingress",
+      "unicode": "f37a",
+      "unicode_decimal": 62330
+    },
+    {
+      "icon_id": "21935046",
+      "name": "黑色主题",
+      "font_class": "heisezhuti",
+      "unicode": "e652",
+      "unicode_decimal": 58962
+    },
+    {
+      "icon_id": "24849347",
+      "name": "主题色",
+      "font_class": "zhutise",
+      "unicode": "e649",
+      "unicode_decimal": 58953
+    },
+    {
+      "icon_id": "28565317",
+      "name": "工作负载",
+      "font_class": "gongzuofuzai",
+      "unicode": "e607",
+      "unicode_decimal": 58887
+    },
+    {
+      "icon_id": "30879621",
+      "name": "联邦工作负载",
+      "font_class": "lianbanggongzuofuzai",
+      "unicode": "e7e0",
+      "unicode_decimal": 59360
+    },
+    {
+      "icon_id": "32804436",
+      "name": "deploymentunit",
+      "font_class": "deploymentunit",
+      "unicode": "e67c",
+      "unicode_decimal": 59004
+    },
+    {
+      "icon_id": "38496164",
+      "name": "浅色主题",
+      "font_class": "qiansezhuti",
+      "unicode": "e696",
+      "unicode_decimal": 59030
+    },
+    {
+      "icon_id": "38853872",
+      "name": "存储",
+      "font_class": "cunchu",
+      "unicode": "e60a",
+      "unicode_decimal": 58890
+    },
+    {
+      "icon_id": "40055505",
+      "name": "kubernetes",
+      "font_class": "kubernetes1",
+      "unicode": "e88a",
+      "unicode_decimal": 59530
+    },
+    {
+      "icon_id": "43217954",
+      "name": "theme",
+      "font_class": "theme",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
       "icon_id": "16171974",
       "name": "主题切换",
       "font_class": "zhutiqiehuan",

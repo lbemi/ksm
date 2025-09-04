@@ -1,14 +1,19 @@
-use crate::{boot::setup::AppData, error::MyError};
-use kube::{
-    config::{KubeConfigOptions, NamedCluster},
-    Client, Config, Discovery,
+use crate::{
+    boot::setup::AppData, error::MyError, handler::cluster::get_cluster,
+    resource::cluster::Cluster, utils,
 };
+use kube::{config::KubeConfigOptions, Config, Discovery};
 use std::sync::Mutex;
 use tauri::State;
+
 #[tauri::command]
-pub async fn list_clusters(state: State<'_, Mutex<AppData>>) -> Result<Vec<NamedCluster>, MyError> {
-    let app_data = state.lock().unwrap();
-    Ok(app_data.kubernetes_configs.clusters.clone())
+pub async fn list_clusters(state: State<'_, Mutex<AppData>>) -> Result<Vec<Cluster>, MyError> {
+    let kubernetes_configs = {
+        let app_data = state.lock().unwrap();
+        app_data.kubernetes_configs.clone()
+    };
+    let clusters = get_cluster(kubernetes_configs).await?;
+    Ok(clusters)
 }
 
 #[tauri::command]
@@ -16,7 +21,6 @@ pub async fn switch_cluster(
     cluster_name: String,
     state: State<'_, Mutex<AppData>>,
 ) -> Result<String, MyError> {
-    set_no_proxy();
     let kube_config = {
         let mut app_data = state.lock().unwrap();
         app_data.kubernetes_configs.current_context = Some(cluster_name.clone());
@@ -24,7 +28,7 @@ pub async fn switch_cluster(
     };
 
     let config = Config::from_custom_kubeconfig(kube_config, &KubeConfigOptions::default()).await?;
-    let client = Client::try_from(config)?;
+    let client = utils::cluster::generate_client(&config)?;
     let discovery = Discovery::new(client.clone()).run().await?;
 
     let mut app_data = state.lock().unwrap();
@@ -33,9 +37,4 @@ pub async fn switch_cluster(
 
     tracing::info!("Switched to cluster {}", cluster_name);
     Ok(cluster_name)
-}
-
-fn set_no_proxy() {
-    std::env::set_var("HTTPS_PROXY", "");
-    std::env::set_var("https_proxy", "");
 }
