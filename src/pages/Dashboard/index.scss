@@ -1,0 +1,10 @@
+.ant-progress-outer {
+  display: flex !important;
+  flex-direction: column-reverse !important;
+  .ant-progress-text {
+    position: absolute;
+    right: 0;
+    bottom: 10px;
+    font-size: 14px;
+  }
+}

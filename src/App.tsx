@@ -17,8 +17,6 @@ const App: React.FC = () => {
     (state: RootState) => state.theme
   );
 
-  // set the locale for the user
-  // more languages options can be added here
   useEffect(() => {
     if (locale === "en_US") {
       dayjs.locale("en");
@@ -27,25 +25,12 @@ const App: React.FC = () => {
     }
   }, [locale]);
 
-  /**
-   * handler function that passes locale
-   * information to ConfigProvider for
-   * setting language across text components
-   */
-  const getAntdLocale = () => {
-    if (locale === "en_US") {
-      return enUS;
-    } else if (locale === "zh_CN") {
-      return zhCN;
-    }
-  };
-
   return (
     <ConfigProvider
-      locale={getAntdLocale()}
+      locale={locale === "en_US" ? enUS : zhCN}
       componentSize="middle"
       theme={{
-        token: { colorPrimary: "#13c2c2" },
+        token: {},
         algorithm: [
           ...(theme === "dark" ? [antdTheme.darkAlgorithm] : []),
           ...(compact ? [antdTheme.compactAlgorithm] : []),
@@ -57,17 +42,6 @@ const App: React.FC = () => {
         messages={localeConfig[locale]}
       >
         <Suspense fallback={null}>
-          <Spin
-            spinning={loading}
-            className="app-loading-wrapper"
-            style={{
-              backgroundColor:
-                theme === "dark"
-                  ? "rgba(0, 0, 0, 0.44)"
-                  : "rgba(255, 255, 255, 0.44)",
-            }}
-            tip={<LocaleFormatter id="cluster.loading" />}
-          ></Spin>
           <RouterProvider router={router} />
         </Suspense>
       </IntlProvider>

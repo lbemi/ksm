@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "13409720",
+      "name": "服务器",
+      "font_class": "fuwuqi",
+      "unicode": "e64f",
+      "unicode_decimal": 58959
+    },
+    {
+      "icon_id": "24660498",
+      "name": "服务器",
+      "font_class": "fuwuqi1",
+      "unicode": "e786",
+      "unicode_decimal": 59270
+    },
+    {
+      "icon_id": "36077465",
+      "name": "服务器",
+      "font_class": "fuwuqi2",
+      "unicode": "e650",
+      "unicode_decimal": 58960
+    },
+    {
+      "icon_id": "8036225",
+      "name": "pod",
+      "font_class": "pod",
+      "unicode": "e688",
+      "unicode_decimal": 59016
+    },
+    {
+      "icon_id": "13592668",
+      "name": "ecs 云服务器ECS",
+      "font_class": "ecsyunfuwuqiECS",
+      "unicode": "e6e8",
+      "unicode_decimal": 59112
+    },
+    {
+      "icon_id": "35147648",
+      "name": "36.icon_network",
+      "font_class": "a-36icon_network",
+      "unicode": "e689",
+      "unicode_decimal": 59017
+    },
+    {
       "icon_id": "2120515",
       "name": "魔法棒3",
       "font_class": "mofabang",
