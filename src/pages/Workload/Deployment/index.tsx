@@ -1,5 +1,13 @@
 import { useAppSelector } from "@/store/hook";
-import { Button, TableProps, Dropdown, Modal, message } from "antd";
+import {
+  Button,
+  TableProps,
+  Dropdown,
+  Modal,
+  message,
+  Progress,
+  Badge,
+} from "antd";
 import { FC, useEffect, useState } from "react";
 import {
   EyeOutlined,
@@ -10,70 +18,69 @@ import {
 } from "@ant-design/icons";
 
 import { Typography } from "antd";
-import { apiClient, CoreV1Url, kubernetes_request } from "@/api/cluster";
 import { Deployment } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
-import { getImages } from "@/utils/k8s/tools.tsx";
-import DeploymentDetailDrawer from "./DeploymentDetailDrawer";
-import CustomContent from "@/components/CustomContent";
+import DeploymentDetailDrawer from "./Detail";
+import MyTable from "@/components/MyTable";
+import { deleteDeployment, listDeployment } from "@/api/deployment";
+import Link from "antd/es/typography/Link";
+import { useLocale } from "@/locales";
 
+const { Text } = Typography;
 const DeploymentPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
   const [selectedDeployment, setSelectedDeployment] =
     useState<Deployment | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const { formatMessage } = useLocale();
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
-  const { Paragraph } = Typography;
-
   const columns: TableProps<Deployment>["columns"] = [
     {
-      title: "名称",
+      title: formatMessage({ id: "deployment.name" }),
       dataIndex: ["metadata", "name"],
       key: "name",
       fixed: "left",
+      width: 250,
+      onCell: () => {
+        return {
+          style: {
+            maxWidth: 250,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            cursor: "pointer",
+          },
+        };
+      },
       render: (text, record) => (
-        <div className="table-name-cell">
-          <Paragraph
-            copyable={{
-              text: text,
-              tooltips: ["复制名称", "已复制"],
-            }}
-            style={{ marginRight: 8, marginBottom: 0 }}
-          />
-          <span
-            className="table-name-text"
-            title={text}
-            onClick={() => handleShowDetail(record)}
-          >
-            {text}
-          </span>
-        </div>
+        <Text ellipsis={{ tooltip: `${text}` }}>
+          <Link onClick={() => handleShowDetail(record)}>{text}</Link>
+        </Text>
       ),
     },
-    ...(namespace === "all"
-      ? [
-          {
-            title: "命名空间",
-            dataIndex: ["metadata", "namespace"],
-            key: "namespace",
-            render: (text: string) => <div>{text}</div>,
-          },
-        ]
-      : []),
+    namespace === "all"
+      ? {
+          title: formatMessage({ id: "deployment.namespace" }),
+          align: "center",
+          dataIndex: ["metadata", "namespace"],
+          key: "namespace",
+          render: (text: string) => <div>{text}</div>,
+        }
+      : {},
     {
-      title: "状态",
+      title: formatMessage({ id: "deployment.status" }),
       key: "status",
+      align: "center",
       render: (record: Deployment) => {
-        const status = getDeploymentStatus(record);
-        return <span style={{ color: status.color }}>{status.text}</span>;
+        const { text, status } = getDeploymentStatus(record);
+        return <Badge status={status as any} text={text} />;
       },
     },
     {
-      title: "副本数(期望/正常)",
+      title: formatMessage({ id: "deployment.replicas" }),
       dataIndex: ["spec", "replicas"],
-      width: 200,
       key: "replicas",
       align: "center",
       render: (_, record: Deployment) => {
@@ -82,77 +89,77 @@ const DeploymentPage: FC = () => {
         const isHealthy = desiredReplicas === readyReplicas;
 
         return (
-          <span>
-            {`${desiredReplicas}/`}
+          <div className="flex items-center justify-center">
+            <Progress
+              size={[50, 8]}
+              percent={(readyReplicas / desiredReplicas) * 100}
+              showInfo={false}
+              style={{ width: "60px" }}
+            />
             <span style={{ color: isHealthy ? "inherit" : "red" }}>
               {readyReplicas}
             </span>
-          </span>
+            {`/${desiredReplicas}`}
+          </div>
         );
       },
     },
     {
-      title: "镜像",
-      dataIndex: ["spec", "template", "spec", "containers"],
-      key: "image",
-      onCell: () => {
-        return {
-          style: {
-            maxWidth: 180,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            cursor: "pointer",
-          },
-        };
-      },
-      render: (containers) => <div>{getImages(containers)}</div>,
-    },
-    {
-      title: "Age",
+      title: formatMessage({ id: "deployment.age" }),
       dataIndex: "metadata",
+      align: "center",
       key: "creationTimestamp",
       render: (metadata: IIoK8sApimachineryPkgApisMetaV1ObjectMeta) => {
         if (metadata.creationTimestamp) {
           return getAge(metadata.creationTimestamp);
+        } else {
+          return "-";
         }
       },
     },
     {
-      title: "操作",
+      title: formatMessage({ id: "button.action" }),
       key: "action",
       fixed: "right",
       dataIndex: "action",
+      align: "center",
       width: 100,
       render: (_, record: Deployment) => (
-        <div className="action-buttons">
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: "detail",
-                  label: "详情",
-                  icon: <EyeOutlined />,
-                  onClick: () => handleShowDetail(record),
-                },
-                { key: "edit", label: "编辑", icon: <EditOutlined /> },
-                {
-                  key: "delete",
-                  label: "删除",
-                  icon: <DeleteOutlined />,
-                  danger: true,
-                  onClick: () => handleDeleteDeployment(record),
-                },
-                { type: "divider" },
-                { key: "scale", label: "缩放", icon: <SettingOutlined /> },
-              ],
-            }}
-          >
-            <Button type="link" size="small">
-              更多 <DownOutlined />
-            </Button>
-          </Dropdown>
-        </div>
+        <Dropdown
+          menu={{
+            items: [
+              {
+                key: "detail",
+                label: formatMessage({ id: "button.detail" }),
+                icon: <EyeOutlined />,
+                onClick: () => handleShowDetail(record),
+              },
+              {
+                key: "edit",
+                label: formatMessage({ id: "button.edit" }),
+                icon: <EditOutlined />,
+              },
+              {
+                key: "delete",
+                label: formatMessage({ id: "button.delete" }),
+                icon: <DeleteOutlined />,
+                danger: true,
+                onClick: () => handleDeleteDeployment(record),
+              },
+              { type: "divider" },
+              {
+                key: "scale",
+                label: formatMessage({ id: "button.scale" }),
+                icon: <SettingOutlined />,
+              },
+            ],
+          }}
+        >
+          <Button type="link" size="small" className="pr-0">
+            {formatMessage({ id: "button.more" })}
+            <DownOutlined />
+          </Button>
+        </Dropdown>
       ),
     },
   ];
@@ -164,7 +171,7 @@ const DeploymentPage: FC = () => {
 
   const getDeploymentStatus = (deployment: Deployment) => {
     const status = deployment.status;
-    if (!status) return { text: "Unknown", color: "#909399" };
+    if (!status) return { text: "Unknown", status: "error" };
 
     const { replicas = 0, availableReplicas = 0 } = status;
     const desiredReplicas = deployment.spec?.replicas || 0;
@@ -174,7 +181,7 @@ const DeploymentPage: FC = () => {
       replicas > availableReplicas ||
       (replicas > desiredReplicas && availableReplicas)
     ) {
-      return { text: "Updating", color: "#e6a23c" };
+      return { text: "Updating", status: "processing" };
     }
 
     // Running status
@@ -182,34 +189,37 @@ const DeploymentPage: FC = () => {
       desiredReplicas === 0 ||
       (availableReplicas && availableReplicas === desiredReplicas)
     ) {
-      return { text: "Running", color: "#388c04" };
+      return { text: "Running", status: "success" };
     }
 
-    // Waiting/Error status
-    return { text: "Waiting", color: "#f56c6c" };
+    return { text: "Waiting", status: "Warning" };
   };
-
+  const [modal, contextHolder] = Modal.useModal();
   const handleDeleteDeployment = (deployment: Deployment) => {
-    Modal.confirm({
-      title: "确认删除",
+    modal.confirm({
+      title: formatMessage({ id: "button.confirm" }),
       content: (
         <span>
-          您确定要删除 Deployment{" "}
-          <span style={{ color: "red" }}>{deployment.metadata?.name}</span> 吗？
+          {formatMessage({ id: "button.confirm_delete" })} Deployment{" "}
+          <span style={{ color: "red" }}>{deployment.metadata?.name}</span> ?
         </span>
       ),
-      okText: "确认",
-      cancelText: "取消",
+      okText: formatMessage({ id: "button.confirm" }),
+      cancelText: formatMessage({ id: "button.cancel" }),
       onOk: async () => {
         try {
-          await kubernetes_request(
-            "DELETE",
-            `/apis/apps/v1/namespaces/${deployment.metadata?.namespace}/deployments/${deployment.metadata?.name}`
+          await deleteDeployment(
+            deployment.metadata?.name!,
+            deployment.metadata?.namespace
           );
-          message.success(`Deployment ${deployment.metadata?.name} 删除成功`);
+          message.success(
+            `${formatMessage({ id: "button.delete_success" })} ${deployment.metadata?.name}`
+          );
           list_deployments();
         } catch (error) {
-          message.error(`删除失败: ${error}`);
+          message.error(
+            `${formatMessage({ id: "button.delete_failed" })} ${error}`
+          );
         }
       },
     });
@@ -219,19 +229,12 @@ const DeploymentPage: FC = () => {
     if (!refresh) {
       setLoading(true);
     }
+
     try {
-      // let url =
-      //   namespace === "all"
-      //     ? "/apis/apps/v1/deployments"
-      //     : `/apis/apps/v1/namespaces/${namespace}/deployments`;
-      const res = await apiClient.get<Deployment>(
-        CoreV1Url,
-        "deployments",
-        namespace
-      );
+      const res = await listDeployment(namespace);
       setDeployments(res);
     } catch (error) {
-      message.error("获取Deployment列表失败");
+      message.error(`${formatMessage({ id: "button.get_failed" })} ${error}`);
     } finally {
       if (!refresh) {
         setLoading(false);
@@ -241,44 +244,45 @@ const DeploymentPage: FC = () => {
 
   useEffect(() => {
     list_deployments();
-    const interval = setInterval(() => {
-      list_deployments(true);
-    }, 5000);
-    return () => clearInterval(interval);
+    // const interval = setInterval(() => {
+    //   list_deployments(true);
+    // }, 5000);
+    // return () => clearInterval(interval);
   }, [namespace]);
 
-  const filterDeployments = (searchText: string) => {
-    if (searchText === "" || typeof searchText !== "string") return deployments;
+  const filterDeployments = (searchText: string): Deployment[] => {
+    try {
+      if (searchText === "" || typeof searchText !== "string")
+        return deployments;
 
-    return deployments.filter((deployment) => {
-      const name = deployment.metadata?.name?.toLowerCase() || "";
-      const namespace = deployment.metadata?.namespace?.toLowerCase() || "";
-      const searchLower = searchText.toLowerCase();
+      return deployments.filter((deployment) => {
+        const name = deployment.metadata?.name?.toLowerCase() || "";
+        const namespace = deployment.metadata?.namespace?.toLowerCase() || "";
+        const searchLower = searchText.toLowerCase();
 
-      return name.includes(searchLower) || namespace.includes(searchLower);
-    });
+        return name.includes(searchLower) || namespace.includes(searchLower);
+      });
+    } catch (error) {
+      return deployments;
+    }
   };
   return (
     <>
-      {/* <MyTable
+      <MyTable
         loading={loading}
         columns={columns}
         refresh={list_deployments}
         del={() => {}}
         filter={filterDeployments}
-      /> */}
-      <CustomContent
-        columns={columns}
-        refresh={list_deployments}
-        filter={filterDeployments}
-        loading={loading}
         total={deployments.length}
       />
       <DeploymentDetailDrawer
         visible={drawerVisible}
         onClose={() => setDrawerVisible(false)}
-        deployment={selectedDeployment}
+        name={selectedDeployment?.metadata?.name!}
+        namespace={selectedDeployment?.metadata?.namespace!}
       />
+      <div>{contextHolder}</div>
     </>
   );
 };

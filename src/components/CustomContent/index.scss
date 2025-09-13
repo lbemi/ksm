@@ -17,10 +17,3 @@
   width: 60px;
   height: 4px;
 }
-.custom-splitter {
-  height: calc(100vh - 72px);
-  overflow: hidden;
-  .custom-splitter-panel {
-    overflow: hidden;
-  }
-}

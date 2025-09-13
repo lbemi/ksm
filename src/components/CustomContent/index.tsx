@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import MyTable, { MyTableProps } from "../MyTable";
-import { Splitter, SplitterProps } from "antd";
+import { Splitter } from "antd";
 import "./index.scss";
 
 interface CustomContentProps extends MyTableProps<any> {
@@ -29,26 +29,23 @@ const CustomContent: FC<CustomContentProps> = ({
     return () => window.removeEventListener("resize", calculateTableHeight);
   }, []);
 
+  const [sizes, setSizes] = useState<number>(0);
   return (
-    <div style={{ overflow: "hidden" }}>
-      <Splitter
-        style={{ boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)", height: "92vh" }}
-        layout="vertical"
-        onResizeEnd={(sizes) => {
-          setTableHeight(sizes[0] - 80);
-        }}
-      >
-        <Splitter.Panel className="custom-splitter-panel">
-          <MyTable
-            {...tableParams}
-            scroll={{ x: "max-content", y: tableHeight }}
-          />
-        </Splitter.Panel>
-        <Splitter.Panel max="70%" collapsible defaultSize={"34px"}>
-          {children}
-        </Splitter.Panel>
-      </Splitter>
-    </div>
+    <Splitter
+      style={{ height: "100%" }}
+      layout="vertical"
+      onResizeEnd={(sizes) => {
+        setSizes(sizes[1]);
+      }}
+    >
+      <Splitter.Panel style={{ overflow: "hidden" }}>
+        <MyTable
+          {...tableParams}
+          scroll={{ y: `calc(100vh - ${sizes}px - 140px)` }}
+        />
+      </Splitter.Panel>
+      <Splitter.Panel style={{ overflow: "hidden" }}>{children}</Splitter.Panel>
+    </Splitter>
   );
 };
 

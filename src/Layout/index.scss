@@ -11,3 +11,23 @@
 .header {
   user-select: none;
 }
+
+.ant-layout-content {
+  &::-webkit-scrollbar {
+    background: rgba(0, 0, 0, 0);
+    width: 6px;
+    height: 10px;
+  }
+  /* 滚动条轨道的样式 */
+  &::-webkit-scrollbar-track {
+    background: #68686825 !important; /* 轨道背景颜色 */
+    border-radius: 4px !important; /* 轨道圆角 */
+  }
+
+  /* 滚动条滑块的样式 */
+  &::-webkit-scrollbar-thumb {
+    background: rgba(91, 91, 91, 0.8);
+    border-radius: 4px;
+    width: 4px;
+  }
+}

@@ -83,7 +83,7 @@ const IngressPage: FC = () => {
       dataIndex: "action",
       width: 100,
       render: (_, record: Ingress) => (
-        <div className="action-buttons">
+        <div>
           <Dropdown
             menu={{
               items: [

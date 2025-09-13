@@ -1,0 +1,499 @@
+import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { invoke } from "@tauri-apps/api/core";
+import WebSocket from "@tauri-apps/plugin-websocket";
+import { Button, message, Select, Typography, Space, Spin, theme } from "antd";
+import { AppsV1Url, kubeApi } from "@/api/cluster";
+import { Pod } from "kubernetes-models/v1";
+import { useLocale } from "@/locales";
+import "@xterm/xterm/css/xterm.css";
+import "./index.scss";
+
+interface SelectOptions {
+  value: string;
+  label: string;
+}
+
+interface TerminalProps {
+  podName?: string;
+  namespace?: string;
+  container?: string;
+}
+
+const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
+  const params = useParams();
+  const terminalRef = useRef<HTMLDivElement>(null);
+  const terminalInstanceRef = useRef<Terminal | null>(null);
+  const fitAddonRef = useRef<FitAddon | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const clientIdRef = useRef<string>("");
+
+  // 使用 props 或 URL 参数
+  const finalPodName = podName || params.name;
+  const finalNamespace = namespace || params.namespace;
+
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedContainer, setSelectedContainer] = useState<string>(
+    container || ""
+  );
+  const [containers, setContainers] = useState<Array<SelectOptions>>([]);
+  const [messageApi, contextHolderMessage] = message.useMessage();
+
+  const { formatMessage } = useLocale();
+  const {
+    token: { colorBgContainer },
+  } = theme.useToken();
+
+  // 获取 Pod 容器信息
+  const getPodContainerName = async (pod: Pod) => {
+    const containerOptions: Array<SelectOptions> = [];
+    pod.spec?.containers.forEach((container) => {
+      containerOptions.push({ value: container.name, label: container.name });
+    });
+    pod.spec?.initContainers?.forEach((container) => {
+      containerOptions.push({
+        value: container.name,
+        label: `${container.name} (init)`,
+      });
+    });
+    setContainers(containerOptions);
+
+    if (containerOptions.length > 0 && !selectedContainer) {
+      setSelectedContainer(containerOptions[0].value);
+    }
+  };
+
+  const getPod = async () => {
+    if (!finalPodName || !finalNamespace) return;
+
+    try {
+      const pod = await kubeApi.get_one<Pod>(
+        AppsV1Url,
+        "pods",
+        finalNamespace,
+        finalPodName
+      );
+      getPodContainerName(pod);
+    } catch (error) {
+      messageApi.error("Failed to get pod information");
+    }
+  };
+
+  // 初始化终端
+  const initTerminal = () => {
+    if (terminalInstanceRef.current) {
+      return;
+    }
+
+    if (!terminalRef.current) {
+      return;
+    }
+
+    const term = new Terminal({
+      theme: {
+        background: "#1e1e1e",
+        foreground: "#d4d4d4",
+        cursor: "help",
+      },
+      fontSize: 14,
+      fontFamily: "Consolas, Lucida Console,monospace,JetBrainsMono, monaco",
+      cursorBlink: true,
+    });
+
+    const fitAddon = new FitAddon();
+    const webLinksAddon = new WebLinksAddon();
+
+    term.loadAddon(fitAddon);
+    term.loadAddon(webLinksAddon);
+    term.open(terminalRef.current);
+
+    // 确保终端正确渲染和自适应
+    setTimeout(() => {
+      if (fitAddon && terminalInstanceRef.current) {
+        fitAddon.fit();
+      }
+    }, 50);
+    // 绿色信息提示
+    term.write(
+      "\x1b[32mWelcome to the terminal! \r\n\r\nPress Ctrl+D to disconnect\r\n\r\n"
+    );
+    term.write("\x1b[0m");
+    terminalInstanceRef.current = term;
+    fitAddonRef.current = fitAddon;
+
+    // 设置终端容器焦点，确保能接收键盘事件
+    setTimeout(() => {
+      if (terminalRef.current) {
+        terminalRef.current.focus();
+      }
+    }, 100);
+
+    // 处理终端输入
+    term.onData((data) => {
+      // 检查是否是Ctrl+D (ASCII码4)
+      if (data === "\u0004") {
+        disconnectTerminal();
+        return;
+      }
+      if (wsRef.current && clientIdRef.current) {
+        wsRef.current.send(data);
+      }
+    });
+
+    // 处理窗口大小变化
+    const handleResize = () => {
+      if (fitAddonRef.current && terminalInstanceRef.current) {
+        fitAddonRef.current.fit();
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // 添加 ResizeObserver 来监听容器大小变化
+    let resizeObserver: ResizeObserver | null = null;
+    if (terminalRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        handleResize();
+      });
+      resizeObserver.observe(terminalRef.current);
+    }
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  };
+
+  // 清理 WebSocket 连接
+  const cleanupWebSocket = () => {
+    if (wsRef.current) {
+      wsRef.current.disconnect();
+      wsRef.current = null;
+    }
+    setIsConnected(false);
+    clientIdRef.current = "";
+  };
+
+  // 连接终端
+  const connectTerminal = async () => {
+    if (!finalPodName || !finalNamespace || !selectedContainer) {
+      messageApi.error(formatMessage({ id: "terminal.missing_parameters" }));
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      cleanupWebSocket();
+
+      // 清空终端
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.clear();
+        terminalInstanceRef.current.write("Connecting to pod terminal...\r\n");
+      }
+
+      // 建立 WebSocket 连接
+      const ws = await WebSocket.connect("ws://localhost:38012");
+      wsRef.current = ws;
+
+      const waitForClientId = new Promise<string>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          setIsLoading(false);
+          reject(new Error("Connection timeout"));
+        }, 10000);
+
+        ws.addListener((msg) => {
+          if (!clientIdRef.current || clientIdRef.current === "") {
+            const receivedId = msg.data?.toString() || "";
+            if (receivedId && receivedId.length > 10) {
+              clientIdRef.current = receivedId;
+              clearTimeout(timeout);
+              resolve(receivedId);
+              return;
+            }
+          }
+
+          if (msg.type === "Ping") {
+            ws.send({ type: "Pong", data: [1] });
+            return;
+          }
+
+          if (msg.type === "Text" && terminalInstanceRef.current) {
+            const data = msg.data?.toString() || "";
+            terminalInstanceRef.current.write(data);
+          }
+
+          if (msg.type === "Binary" && terminalInstanceRef.current) {
+            const data = new TextDecoder().decode(
+              msg.data as unknown as ArrayBuffer
+            );
+
+            terminalInstanceRef.current.write(data);
+          }
+        });
+      });
+
+      try {
+        const receivedClientId = await waitForClientId;
+        if (receivedClientId) {
+          setIsConnected(true);
+
+          if (terminalInstanceRef.current) {
+            terminalInstanceRef.current.clear();
+          }
+
+          try {
+            invoke("pod_terminal", {
+              podTerminal: {
+                namespace: finalNamespace,
+                name: finalPodName,
+                container: selectedContainer,
+                command: ["/bin/sh"], // 使用 sh 作为默认shell
+              },
+              clientId: receivedClientId,
+            });
+
+            // 连接成功后重新调整终端大小
+            setTimeout(() => {
+              if (fitAddonRef.current && terminalInstanceRef.current) {
+                fitAddonRef.current.fit();
+              }
+            }, 500);
+
+            setIsLoading(false);
+            messageApi.success(
+              formatMessage({ id: "terminal.connect_success" })
+            );
+          } catch (error) {
+            throw error;
+          } finally {
+            setIsLoading(false);
+          }
+        } else {
+          throw new Error(formatMessage({ id: "terminal.connect_failed" }));
+        }
+      } catch (error) {
+        messageApi.error(formatMessage({ id: "terminal.connect_failed" }));
+        cleanupWebSocket();
+      } finally {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      messageApi.error(formatMessage({ id: "terminal.connect_failed" }));
+      cleanupWebSocket();
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.write(
+          "\r\nConnection failed. Please try again.\r\n"
+        );
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  window.addEventListener("unload", () => {
+    cleanupWebSocket();
+  });
+
+  const disconnectTerminal = () => {
+    cleanupWebSocket();
+    if (terminalInstanceRef.current) {
+      terminalInstanceRef.current.write("\r\nTerminal disconnected.\r\n");
+    }
+    messageApi.info("Terminal disconnected");
+  };
+
+  const clearTerminal = () => {
+    if (terminalInstanceRef.current) {
+      terminalInstanceRef.current.clear();
+    }
+  };
+
+  useEffect(() => {
+    getPod();
+
+    // 延迟初始化终端，确保DOM已经渲染
+    const timer = setTimeout(() => {
+      initTerminal();
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      cleanupWebSocket();
+      if (terminalInstanceRef.current) {
+        terminalInstanceRef.current.dispose();
+        terminalInstanceRef.current = null;
+      }
+    };
+  }, [finalPodName, finalNamespace]);
+
+  useEffect(() => {
+    // 监听终端相关的键盘快捷键
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // 只在终端容器获得焦点时处理
+      const terminalContainer = document.getElementById("terminal-container");
+      const activeElement = document.activeElement;
+
+      // 检查是否在终端区域内
+      const isInTerminal =
+        terminalContainer &&
+        (terminalContainer.contains(activeElement) ||
+          activeElement === terminalContainer ||
+          activeElement?.closest("#terminal-container"));
+
+      // 只有在终端区域内才处理快捷键
+      if (isInTerminal && event.ctrlKey) {
+        if (event.key === "d" || event.key === "D" || event.code === "KeyD") {
+          event.preventDefault();
+          event.stopPropagation();
+          disconnectTerminal();
+        }
+      }
+    };
+
+    // 使用 capture 模式确保能捕获到事件
+    document.addEventListener("keydown", handleKeyDown, true);
+
+    // 清理函数
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown, true);
+    };
+  }, []);
+
+  // 监听容器变化
+  useEffect(() => {
+    if (isConnected && selectedContainer) {
+      // 如果已连接且容器发生变化，重新连接
+      connectTerminal();
+    }
+  }, [selectedContainer]);
+
+  // 处理页面卸载
+  useEffect(() => {
+    const handleUnload = () => {
+      cleanupWebSocket();
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, []);
+
+  return (
+    <div
+      style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background: colorBgContainer,
+      }}
+    >
+      {contextHolderMessage}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "6px 16px",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span
+            style={{
+              color: isConnected ? "#52c41a" : "#ff4d4f",
+              fontSize: "12px",
+              fontWeight: "bold",
+            }}
+          >
+            ●{" "}
+            {isConnected
+              ? formatMessage({ id: "terminal.connected" })
+              : formatMessage({ id: "terminal.disconnected" })}
+          </span>
+
+          <Typography.Text strong>Namespace:</Typography.Text>
+          <Typography.Text code>{finalNamespace}</Typography.Text>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Typography.Text strong>Container:</Typography.Text>
+          <Select
+            style={{ width: 150 }}
+            size="small"
+            options={containers}
+            value={selectedContainer}
+            onChange={(value) => setSelectedContainer(value)}
+            disabled={isLoading}
+          />
+
+          <Space>
+            <Button
+              type="primary"
+              size="small"
+              onClick={connectTerminal}
+              loading={isLoading}
+              disabled={isConnected}
+            >
+              {isLoading
+                ? formatMessage({ id: "terminal.connecting" })
+                : formatMessage({ id: "terminal.connect" })}
+            </Button>
+            <Button
+              size="small"
+              onClick={disconnectTerminal}
+              disabled={!isConnected}
+            >
+              {formatMessage({ id: "terminal.disconnect" })}
+            </Button>
+            <Button size="small" onClick={clearTerminal}>
+              Clear
+            </Button>
+          </Space>
+        </div>
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          position: "relative",
+          background: "#1e1e1e",
+          overflow: "hidden",
+          minHeight: "400px", // 确保有最小高度
+        }}
+      >
+        {isLoading && (
+          <div
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              zIndex: 10,
+            }}
+          >
+            <Spin size="large" />
+          </div>
+        )}
+        <div
+          ref={terminalRef}
+          id="terminal-container"
+          tabIndex={0}
+          style={{
+            width: "100%",
+            height: "100%",
+            padding: "10px",
+            outline: "none", // 去掉焦点边框
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default TerminalWindow;

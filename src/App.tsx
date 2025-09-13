@@ -3,19 +3,20 @@ import enUS from "antd/es/locale/en_US";
 import zhCN from "antd/es/locale/zh_CN";
 import dayjs from "dayjs";
 
-import { ConfigProvider, Spin, theme as antdTheme } from "antd";
+import { ConfigProvider, theme as antdTheme } from "antd";
 import { Suspense, useEffect } from "react";
 import { IntlProvider } from "react-intl";
 import { useSelector } from "react-redux";
-import { LocaleFormatter, localeConfig } from "./locales";
+import { localeConfig } from "./locales";
 import { RootState } from "./store";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-
+import windows from "./utils/windows";
 const App: React.FC = () => {
-  const { theme, loading, locale, compact } = useSelector(
+  const { theme, locale, compact } = useSelector(
     (state: RootState) => state.theme
   );
+  const w = new windows.Windows();
 
   useEffect(() => {
     if (locale === "en_US") {
@@ -24,13 +25,18 @@ const App: React.FC = () => {
       dayjs.locale("zh-cn");
     }
   }, [locale]);
+  useEffect(() => {
+    w.onListen();
+  });
 
   return (
     <ConfigProvider
       locale={locale === "en_US" ? enUS : zhCN}
       componentSize="middle"
       theme={{
-        token: {},
+        token: {
+          colorSuccess: "#388c04",
+        },
         algorithm: [
           ...(theme === "dark" ? [antdTheme.darkAlgorithm] : []),
           ...(compact ? [antdTheme.compactAlgorithm] : []),

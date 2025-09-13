@@ -1,3 +1,5 @@
+import dayjs from "dayjs";
+
 const getAge = (timeStamp: string) => {
   const date = new Date(timeStamp);
   const now = new Date();
@@ -21,7 +23,7 @@ const getAge = (timeStamp: string) => {
   }
 
   const days = Math.floor(hours / 24);
-  if (days < 365*2) {
+  if (days < 365 * 2) {
     if (days < 30) {
       const remainingHours = hours % 24;
       return `${days}d${remainingHours}h`;
@@ -29,8 +31,15 @@ const getAge = (timeStamp: string) => {
     return `${days}d`;
   }
 
-  const years = Math.floor(days / 365*2);
-  const remainingDays = days % 365*2;
+  const years = Math.floor((days / 365) * 2);
+  const remainingDays = (days % 365) * 2;
   return `${years}y${remainingDays}d`;
 };
 export default getAge;
+
+export const dateFormat = (
+  creationTimestamp: string | undefined,
+  arg1?: string
+) => {
+  return dayjs(creationTimestamp).format(arg1 || "YYYY-MM-DD HH:mm:ss");
+};

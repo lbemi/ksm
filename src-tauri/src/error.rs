@@ -24,6 +24,8 @@ pub enum MyError {
     NoClient(String),
     #[error("InvalidMethod: {0}")]
     InvalidMethod(String),
+    #[error("InvalidUuid: {0}")]
+    InvalidUuid(String),
 }
 
 impl From<kube::Error> for MyError {

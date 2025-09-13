@@ -20,9 +20,7 @@ import { kubernetes_request } from "@/api/cluster";
 import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
 import { invoke } from "@tauri-apps/api/core";
-import CustomEdit from "@/components/CustomEdit";
 import WebSocket from "@tauri-apps/plugin-websocket";
-import CustomFooter from "@/components/Footer";
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
@@ -343,7 +341,16 @@ const PodPage: FC = () => {
       logWebsocket = ws;
       ws.addListener((msg) => {
         if (!clientId || clientId === "") {
-          clientId = msg.data?.toString();
+          ws.send(pod.metadata?.name || "");
+          let tmpId = msg.data?.toString();
+          const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (uuidRegex.test(tmpId!)) {
+            clientId = tmpId;
+            // clientIdRef.current = clientId;
+            console.log("---Valid client ID received:", clientId);
+            // clientId = msg.data?.toString();
+          }
           return;
         }
 
@@ -358,8 +365,6 @@ const PodPage: FC = () => {
           setLog(text);
         }
       });
-
-      await ws.send(pod.metadata?.name || "");
 
       if (clientId && clientId !== "") {
         await invoke("log_stream", {

@@ -80,7 +80,7 @@ const ServicePage: FC = () => {
       dataIndex: "action",
       width: 100,
       render: (_, record: Service) => (
-        <div className="action-buttons">
+        <div>
           <Dropdown
             menu={{
               items: [

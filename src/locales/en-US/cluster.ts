@@ -9,4 +9,5 @@ export const enUS_cluster = {
   "cluster.switch_failed": "Switch cluster failed",
   "cluster.get_clusters_failed": "Get clusters failed",
   "cluster.loading": "loading",
+  "cluster.current": "Current Cluster",
 };

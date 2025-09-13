@@ -3,8 +3,14 @@ import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import yamlWorker from "monaco-yaml/yaml.worker?worker";
 
+declare global {
+  interface Window {
+    MonacoEnvironment: any;
+  }
+}
+
 self.MonacoEnvironment = {
-  getWorker(_, label) {
+  getWorker(_: any, label: string) {
     if (label === "json") {
       return new jsonWorker();
     }

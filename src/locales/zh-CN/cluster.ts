@@ -9,4 +9,5 @@ export const zhCN_cluster = {
   "cluster.switch_failed": "切换集群失败",
   "cluster.get_clusters_failed": "获取集群列表失败",
   "cluster.loading": "加载中",
+  "cluster.current": "当前集群",
 };

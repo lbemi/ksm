@@ -22,4 +22,7 @@ export const enUS_menu = {
   "menu.persistentvolume": "PV",
   "menu.persistentvolumeclaim": "PVC",
   "menu.crd": "crd",
+  "theme.light": "Light",
+  "theme.dark": "Dark",
+  "theme.compact": "Compact",
 };

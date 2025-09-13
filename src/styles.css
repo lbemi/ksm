@@ -26,35 +26,8 @@ img {
   -webkit-user-drag: none;
 }
 
-.action-buttons {
-  display: flex;
-  gap: 8px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
 
-.image-tooltip {
-  max-width: 500px;
 
-  .copyable-tag {
-    display: block;
-    margin-bottom: 4px;
-    max-width: 100%;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    .ant-typography {
-      color: inherit;
-      display: block;
-      max-width: 100%;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-}
 
 .container-images {
   display: flex;
@@ -90,8 +63,15 @@ img {
   }
 }
 
+
 .ant-drawer .ant-drawer-content-wrapper {
-  height: calc(100vh - 55px) !important;
-  margin-top: 78px !important;
-  margin-bottom: 55px !important;
+  margin-top: 36px ;
+  .ant-drawer-header {
+    border-bottom: none;
+    padding-bottom: 10;
+  }
+  .ant-drawer-body {
+    padding-top: 0;
+  }
 }
+

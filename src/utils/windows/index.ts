@@ -5,7 +5,7 @@ import { getAllWindows, getCurrentWindow } from "@tauri-apps/api/window";
 const appWindow = getCurrentWindow();
 
 export interface WindowConfig extends WebviewOptions {
-  label: string;  
+  label: string;
   title: string;
   // decorations: boolean;
   // center?: boolean;
@@ -60,33 +60,32 @@ class Windows {
     return await getAllWindows();
   }
 
-  async listen() {
-    console.log("——+——+——+——+——+开始监听窗口");
+  async onListen() {
     // 创建新窗体
     await listen("win-create", (event: any) => {
-      console.log(event);
       this.createWindow(event.payload);
     });
 
-    // 显示窗体
-    await listen("win-show", async () => {
-      if (appWindow.label.indexOf("main") == -1) return;
-      await appWindow.show();
-      await appWindow.unminimize();
-      await appWindow.setFocus();
-    });
+    // // 显示窗体
+    // await listen("win-show", async () => {
+    //   if (appWindow.label.indexOf("main") == -1) return;
+    //   await appWindow.show();
+    //   await appWindow.unminimize();
+    //   await appWindow.setFocus();
+    // });
 
-    // 隐藏窗体
-    await listen("win-hide", async () => {
-      if (appWindow.label.indexOf("main") == -1) return;
-      await appWindow.hide();
-    });
+    // // 隐藏窗体
+    // await listen("win-hide", async () => {
+    //   if (appWindow.label.indexOf("main") == -1) return;
+    //   await appWindow.hide();
+    // });
 
     // 关闭窗体
-    await listen("win-close", async () => {
-      await appWindow.close();
-    });
+    // await listen("win-close", async () => {
+    //   console.log("关闭窗体");
+    //   await appWindow.close();
+    // });
   }
 }
 
-export default Windows;
+export default { Windows };

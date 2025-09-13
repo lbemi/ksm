@@ -9,7 +9,7 @@ import {
   SettingOutlined,
 } from "@ant-design/icons";
 import { Typography } from "antd";
-import { apiClient, kubernetes_request } from "@/api/cluster";
+import { kubeApi, kubernetes_request } from "@/api/cluster";
 import { Secret } from "kubernetes-types/core/v1";
 import getAge from "@/utils/k8s/date";
 import CustomContent from "@/components/CustomContent";
@@ -73,7 +73,7 @@ const SecretPage: FC = () => {
       dataIndex: "action",
       width: 100,
       render: (_, record: Secret) => (
-        <div className="action-buttons">
+        <div>
           <Dropdown
             menu={{
               items: [
@@ -129,7 +129,7 @@ const SecretPage: FC = () => {
   const list_secrets = async () => {
     setLoading(true);
 
-    await apiClient
+    await kubeApi
       .get<Secret>("secrets", namespace)
       .then((res) => {
         setSecrets(res);

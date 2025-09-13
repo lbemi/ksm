@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Divider, Layout, Menu, MenuProps, theme } from "antd";
+import { Button, Divider, Layout, Menu, MenuProps, Tag, theme } from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import Settings from "@/components/Settings";
@@ -127,8 +127,8 @@ const GeekLayout = () => {
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-  const [locationPath, setLocationPath] = useState<string>(location.pathname);
   const [selectKeys, setSelectKeys] = useState<string[]>();
+  const [openKeys, setOpenKeys] = useState<string[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [left, setLeft] = useState("138px");
 
@@ -138,11 +138,11 @@ const GeekLayout = () => {
     navigate(key);
   };
   const handleMenuOpenChange = (keys: string[]) => {
-    let openKeyList: string[] = keys;
-    if (openKeyList.length === 0) {
-      openKeyList = locationPath.split("/").slice(1);
-      openKeyList.pop();
-      openKeyList = ["/" + openKeyList.join("/")];
+    const latestOpenKey = keys.find((key) => openKeys.indexOf(key) === -1);
+    if (latestOpenKey) {
+      setOpenKeys([latestOpenKey]);
+    } else {
+      setOpenKeys(keys);
     }
   };
 
@@ -150,9 +150,13 @@ const GeekLayout = () => {
     setSelectKeys([location.pathname]);
     const openKey = location.pathname.split("/").slice(1);
     openKey.pop();
-    setLocationPath(location.pathname);
+    const parentKey = "/" + openKey.join("/");
+    if (openKey.length > 0) {
+      setOpenKeys([parentKey]);
+    } else {
+      setOpenKeys([]);
+    }
   }, [location.pathname]);
-  const { token } = theme.useToken();
   return (
     <>
       <Layout style={{ minHeight: "100vh", background: colorBgContainer }}>
@@ -195,7 +199,10 @@ const GeekLayout = () => {
               level={5}
               style={{ margin: "0", cursor: "default", userSelect: "none" }}
             >
-              当前集群: {get("activeCluster")}
+              {formatMessage({ id: "cluster.current" })}:{" "}
+              <Tag color="blue" bordered={false}>
+                {get("activeCluster")}
+              </Tag>
             </Title>
           </div>
           <Settings />
@@ -207,6 +214,7 @@ const GeekLayout = () => {
               mode="inline"
               onSelect={({ keyPath, key }) => handleOnSelect(key, keyPath)}
               selectedKeys={selectKeys}
+              openKeys={openKeys}
               onOpenChange={handleMenuOpenChange}
               forceSubMenuRender
               items={items}
@@ -225,7 +233,7 @@ const GeekLayout = () => {
             >
               <Outlet />
             </Content>
-            <div
+            {/* <div
               style={{
                 height: "30px",
                 padding: "0",
@@ -245,7 +253,7 @@ const GeekLayout = () => {
               >
                 <span>Kubernetes Manager - v0.0.1</span>
               </div>
-            </div>
+            </div> */}
           </Layout>
         </Layout>
       </Layout>

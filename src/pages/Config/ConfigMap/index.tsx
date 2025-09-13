@@ -69,7 +69,7 @@ const ConfigMapPage: FC = () => {
       dataIndex: "action",
       width: 100,
       render: (_, record: ConfigMap) => (
-        <div className="action-buttons">
+        <div>
           <Dropdown
             menu={{
               items: [

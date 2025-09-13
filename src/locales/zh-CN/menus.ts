@@ -22,4 +22,7 @@ export const zhCN_menu = {
   "menu.persistentvolume": "持久卷",
   "menu.persistentvolumeclaim": "持久卷声明",
   "menu.crd": "自定义资源",
+  "theme.light": "亮色",
+  "theme.dark": "暗黑",
+  "theme.compact": "紧凑",
 };

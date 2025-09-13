@@ -84,7 +84,7 @@ const CustomResourceDefinitionsPage: FC = () => {
       dataIndex: "action",
       width: 100,
       render: (_, record: CustomResourceDefinition) => (
-        <div className="action-buttons">
+        <div>
           <Dropdown
             menu={{
               items: [

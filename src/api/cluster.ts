@@ -30,7 +30,7 @@ export const kubernetes_request = async <T>(
   return res.items;
 };
 
-class ApiClient {
+class KubeApi {
   private generateUrl(
     url: string,
     resource: string,
@@ -49,20 +49,71 @@ class ApiClient {
     url: string,
     resource: string,
     namespace?: string,
-    name?: string
+    name?: string | undefined,
+    params?: string
   ) {
     let endpoint = this.generateUrl(url, resource, namespace, name);
     const res = await invoke<KubernetesResponse<T>>("proxy_request", {
       method: "GET",
       url: endpoint,
+      params: params,
     });
     return res.items as Array<T>;
   }
 
+  async get_one<T>(
+    url: string,
+    resource: string,
+    namespace?: string,
+    name?: string | undefined,
+    params?: string
+  ) {
+    let endpoint = this.generateUrl(url, resource, namespace, name);
+    const res = await invoke<KubernetesResponse<T>>("proxy_request", {
+      method: "GET",
+      url: endpoint,
+      params: params,
+    });
+    return res as T;
+  }
   async post(url: string, resource: string, body: any, namespace?: string) {
     let endpoint = this.generateUrl(url, resource, namespace);
     const res = await invoke<KubernetesResponse<any>>("proxy_request", {
       method: "POST",
+      url: endpoint,
+      body: body,
+    });
+    return res.items;
+  }
+
+  async delete(
+    url: string,
+    resource: string,
+    namespace?: string,
+    name?: string
+  ) {
+    let endpoint = this.generateUrl(url, resource, namespace, name);
+    const res = await invoke<KubernetesResponse<any>>("proxy_request", {
+      method: "DELETE",
+      url: endpoint,
+    });
+    return res.items;
+  }
+
+  async patch(
+    url: string,
+    resource: string,
+    body: any,
+    namespace?: string,
+    name?: string,
+    patchPath?: string
+  ) {
+    let endpoint = this.generateUrl(url, resource, namespace, name);
+    if (patchPath) {
+      endpoint += `/${patchPath}`;
+    }
+    const res = await invoke<KubernetesResponse<any>>("proxy_request", {
+      method: "PATCH",
       url: endpoint,
       body: body,
     });
@@ -73,4 +124,4 @@ class ApiClient {
 export const CoreV1Url = "/apis/apps/v1";
 export const AppsV1Url = "/api/v1";
 
-export const apiClient = new ApiClient();
+export const kubeApi = new KubeApi();

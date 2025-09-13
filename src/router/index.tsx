@@ -10,6 +10,8 @@ import StorageClassPage from "@/pages/Storage/StorageClass";
 import PersistentVolumePage from "@/pages/Storage/PersistentVolume";
 import PersistentVolumeClaimPage from "@/pages/Storage/PersistentVolumeClaims";
 import CustomResourceDefinitionsPage from "@/pages/CustomResource";
+import Log from "@/components/CustomLog";
+import TerminalWindow from "@/components/Terminal";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const DeploymentView = lazy(() => import("@/pages/Workload/Deployment"));
@@ -161,5 +163,14 @@ export const router = createBrowserRouter([
   {
     path: "/msg",
     element: <Message />,
+  },
+  {
+    //传递参数,name和namespace
+    path: "/log/:name/:namespace",
+    element: <Log />,
+  },
+  {
+    path: "/terminal/:name/:namespace",
+    element: <TerminalWindow />,
   },
 ]);

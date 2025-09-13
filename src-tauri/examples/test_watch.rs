@@ -1,7 +1,7 @@
 use futures::prelude::*;
 use k8s_openapi::api::core::v1::Pod;
 use kube::{
-    api::{Api, ResourceExt, WatchEvent},
+    api::{Api, ResourceExt},
     runtime::{watcher, WatchStreamExt},
     Client,
 };

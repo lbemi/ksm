@@ -2,7 +2,9 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Capability for the main window",
-  "windows": ["*"],
+  "windows": [
+    "*"
+  ],
   "permissions": [
     "core:default",
     "shell:allow-open",
@@ -25,6 +27,8 @@
     "core:window:allow-start-dragging",
     "core:window:allow-internal-toggle-maximize",
     "core:window:default",
-    "websocket:default"
+    "websocket:default",
+    "websocket:allow-connect",
+    "websocket:allow-send"
   ]
 }

@@ -1,125 +1,285 @@
-import { useEffect, useRef } from "react";
-import * as monaco from "monaco-editor";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+
 import "./monaco-config";
 
 interface CustomEditProps {
-  data: string;
+  original: string;
+  modified?: string;
   readOnly?: boolean;
-  height?: number;
-  type?: string;
+  height?: number | string;
+  language?: string;
   scrollEnd?: boolean;
+  diff?: boolean;
+  wordWrap?: boolean;
+  renderSideBySide?: boolean;
+  onReset?: () => void;
 }
 
-const CustomEdit = ({
-  data,
-  readOnly = true,
-  height = 450,
-  type = "yaml",
-  scrollEnd = false,
-}: CustomEditProps) => {
-  // const [code, setCode] = useState<string | null>(null);
-  const editorRef = useRef<any>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const lastScrollPosition = useRef<number>(0);
+export interface CustomEditRef {
+  reset: () => void;
+  getContent: () => string;
+}
 
-  // Helper function to check if value is number
-  const isNumber = (value: any): boolean => {
-    return /^[0-9]*$/.test(value);
-  };
+const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
+  (
+    {
+      original,
+      readOnly = true,
+      height = 450,
+      language = "yaml",
+      scrollEnd = false,
+      modified,
+      diff = false,
+      renderSideBySide = false,
+      wordWrap = false,
+      onReset,
+    },
+    ref
+  ) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const editorRef = useRef<
+      | monaco.editor.IStandaloneCodeEditor
+      | monaco.editor.IStandaloneDiffEditor
+      | null
+    >(null);
+    const lastScrollPosition = useRef<number>(0);
+    const currentEditorContent = useRef<string>(original);
+    const userEditedContent = useRef<string>(original);
 
-  const init = () => {
-    if (!containerRef.current) return;
-
-    editorRef.current = monaco.editor.create(containerRef.current, {
-      theme: "vs-dark",
-      language: type,
-      renderLineHighlight: "gutter",
-      folding: true,
-      roundedSelection: false,
-      foldingHighlight: true,
-      foldingStrategy: "indentation",
-      showFoldingControls: "always",
-      disableLayerHinting: true,
-      emptySelectionClipboard: false,
-      selectionClipboard: false,
-      automaticLayout: true,
-      codeLens: true,
-      scrollBeyondLastLine: false,
-      colorDecorators: true,
-      accessibilitySupport: "on",
-      lineNumbers: "on",
-      lineNumbersMinChars: 5,
-      readOnly,
-    });
-
-    editorRef.current.setModel(monaco.editor.createModel(data, type));
-    // setCode(editorRef.current.getValue());
-
-    // editorRef.current.onDidChangeModelContent(() => {
-    //   // setCode(editorRef.current.getValue());
-    // });
-  };
-
-  // Initialize on mount
-  useEffect(() => {
-    init();
-    return () => {
-      editorRef.current?.dispose();
+    // Helper function to check if value is number
+    const isNumber = (value: any): boolean => {
+      return /^[0-9]*$/.test(value);
     };
-  }, []);
 
-  // Watch for prop changes
-  useEffect(() => {
-    if (editorRef.current) {
-      // Store current scroll position
-      lastScrollPosition.current = editorRef.current.getScrollTop();
+    // 获取当前编辑器内容
+    const getCurrentEditorContent = (): string => {
+      if (editorRef.current && "getValue" in editorRef.current) {
+        const editor = editorRef.current as monaco.editor.IStandaloneCodeEditor;
+        return editor.getValue();
+      }
+      return userEditedContent.current;
+    };
 
-      const currentValue = editorRef.current.getValue();
-      // Only update if content actually changed
-      if (currentValue !== data) {
-        const model = monaco.editor.createModel(data, type);
-        editorRef.current.setModel(model);
+    // 获取当前内容并触发回调
+    const getContent = (): string => {
+      return getCurrentEditorContent();
+    };
 
-        // Restore scroll position or scroll to end if requested
-        if (scrollEnd) {
-          editorRef.current.setScrollTop(editorRef.current.getScrollHeight());
-        } else {
-          editorRef.current.setScrollTop(lastScrollPosition.current);
+    // 获取modified内容，如果未传入则使用当前编辑器内容
+    const getModifiedContent = (): string => {
+      if (modified !== undefined) {
+        return modified;
+      }
+      return getCurrentEditorContent();
+    };
+
+    // 重置编辑器数据
+    const resetEditorData = () => {
+      currentEditorContent.current = original;
+      userEditedContent.current = original;
+
+      // 如果编辑器存在，重置其内容
+      if (editorRef.current) {
+        if (diff && "setModel" in editorRef.current) {
+          const diffEditor =
+            editorRef.current as monaco.editor.IStandaloneDiffEditor;
+          diffEditor.setModel({
+            original: monaco.editor.createModel(original, language),
+            modified: monaco.editor.createModel(original, language),
+          });
+        } else if (!diff && "setValue" in editorRef.current) {
+          const editor =
+            editorRef.current as monaco.editor.IStandaloneCodeEditor;
+          editor.setValue(original);
         }
       }
-    }
-  }, [data, type, scrollEnd]);
 
-  // Add configuration to enable smooth scrolling
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.updateOptions({
-        smoothScrolling: true,
-        scrollbar: {
-          vertical: "visible",
-          horizontal: "visible",
-          useShadows: true,
-          verticalScrollbarSize: 10,
-          horizontalScrollbarSize: 10,
-          verticalHasArrows: false,
-          horizontalHasArrows: false,
-          arrowSize: 30,
-        },
+      // 调用外部重置回调
+      onReset?.();
+    };
+
+    // 创建编辑器的通用配置
+    const getEditorOptions =
+      (): monaco.editor.IStandaloneEditorConstructionOptions => ({
+        theme: "vs-dark",
+        renderLineHighlight: "gutter",
+        folding: true,
+        roundedSelection: false,
+        foldingHighlight: true,
+        foldingStrategy: "indentation",
+        showFoldingControls: "always",
+        disableLayerHinting: true,
+        emptySelectionClipboard: false,
+        selectionClipboard: false,
+        automaticLayout: true,
+        codeLens: true,
+        scrollBeyondLastLine: false,
+        colorDecorators: true,
+        accessibilitySupport: "on",
+        lineNumbers: "on",
+        lineNumbersMinChars: 5,
+        wordWrap: !wordWrap ? "off" : "on",
+        readOnly,
       });
-    }
-  }, []);
 
-  return (
-    <div>
-      <div
-        ref={containerRef}
-        style={{
-          width: "100%",
-          height: isNumber(height) ? `${height}px` : height,
-        }}
-      />
-    </div>
-  );
-};
+    // 创建diff编辑器的配置
+    const getDiffEditorOptions =
+      (): monaco.editor.IDiffEditorConstructionOptions => ({
+        ...getEditorOptions(),
+        modifiedAriaLabel: "Modified",
+        originalAriaLabel: "Original",
+        // enableSplitViewResizing: false,
+        renderSideBySide: renderSideBySide,
+      });
+
+    const createEditor = () => {
+      if (!containerRef.current) return;
+
+      if (editorRef.current) {
+        editorRef.current.dispose();
+        editorRef.current = null;
+      }
+
+      if (diff) {
+        const diffEditor = monaco.editor.createDiffEditor(
+          containerRef.current,
+          getDiffEditorOptions()
+        );
+        const originalModel = monaco.editor.createModel(original, language);
+        const modifiedModel = monaco.editor.createModel(
+          getModifiedContent(),
+          language
+        );
+
+        diffEditor.setModel({
+          original: originalModel,
+          modified: modifiedModel,
+        });
+
+        modifiedModel.onDidChangeContent(() => {
+          const newContent = modifiedModel.getValue();
+          userEditedContent.current = newContent;
+          currentEditorContent.current = newContent;
+        });
+
+        editorRef.current = diffEditor;
+      } else {
+        const editor = monaco.editor.create(containerRef.current, {
+          ...getEditorOptions(),
+          value: userEditedContent.current,
+          language,
+        });
+        editorRef.current = editor;
+
+        editor.onDidChangeModelContent(() => {
+          const newContent = editor.getValue();
+          userEditedContent.current = newContent;
+          currentEditorContent.current = newContent;
+        });
+      }
+    };
+
+    const updateEditorContent = () => {
+      if (!editorRef.current) return;
+
+      if (diff && "setModel" in editorRef.current) {
+        const diffEditor =
+          editorRef.current as monaco.editor.IStandaloneDiffEditor;
+        const originalModel = monaco.editor.createModel(original, language);
+        const modifiedModel = monaco.editor.createModel(
+          getModifiedContent(),
+          language
+        );
+
+        diffEditor.setModel({
+          original: originalModel,
+          modified: modifiedModel,
+        });
+
+        modifiedModel.onDidChangeContent(() => {
+          const newContent = modifiedModel.getValue();
+          userEditedContent.current = newContent;
+          currentEditorContent.current = newContent;
+        });
+      } else if (!diff && "setValue" in editorRef.current) {
+        const editor = editorRef.current as monaco.editor.IStandaloneCodeEditor;
+
+        // 只有当original内容真正变化时，才更新编辑器内容
+        // 这样可以避免在模式切换时覆盖用户的编辑内容
+        if (original !== currentEditorContent.current) {
+          // 保存滚动位置
+          lastScrollPosition.current = editor.getScrollTop();
+
+          // 更新编辑器内容和用户编辑内容
+          editor.setValue(original);
+          userEditedContent.current = original;
+          currentEditorContent.current = original;
+
+          // 恢复滚动位置或滚动到底部
+          if (scrollEnd) {
+            editor.setScrollTop(editor.getScrollHeight());
+          } else {
+            editor.setScrollTop(lastScrollPosition.current);
+          }
+        }
+      }
+    };
+
+    // init editor
+    useEffect(() => {
+      createEditor();
+
+      return () => {
+        if (editorRef.current) {
+          editorRef.current.dispose();
+          editorRef.current = null;
+        }
+      };
+    }, [diff, language, readOnly, renderSideBySide]);
+
+    //  update editor content
+    useEffect(() => {
+      updateEditorContent();
+    }, [original, modified, language, scrollEnd]);
+
+    useEffect(() => {
+      currentEditorContent.current = original;
+      if (userEditedContent.current === currentEditorContent.current) {
+        userEditedContent.current = original;
+      }
+    }, [original]);
+
+    useImperativeHandle(ref, () => ({
+      reset: resetEditorData,
+      getContent: getContent,
+    }));
+
+    useEffect(() => {
+      return () => {
+        if (editorRef.current) {
+          editorRef.current.dispose();
+          editorRef.current = null;
+        }
+        currentEditorContent.current = "";
+        userEditedContent.current = "";
+      };
+    }, []);
+
+    return (
+      <div>
+        <div
+          ref={containerRef}
+          style={{
+            width: "100%",
+            height: isNumber(height) ? `${height}px` : height,
+          }}
+        />
+      </div>
+    );
+  }
+);
+
+CustomEdit.displayName = "CustomEdit";
 
 export default CustomEdit;

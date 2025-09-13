@@ -1,22 +1,7 @@
-.select-option {
-  margin-top: 16px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.ml10 {
-  margin-left: 20px;
-}
-
-.table {
-  margin: 0;
-  border-radius: 0 !important;
-}
-
 .my-table {
-  // border-radius: 8px;
-  margin-left: 10px;
+  border-radius: 8px;
+  margin-left: 7px;
+  height: 100%;
 
   .table-header {
     display: flex;
@@ -48,7 +33,53 @@
       }
     }
   }
+
   .ant-table-body {
     overflow: hidden;
+    &::-webkit-scrollbar {
+      background: rgba(0, 0, 0, 0);
+      width: 6px;
+      height: 10px;
+    }
+    /* 滚动条轨道的样式 */
+    &::-webkit-scrollbar-track {
+      background: #68686825 !important; /* 轨道背景颜色 */
+      border-radius: 4px !important; /* 轨道圆角 */
+    }
+
+    /* 滚动条滑块的样式 */
+    &::-webkit-scrollbar-thumb {
+      background: rgba(91, 91, 91, 0.8);
+      border-radius: 4px;
+      width: 4px;
+    }
   }
+
+  // .affix-bottom {
+  //   .anticon {
+  //     background: #1890ff;
+  //     color: white;
+  //     border-radius: 50%;
+  //     width: 40px;
+
+  //     height: 40px;
+  //     display: flex;
+  //     align-items: center;
+  //     justify-content: center;
+  //     cursor: pointer;
+  //     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  //     transition: all 0.3s ease;
+  //     font-size: 18px;
+
+  //     &:hover {
+  //       background: #40a9ff;
+  //       transform: translateY(-2px);
+  //       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  //     }
+
+  //     &:active {
+  //       transform: translateY(0);
+  //     }
+  //   }
+  // }
 }

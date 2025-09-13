@@ -1,6 +1,6 @@
 use cocoa::delegate;
 use objc::{msg_send, sel, sel_impl};
-use rand::{distributions::Alphanumeric, Rng};
+use rand::{distr::Alphanumeric, Rng};
 use tauri::Emitter;
 use tauri::{
     plugin::{Builder, TauriPlugin},

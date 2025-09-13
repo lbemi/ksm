@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   Col,
@@ -18,7 +18,6 @@ import {
   CheckCircleOutlined,
   ExclamationCircleFilled,
   InfoCircleOutlined,
-  WarningOutlined,
   ClockCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
@@ -207,7 +206,7 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
     );
   };
   return (
-    <div className="overflow-auto h-lvh">
+    <div className="overflow-auto h-lvh scroll-content">
       <Row gutter={16} className="p-1">
         <Col>
           <Card style={{ width: "265px" }} hoverable>

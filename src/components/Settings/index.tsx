@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import "./index.scss";
 import UIcon from "../UIcon";
 import CreateAboutWindow from "@/pages/About/window";
@@ -7,11 +7,13 @@ import { useAppDispatch } from "@/store/hook";
 import { setTheme } from "@/store/modules/theme";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
+import { useLocale } from "@/locales";
 const Setting: FC = () => {
   const dispatch = useAppDispatch();
   const { theme, compact, locale } = useSelector(
     (state: RootState) => state.theme
   );
+  const { formatMessage } = useLocale();
   const dropdownOnClick: MenuProps["onClick"] = ({ key }) => {
     if (key === "compact") {
       dispatch(setTheme({ compact: !compact }));
@@ -20,11 +22,19 @@ const Setting: FC = () => {
     }
   };
   const items: MenuProps["items"] = [
-    { label: "light", key: "light", icon: <UIcon type="icon-qiansezhuti1" /> },
-    { label: "dark", key: "dark", icon: <UIcon type="icon-heisezhuti" /> },
+    {
+      label: formatMessage({ id: "theme.light" }),
+      key: "light",
+      icon: <UIcon type="icon-qiansezhuti1" />,
+    },
+    {
+      label: formatMessage({ id: "theme.dark" }),
+      key: "dark",
+      icon: <UIcon type="icon-heisezhuti" />,
+    },
     { type: "divider" },
     {
-      label: "compact",
+      label: formatMessage({ id: "theme.compact" }),
       key: "compact",
       icon: <UIcon type="icon-suoxiao" />,
     },
@@ -35,6 +45,7 @@ const Setting: FC = () => {
     } else {
       dispatch(setTheme({ locale: "en_US" }));
     }
+    window.location.reload();
   };
 
   return (
