@@ -36,12 +36,10 @@ class Windows {
     const args = Object.assign({}, windowConfig, options);
     const existWin = await this.getWindow(args.label);
     if (existWin) {
-      console.log("existWin", existWin);
       return;
     }
     const win = new WebviewWindow(args.label, args);
     await win.once("tauri://created", async () => {
-      console.log("tauri:://created:  ", args.label);
       if (args.label.indexOf("main") > -1) {
         console.log("主窗口创建成功");
       }

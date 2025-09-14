@@ -1,6 +1,4 @@
 import { FC } from "react";
-import "./index.scss";
-import UIcon from "../UIcon";
 import CreateAboutWindow from "@/pages/About/window";
 import { Dropdown, MenuProps } from "antd";
 import { useAppDispatch } from "@/store/hook";
@@ -8,6 +6,7 @@ import { setTheme } from "@/store/modules/theme";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useLocale } from "@/locales";
+import MyIcon from "../MyIcon";
 const Setting: FC = () => {
   const dispatch = useAppDispatch();
   const { theme, compact, locale } = useSelector(
@@ -25,18 +24,18 @@ const Setting: FC = () => {
     {
       label: formatMessage({ id: "theme.light" }),
       key: "light",
-      icon: <UIcon type="icon-qiansezhuti1" />,
+      icon: <MyIcon type="icon-qiansezhuti1" />,
     },
     {
       label: formatMessage({ id: "theme.dark" }),
       key: "dark",
-      icon: <UIcon type="icon-heisezhuti" />,
+      icon: <MyIcon type="icon-heisezhuti" />,
     },
     { type: "divider" },
     {
       label: formatMessage({ id: "theme.compact" }),
       key: "compact",
-      icon: <UIcon type="icon-suoxiao" />,
+      icon: <MyIcon type="icon-suoxiao" />,
     },
   ];
   const changeLocale = () => {
@@ -50,43 +49,42 @@ const Setting: FC = () => {
 
   return (
     <>
-      <div data-tauri-drag-region className="setting">
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <div className="mr-2.5 cursor-pointer">
-            <UIcon
-              type={
-                locale === "zh_CN"
-                  ? "icon-a-zhongyingwenzhongwen"
-                  : "icon-a-zhongyingwenyingwen"
-              }
-              onClick={changeLocale}
-            />
+      <div
+        data-tauri-drag-region
+        className="ml-auto  flex items-center gap-2 h-4 "
+      >
+        <MyIcon
+          type={
+            locale === "zh_CN"
+              ? "icon-a-zhongyingwenzhongwen"
+              : "icon-a-zhongyingwenyingwen"
+          }
+          onClick={changeLocale}
+          className="cursor-pointer"
+        />
+
+        <Dropdown
+          menu={{
+            items,
+            onClick: dropdownOnClick,
+            selectable: true,
+            selectedKeys: [theme, compact ? "compact" : ""],
+          }}
+        >
+          <div
+            onClick={(e) => {
+              e.preventDefault();
+            }}
+            className="cursor-pointer"
+          >
+            <MyIcon type="icon-mofabang" className="" />
           </div>
-          <div>
-            <Dropdown
-              menu={{
-                items,
-                onClick: dropdownOnClick,
-                selectable: true,
-                selectedKeys: [theme, compact ? "compact" : ""],
-              }}
-            >
-              <div
-                onClick={(e) => {
-                  e.preventDefault();
-                }}
-                className="cursor-pointer"
-              >
-                <UIcon type="icon-mofabang" className="" />
-              </div>
-            </Dropdown>
-          </div>
-          <UIcon
-            type="icon-xitongguanli"
-            onClick={CreateAboutWindow}
-            className="setting-icon cursor-pointer"
-          />
-        </div>
+        </Dropdown>
+        <MyIcon
+          type="icon-xitongguanli"
+          onClick={CreateAboutWindow}
+          className=" cursor-pointer"
+        />
       </div>
     </>
   );

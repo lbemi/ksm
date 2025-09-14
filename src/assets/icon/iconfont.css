@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3756452 */
-  src: url('iconfont.woff2?t=1757294884924') format('woff2'),
-       url('iconfont.woff?t=1757294884924') format('woff'),
-       url('iconfont.ttf?t=1757294884924') format('truetype');
+  src: url('iconfont.woff2?t=1757822876175') format('woff2'),
+       url('iconfont.woff?t=1757822876175') format('woff'),
+       url('iconfont.ttf?t=1757822876175') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,30 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-POD2:before {
+  content: "\e64c";
+}
+
+.icon-StatefulSetC:before {
+  content: "\e651";
+}
+
+.icon-app_mw_virtual_service:before {
+  content: "\e7c3";
+}
+
+.icon-deployment_unit:before {
+  content: "\e655";
+}
+
+.icon-pod1:before {
+  content: "\e60b";
+}
+
+.icon-deploymentshuliang-:before {
+  content: "\e7e5";
 }
 
 .icon-top:before {

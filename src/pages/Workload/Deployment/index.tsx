@@ -1,33 +1,98 @@
-import { useAppSelector } from "@/store/hook";
+// React imports
+import { FC, useEffect, useRef, useState } from "react";
+
+// Antd imports
 import {
-  Button,
-  TableProps,
-  Dropdown,
-  Modal,
-  message,
-  Progress,
   Badge,
+  Button,
+  Dropdown,
+  InputNumber,
+  Modal,
+  Progress,
+  TableProps,
+  Typography,
+  message,
 } from "antd";
-import { FC, useEffect, useState } from "react";
+import Link from "antd/es/typography/Link";
 import {
-  EyeOutlined,
-  EditOutlined,
   DeleteOutlined,
   DownOutlined,
+  EditOutlined,
+  EyeOutlined,
   SettingOutlined,
 } from "@ant-design/icons";
 
-import { Typography } from "antd";
+// Kubernetes models
 import { Deployment } from "kubernetes-models/apps/v1";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
-import getAge from "@/utils/k8s/date";
-import DeploymentDetailDrawer from "./Detail";
-import MyTable from "@/components/MyTable";
-import { deleteDeployment, listDeployment } from "@/api/deployment";
-import Link from "antd/es/typography/Link";
-import { useLocale } from "@/locales";
 
+// Local imports
+import { useAppSelector } from "@/store/hook";
+import { useLocale } from "@/locales";
+import getAge from "@/utils/k8s/date";
+import MyTable from "@/components/MyTable";
+import DeploymentDetailDrawer from "./Detail";
+import {
+  deleteDeployment,
+  listDeployment,
+  scaleDeployment,
+} from "@/api/deployment";
+
+// Constants
 const { Text } = Typography;
+
+// Types
+interface DeploymentStatus {
+  text: string;
+  status: "success" | "processing" | "error" | "warning";
+}
+
+// Utility Functions
+const getDeploymentStatus = (deployment: Deployment): DeploymentStatus => {
+  const status = deployment.status;
+  if (!status) return { text: "Unknown", status: "error" };
+
+  const { replicas = 0, availableReplicas = 0 } = status;
+  const desiredReplicas = deployment.spec?.replicas || 0;
+
+  // Updating status
+  if (
+    replicas > availableReplicas ||
+    (replicas > desiredReplicas && availableReplicas)
+  ) {
+    return { text: "Updating", status: "processing" };
+  }
+
+  // Running status
+  if (
+    desiredReplicas === 0 ||
+    (availableReplicas && availableReplicas === desiredReplicas)
+  ) {
+    return { text: "Running", status: "success" };
+  }
+
+  return { text: "Waiting", status: "warning" };
+};
+
+const filterDeployments = (
+  deployments: Deployment[],
+  searchText: string
+): Deployment[] => {
+  try {
+    if (searchText === "" || typeof searchText !== "string") return deployments;
+
+    return deployments.filter((deployment) => {
+      const name = deployment.metadata?.name?.toLowerCase() || "";
+      const namespace = deployment.metadata?.namespace?.toLowerCase() || "";
+      const searchLower = searchText.toLowerCase();
+
+      return name.includes(searchLower) || namespace.includes(searchLower);
+    });
+  } catch (error) {
+    return deployments;
+  }
+};
+
 const DeploymentPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [deployments, setDeployments] = useState<Array<Deployment>>([]);
@@ -36,6 +101,10 @@ const DeploymentPage: FC = () => {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const { formatMessage } = useLocale();
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
+  const [messageApi, contextHolderMessage] = message.useMessage();
+  const [modal, contextHolder] = Modal.useModal();
+  const scaleReplicas = useRef<number>(0);
+
   const columns: TableProps<Deployment>["columns"] = [
     {
       title: formatMessage({ id: "deployment.name" }),
@@ -60,15 +129,17 @@ const DeploymentPage: FC = () => {
         </Text>
       ),
     },
-    namespace === "all"
-      ? {
-          title: formatMessage({ id: "deployment.namespace" }),
-          align: "center",
-          dataIndex: ["metadata", "namespace"],
-          key: "namespace",
-          render: (text: string) => <div>{text}</div>,
-        }
-      : {},
+    ...(namespace === "all"
+      ? [
+          {
+            title: formatMessage({ id: "deployment.namespace" }),
+            align: "center" as const,
+            dataIndex: ["metadata", "namespace"],
+            key: "namespace",
+            render: (text: string) => <div>{text}</div>,
+          },
+        ]
+      : []),
     {
       title: formatMessage({ id: "deployment.status" }),
       key: "status",
@@ -151,6 +222,7 @@ const DeploymentPage: FC = () => {
                 key: "scale",
                 label: formatMessage({ id: "button.scale" }),
                 icon: <SettingOutlined />,
+                onClick: () => handleScale(record),
               },
             ],
           }}
@@ -163,38 +235,48 @@ const DeploymentPage: FC = () => {
       ),
     },
   ];
-
+  // Event Handlers
   const handleShowDetail = (deployment: Deployment) => {
     setSelectedDeployment(deployment);
     setDrawerVisible(true);
   };
 
-  const getDeploymentStatus = (deployment: Deployment) => {
-    const status = deployment.status;
-    if (!status) return { text: "Unknown", status: "error" };
-
-    const { replicas = 0, availableReplicas = 0 } = status;
-    const desiredReplicas = deployment.spec?.replicas || 0;
-
-    // Updating status
-    if (
-      replicas > availableReplicas ||
-      (replicas > desiredReplicas && availableReplicas)
-    ) {
-      return { text: "Updating", status: "processing" };
-    }
-
-    // Running status
-    if (
-      desiredReplicas === 0 ||
-      (availableReplicas && availableReplicas === desiredReplicas)
-    ) {
-      return { text: "Running", status: "success" };
-    }
-
-    return { text: "Waiting", status: "Warning" };
+  const handleScale = (deployment: Deployment) => {
+    scaleReplicas.current = deployment.spec?.replicas || 0;
+    modal.confirm({
+      title: formatMessage({ id: "button.scale" }),
+      content: (
+        <div className="flex items-center gap-2 justify-center">
+          <InputNumber
+            addonBefore={formatMessage({ id: "deployment.replicas" })}
+            defaultValue={scaleReplicas.current}
+            min={0}
+            style={{ width: 150 }}
+            size="small"
+            onChange={(value) => (scaleReplicas.current = value || 0)}
+          />
+        </div>
+      ),
+      okText: formatMessage({ id: "button.confirm" }),
+      cancelText: formatMessage({ id: "button.cancel" }),
+      okButtonProps: { size: "small" },
+      cancelButtonProps: { size: "small" },
+      onOk: async () => {
+        try {
+          await scaleDeployment(
+            deployment.metadata?.name!,
+            scaleReplicas.current,
+            deployment.metadata?.namespace
+          );
+          messageApi.success(formatMessage({ id: "message.success" }));
+          await fetchDeployments();
+        } catch (error) {
+          messageApi.error(`${formatMessage({ id: "message.error" })}`);
+        }
+      },
+    });
   };
-  const [modal, contextHolder] = Modal.useModal();
+
   const handleDeleteDeployment = (deployment: Deployment) => {
     modal.confirm({
       title: formatMessage({ id: "button.confirm" }),
@@ -212,12 +294,12 @@ const DeploymentPage: FC = () => {
             deployment.metadata?.name!,
             deployment.metadata?.namespace
           );
-          message.success(
+          messageApi.success(
             `${formatMessage({ id: "button.delete_success" })} ${deployment.metadata?.name}`
           );
-          list_deployments();
+          await fetchDeployments();
         } catch (error) {
-          message.error(
+          messageApi.error(
             `${formatMessage({ id: "button.delete_failed" })} ${error}`
           );
         }
@@ -225,64 +307,61 @@ const DeploymentPage: FC = () => {
     });
   };
 
-  const list_deployments = async (refresh = false) => {
-    if (!refresh) {
+  // Data Fetching
+  const fetchDeployments = async (isRefresh = false) => {
+    if (!isRefresh) {
       setLoading(true);
     }
 
     try {
-      const res = await listDeployment(namespace);
-      setDeployments(res);
+      const deploymentList = await listDeployment(namespace);
+      setDeployments(deploymentList);
     } catch (error) {
-      message.error(`${formatMessage({ id: "button.get_failed" })} ${error}`);
+      messageApi.error(
+        `${formatMessage({ id: "button.get_failed" })} ${error}`
+      );
     } finally {
-      if (!refresh) {
+      if (!isRefresh) {
         setLoading(false);
       }
     }
   };
 
+  // Effects
   useEffect(() => {
-    list_deployments();
-    // const interval = setInterval(() => {
-    //   list_deployments(true);
-    // }, 5000);
-    // return () => clearInterval(interval);
+    fetchDeployments();
+    const interval = setInterval(() => {
+      fetchDeployments(true);
+    }, 5000);
+    return () => clearInterval(interval);
   }, [namespace]);
 
-  const filterDeployments = (searchText: string): Deployment[] => {
-    try {
-      if (searchText === "" || typeof searchText !== "string")
-        return deployments;
-
-      return deployments.filter((deployment) => {
-        const name = deployment.metadata?.name?.toLowerCase() || "";
-        const namespace = deployment.metadata?.namespace?.toLowerCase() || "";
-        const searchLower = searchText.toLowerCase();
-
-        return name.includes(searchLower) || namespace.includes(searchLower);
-      });
-    } catch (error) {
-      return deployments;
-    }
+  // Filter function for table
+  const handleFilterDeployments = (searchText: string): Deployment[] => {
+    return filterDeployments(deployments, searchText);
   };
+  // Render
   return (
     <>
       <MyTable
         loading={loading}
         columns={columns}
-        refresh={list_deployments}
-        del={() => {}}
-        filter={filterDeployments}
+        refresh={fetchDeployments}
+        del={() => {}} // TODO: Implement bulk delete functionality
+        filter={handleFilterDeployments}
         total={deployments.length}
       />
+
       <DeploymentDetailDrawer
         visible={drawerVisible}
         onClose={() => setDrawerVisible(false)}
-        name={selectedDeployment?.metadata?.name!}
-        namespace={selectedDeployment?.metadata?.namespace!}
+        name={selectedDeployment?.metadata?.name || ""}
+        namespace={selectedDeployment?.metadata?.namespace || ""}
       />
-      <div>{contextHolder}</div>
+
+      {/* Modal and Message contexts */}
+      {contextHolderMessage}
+      {contextHolder}
     </>
   );
 };

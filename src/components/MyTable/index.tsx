@@ -24,7 +24,7 @@ import { kubeApi, AppsV1Url } from "@/api/cluster";
 import { setActiveNamespace } from "@/store/modules/kubernetes";
 import { Namespace } from "kubernetes-types/core/v1";
 import { createStyles } from "antd-style";
-import UIcon from "../UIcon";
+import MyIcon from "../MyIcon";
 import { useLocale } from "@/locales";
 
 export interface MyTableProps<T> {
@@ -75,20 +75,22 @@ const MyTable: FC<MyTableProps<any>> = ({
   useEffect(() => {
     handelSelectOption();
   }, [namespace]);
+
   const { Title } = Typography;
-  const plainOptions = columns!
-    .filter((column) => column.key !== "action")
+  const plainOptions = (columns || [])
+    .filter((column) => column && column.key !== "action")
     .map(({ key, title }) => ({
       label: title,
       value: key,
-    }));
+    }))
+    .filter((opt) => opt.value !== undefined && opt.value !== null);
   const [open, setOpen] = useState(false);
   const handleOpen = (open: boolean) => {
     setOpen(open);
   };
 
-  const defaultCheckedList = columns!
-    .filter((column) => column.key !== "action")
+  const defaultCheckedList = (columns || [])
+    .filter((column) => column && column.key !== "action")
     .map(({ key }) => key)
     .filter((key): key is string => key !== undefined);
 
@@ -122,6 +124,7 @@ const MyTable: FC<MyTableProps<any>> = ({
     setCheckedList(checkboxValues as string[]);
   };
   const handelSelectOption = () => {
+    if (!columns) return;
     const newColumns = columns!.map((item) => ({
       ...item,
       hidden:
@@ -129,10 +132,10 @@ const MyTable: FC<MyTableProps<any>> = ({
           ? false
           : !checkedList.includes(item.key as string),
     }));
-
     setShowColumn(newColumns);
     setOpen(false);
   };
+
   type TableRowSelection<T extends object = object> =
     TableProps<T>["rowSelection"];
   const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
@@ -325,7 +328,7 @@ const MyTable: FC<MyTableProps<any>> = ({
             className="affix-bottom"
             style={{ position: "absolute", right: 100 }}
           >
-            <UIcon
+            <MyIcon
               type="icon-top1"
               onClick={scrollToTop}
               size={15}

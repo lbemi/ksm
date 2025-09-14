@@ -21,7 +21,7 @@ import {
   ClockCircleOutlined,
   EyeOutlined,
 } from "@ant-design/icons";
-import UIcon from "@/components/UIcon";
+import MyIcon from "@/components/MyIcon";
 import {
   Area,
   AreaChart,
@@ -206,7 +206,7 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
     );
   };
   return (
-    <div className="overflow-auto h-lvh scroll-content">
+    <div className="overflow-auto h-lvh ">
       <Row gutter={16} className="p-1">
         <Col>
           <Card style={{ width: "265px" }} hoverable>
@@ -219,7 +219,7 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
                 </span>
               </div>
               <div className="absolute top-6 right-2 rounded-md bg-blue-50 pl-2 pr-2 ">
-                <UIcon type="icon-fuwuqi1" size={30} color="#1677ff" />
+                <MyIcon type="icon-fuwuqi1" size={30} color="#1677ff" />
               </div>
             </div>
             <Divider />
@@ -242,7 +242,7 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
                 </span>
               </div>
               <div className="absolute top-6 right-2 rounded-md bg-blue-50 pl-2 pr-2 ">
-                <UIcon type="icon-pod" size={30} color="#4eaeea" />
+                <MyIcon type="icon-pod" size={30} color="#4eaeea" />
               </div>
             </div>
             <Divider />
@@ -265,7 +265,11 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
                 </span>
               </div>
               <div className="absolute top-6 right-2 rounded-md bg-blue-50 pl-2 pr-2 ">
-                <UIcon type="icon-a-36icon_network" size={28} color="#faad14" />
+                <MyIcon
+                  type="icon-a-36icon_network"
+                  size={28}
+                  color="#faad14"
+                />
               </div>
             </div>
             <Divider />
@@ -288,7 +292,7 @@ const CustomSplitter: React.FC<Readonly<SplitterProps>> = () => {
                 </span>
               </div>
               <div className="absolute top-6 right-2 rounded-md bg-blue-50 pl-2 pr-2 ">
-                <UIcon type="icon-cunchu" size={28} color="#eb2f96" />
+                <MyIcon type="icon-cunchu" size={28} color="#eb2f96" />
               </div>
             </div>
             <Divider />

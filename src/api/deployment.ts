@@ -25,14 +25,21 @@ export const scaleDeployment = async (
   namespace?: string,
   patchPath: string = "scale"
 ) => {
-  return await kubeApi.patch(CoreV1Url, "deployments", {
-    spec: {
-      replicas,
+  return await kubeApi.patch(
+    CoreV1Url,
+    "deployments",
+    {
+      spec: {
+        replicas,
+      },
     },
     namespace,
     name,
     patchPath,
-  });
+    {
+      "Content-Type": "application/merge-patch+json",
+    }
+  );
 };
 
 export const getPodsByLabel = async (

@@ -106,7 +106,8 @@ class KubeApi {
     body: any,
     namespace?: string,
     name?: string,
-    patchPath?: string
+    patchPath?: string,
+    headers?: Object
   ) {
     let endpoint = this.generateUrl(url, resource, namespace, name);
     if (patchPath) {
@@ -116,6 +117,7 @@ class KubeApi {
       method: "PATCH",
       url: endpoint,
       body: body,
+      headers: headers,
     });
     return res.items;
   }

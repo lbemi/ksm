@@ -17,12 +17,12 @@ export const getImages = (deployemnt_spec?: IPodSpec) => {
           remainingImages && (
             <div>
               {remainingImages.length > 0 &&
-                remainingImages.map((container, _) => (
-                  <div>{container.image}</div>
+                remainingImages.map((container, index) => (
+                  <div key={`remaining-${index}`}>{container.image}</div>
                 ))}
               {initContainers.length > 0 &&
-                initContainers.map((container, _) => (
-                  <div>
+                initContainers.map((container, index) => (
+                  <div key={`init-${index}`}>
                     <Tag color="cyan">Init</Tag>
                     {container.image}
                   </div>
@@ -44,14 +44,20 @@ export const listImages = (deployemnt_spec?: IPodSpec) => {
   if (!deployemnt_spec.containers.length) return null;
   return (
     <div className="flex flex-col gap-1">
-      {deployemnt_spec.containers.map((container) => (
-        <Typography.Text copyable={{ text: container.image }}>
+      {deployemnt_spec.containers.map((container, index) => (
+        <Typography.Text
+          key={`container-${index}`}
+          copyable={{ text: container.image }}
+        >
           {container.image}
         </Typography.Text>
       ))}
 
-      {deployemnt_spec.initContainers?.map((container) => (
-        <Typography.Text copyable={{ text: container.image }}>
+      {deployemnt_spec.initContainers?.map((container, index) => (
+        <Typography.Text
+          key={`init-container-${index}`}
+          copyable={{ text: container.image }}
+        >
           <Tag color="cyan">Init</Tag>
           {container.image}
         </Typography.Text>
@@ -63,6 +69,10 @@ export const listImages = (deployemnt_spec?: IPodSpec) => {
 export const formatAnnotations = (annotations: any) => {
   if (!annotations) return <>-</>;
   return Object.entries(annotations).map(([key, value]) => (
-    <div color="blue">{`${key}: ${value}`}</div>
+    <div key={key}>
+      <Tag color="blue">{key}</Tag>
+      {": "}
+      {`${value}`}
+    </div>
   ));
 };

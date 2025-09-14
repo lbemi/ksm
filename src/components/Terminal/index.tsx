@@ -10,7 +10,6 @@ import { AppsV1Url, kubeApi } from "@/api/cluster";
 import { Pod } from "kubernetes-models/v1";
 import { useLocale } from "@/locales";
 import "@xterm/xterm/css/xterm.css";
-import "./index.scss";
 
 interface SelectOptions {
   value: string;
@@ -139,6 +138,11 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
         disconnectTerminal();
         return;
       }
+      // 检查是否是Ctrl+l
+      if (data === "\u000c") {
+        clearTerminal();
+        return;
+      }
       if (wsRef.current && clientIdRef.current) {
         wsRef.current.send(data);
       }
@@ -225,6 +229,12 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
 
           if (msg.type === "Text" && terminalInstanceRef.current) {
             const data = msg.data?.toString() || "";
+            if (data.startsWith("OCI runtime exec")) {
+              terminalInstanceRef.current.write(data);
+              reject(new Error("Connection failed"));
+              setIsConnected(false);
+              return;
+            }
             terminalInstanceRef.current.write(data);
           }
 
@@ -332,58 +342,12 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
     };
   }, [finalPodName, finalNamespace]);
 
-  useEffect(() => {
-    // 监听终端相关的键盘快捷键
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // 只在终端容器获得焦点时处理
-      const terminalContainer = document.getElementById("terminal-container");
-      const activeElement = document.activeElement;
-
-      // 检查是否在终端区域内
-      const isInTerminal =
-        terminalContainer &&
-        (terminalContainer.contains(activeElement) ||
-          activeElement === terminalContainer ||
-          activeElement?.closest("#terminal-container"));
-
-      // 只有在终端区域内才处理快捷键
-      if (isInTerminal && event.ctrlKey) {
-        if (event.key === "d" || event.key === "D" || event.code === "KeyD") {
-          event.preventDefault();
-          event.stopPropagation();
-          disconnectTerminal();
-        }
-      }
-    };
-
-    // 使用 capture 模式确保能捕获到事件
-    document.addEventListener("keydown", handleKeyDown, true);
-
-    // 清理函数
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown, true);
-    };
-  }, []);
-
   // 监听容器变化
   useEffect(() => {
     if (isConnected && selectedContainer) {
-      // 如果已连接且容器发生变化，重新连接
       connectTerminal();
     }
   }, [selectedContainer]);
-
-  // 处理页面卸载
-  useEffect(() => {
-    const handleUnload = () => {
-      cleanupWebSocket();
-    };
-
-    window.addEventListener("beforeunload", handleUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleUnload);
-    };
-  }, []);
 
   return (
     <div
@@ -464,7 +428,7 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
           position: "relative",
           background: "#1e1e1e",
           overflow: "hidden",
-          minHeight: "400px", // 确保有最小高度
+          minHeight: "400px",
         }}
       >
         {isLoading && (
@@ -488,7 +452,7 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
             width: "100%",
             height: "100%",
             padding: "10px",
-            outline: "none", // 去掉焦点边框
+            outline: "none",
           }}
         />
       </div>

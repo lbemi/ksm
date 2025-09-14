@@ -6,6 +6,48 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "4805285",
+      "name": "POD",
+      "font_class": "POD2",
+      "unicode": "e64c",
+      "unicode_decimal": 58956
+    },
+    {
+      "icon_id": "7848230",
+      "name": "StatefulSetC",
+      "font_class": "StatefulSetC",
+      "unicode": "e651",
+      "unicode_decimal": 58961
+    },
+    {
+      "icon_id": "7937604",
+      "name": "app_mw_virtual_service",
+      "font_class": "app_mw_virtual_service",
+      "unicode": "e7c3",
+      "unicode_decimal": 59331
+    },
+    {
+      "icon_id": "9666001",
+      "name": "deployment_unit",
+      "font_class": "deployment_unit",
+      "unicode": "e655",
+      "unicode_decimal": 58965
+    },
+    {
+      "icon_id": "9853685",
+      "name": "pod",
+      "font_class": "pod1",
+      "unicode": "e60b",
+      "unicode_decimal": 58891
+    },
+    {
+      "icon_id": "12274744",
+      "name": "deployment数量",
+      "font_class": "deploymentshuliang-",
+      "unicode": "e7e5",
+      "unicode_decimal": 59365
+    },
+    {
       "icon_id": "1206825",
       "name": "top",
       "font_class": "top",

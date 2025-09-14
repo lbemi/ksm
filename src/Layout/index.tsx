@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
-import { Button, Divider, Layout, Menu, MenuProps, Tag, theme } from "antd";
+import {
+  Button,
+  Divider,
+  Layout,
+  Menu,
+  MenuProps,
+  Tag,
+  theme,
+  Typography,
+} from "antd";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { MenuUnfoldOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import Settings from "@/components/Settings";
 import "./index.scss";
 
 import { get } from "@/utils/localStorage";
-import Title from "antd/es/typography/Title";
 import { useLocale } from "@/locales";
-import UIcon from "@/components/UIcon";
+import MyIcon from "@/components/MyIcon";
 
 const { Header, Content, Sider } = Layout;
 type MenuItem = Required<MenuProps>["items"][number];
@@ -19,18 +27,17 @@ const GeekLayout = () => {
     {
       label: formatMessage({ id: "menu.clusters" }),
       key: "/",
-      icon: <UIcon type="icon-jiqun" />,
+      icon: <MyIcon type="icon-jiqun" />,
     },
     {
       label: formatMessage({ id: "menu.dashboard" }),
       key: "/kubernetes/dashboard",
-      icon: <UIcon type="icon-dashboard" />,
+      icon: <MyIcon type="icon-dashboard" />,
     },
     {
       key: "/kubernetes/workload",
       label: formatMessage({ id: "menu.workload" }),
-      // type: "group",
-      icon: <UIcon type="icon-lianbanggongzuofuzai" />,
+      icon: <MyIcon type="icon-lianbanggongzuofuzai" />,
       children: [
         {
           key: "/kubernetes/workload/deployment",
@@ -53,8 +60,7 @@ const GeekLayout = () => {
     {
       key: "/kubernetes/network",
       label: formatMessage({ id: "menu.network" }),
-      // type: "group",
-      icon: <UIcon type="icon-wangluo" />,
+      icon: <MyIcon type="icon-wangluo" />,
       children: [
         {
           key: "/kubernetes/network/service",
@@ -69,7 +75,7 @@ const GeekLayout = () => {
     {
       key: "/kubernetes/config",
       label: formatMessage({ id: "menu.config" }),
-      icon: <UIcon type="icon-peizhi" />,
+      icon: <MyIcon type="icon-peizhi" />,
       children: [
         {
           key: "/kubernetes/config/configmap",
@@ -84,7 +90,7 @@ const GeekLayout = () => {
     {
       key: "/kubernetes/task",
       label: formatMessage({ id: "menu.task" }),
-      icon: <UIcon type="icon-renwu" />,
+      icon: <MyIcon type="icon-renwu" />,
       children: [
         {
           key: "/kubernetes/task/job",
@@ -99,7 +105,7 @@ const GeekLayout = () => {
     {
       key: "/kubernetes/storage",
       label: formatMessage({ id: "menu.storage" }),
-      icon: <UIcon type="icon-cunchu" />,
+      icon: <MyIcon type="icon-cunchu" />,
       children: [
         {
           key: "/kubernetes/storage/persistentvolume",
@@ -118,7 +124,7 @@ const GeekLayout = () => {
     {
       key: "/kubernetes/crd",
       label: formatMessage({ id: "menu.crd" }),
-      icon: <UIcon type="icon-zidingyiziyuan" />,
+      icon: <MyIcon type="icon-zidingyiziyuan" />,
     },
   ];
   const location = useLocation();
@@ -157,11 +163,36 @@ const GeekLayout = () => {
       setOpenKeys([]);
     }
   }, [location.pathname]);
+
+  useEffect(() => {
+    const handleSelectStart = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (
+        target &&
+        typeof target.closest === "function" &&
+        target.closest(".header")
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener("selectstart", handleSelectStart);
+    return () => {
+      document.removeEventListener("selectstart", handleSelectStart);
+    };
+  }, []);
   return (
     <>
       <Layout style={{ minHeight: "100vh", background: colorBgContainer }}>
         <Header
           data-tauri-drag-region
+          className="header"
+          onMouseDown={(e) => {
+            if (e.detail > 1) {
+              e.preventDefault();
+            }
+          }}
           style={{
             display: "flex",
             alignItems: "center",
@@ -169,6 +200,10 @@ const GeekLayout = () => {
             borderRadius: borderRadiusLG,
             padding: "0 20px",
             height: "35px",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            MozUserSelect: "none",
+            msUserSelect: "none",
           }}
         >
           <div
@@ -177,6 +212,8 @@ const GeekLayout = () => {
               alignItems: "center",
               marginLeft: left,
               transition: "margin-left 0.3s ease-in-out",
+              height: "35px",
+              justifyContent: "center",
             }}
           >
             <Button
@@ -188,23 +225,18 @@ const GeekLayout = () => {
               }}
             />
           </div>
-          <div
+
+          <Typography.Text
             style={{
-              textAlign: "center",
-              background: colorBgContainer,
-              marginLeft: "10px",
+              margin: "0",
+              cursor: "default",
             }}
           >
-            <Title
-              level={5}
-              style={{ margin: "0", cursor: "default", userSelect: "none" }}
-            >
-              {formatMessage({ id: "cluster.current" })}:{" "}
-              <Tag color="blue" bordered={false}>
-                {get("activeCluster")}
-              </Tag>
-            </Title>
-          </div>
+            {formatMessage({ id: "cluster.current" })}:
+            <Tag color="blue" bordered={false} style={{ marginRight: 0 }}>
+              {get("activeCluster")}
+            </Tag>
+          </Typography.Text>
           <Settings />
         </Header>
         <Divider style={{ margin: "0" }} />
