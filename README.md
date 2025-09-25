@@ -6,6 +6,7 @@
   <b> KSM - Kubernetes Manager </b>
 </p>
 
+<p align="center">
 <a href="https://github.com/lbemi/ksm/graphs/contributors">
   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors-anon/lbemi/ksm"/></a>
 <img alt="GitHub Repo stars" src="https://img.shields.io/github/stars/lbemi/ksm">
@@ -13,6 +14,7 @@
 <img alt="GitHub Repo issues" src="https://img.shields.io/github/issues/lbemi/ksm">
 <img alt="GitHub Repo issues closed" src="https://img.shields.io/github/issues-closed/lbemi/ksm">
 <img alt="License" src="https://img.shields.io/badge/license-Apache--2.0-blue"/>
+</p>
 
 # KSM 是什么?
 
