@@ -35,7 +35,8 @@ const App: React.FC = () => {
       componentSize="middle"
       theme={{
         token: {
-          colorSuccess: "#388c04",
+          colorSuccess: "#3f6600",
+          // colorPrimary: "#9254de",
         },
         algorithm: [
           ...(theme === "dark" ? [antdTheme.darkAlgorithm] : []),

@@ -118,7 +118,6 @@ impl WebsocketManager {
                             break;
                         }
                         Message::Text(text) => {
-                            println!("Received text message from {}: {}", client_id, text);
                             // 如果是终端输入，转发给对应的终端会话
                             if let Ok(terminal_input_map) = terminal_inputs_recv.load().try_lock() {
                                 if let Some(sender) = terminal_input_map.get(&client_id) {

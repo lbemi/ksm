@@ -40,6 +40,7 @@ export const enUS_common = {
   "button.waiting_logs": "Waiting Logs",
   "button.containers": "Containers",
   "button.download": "Download",
+  "button.yaml": "YAML",
 
   "message.success": "Operation Success",
   "message.error": "Operation Failed",

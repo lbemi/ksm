@@ -6,6 +6,8 @@ use tokio::runtime;
 
 use super::websocket;
 
+const WEBSOCKET_PORT: u16 = 38012;
+
 #[derive(Default)]
 pub struct AppData {
     pub kubernetes_configs: Kubeconfig,
@@ -33,7 +35,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         if let Some(ws) = &app_data.websocket {
             let ws_clone = ws.clone();
             tokio::spawn(async move {
-                ws_clone.start_server(38012).await;
+                ws_clone.start_server(WEBSOCKET_PORT).await;
             });
         }
         app_data

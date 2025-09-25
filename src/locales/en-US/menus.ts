@@ -25,4 +25,5 @@ export const enUS_menu = {
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.compact": "Compact",
+  "menu.read": "Read",
 };

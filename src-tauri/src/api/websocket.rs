@@ -146,15 +146,12 @@ pub async fn pod_terminal(
 
     let ws_manager_stdout = ws_manager.clone();
     let stdout_task = tokio::spawn(async move {
-        let mut buffer = [0u8; 1024];
+        let mut buffer = [0u8; 4096];
         loop {
             match stdout.read(&mut buffer).await {
                 std::result::Result::Ok(0) => break, // EOF
                 std::result::Result::Ok(n) => {
-                    // 如果无反应则推出(一般是没有shell提示符)
-                    println!("1--stdout: {}", n);
                     let output = String::from_utf8_lossy(&buffer[..n]);
-                    println!("2--stdout: {}", output);
                     if let std::result::Result::Err(e) = ws_manager_stdout
                         .send_message(client_id, output.to_string())
                         .await
@@ -173,7 +170,6 @@ pub async fn pod_terminal(
 
     let stdin_task = tokio::spawn(async move {
         while let Some(input) = input_rx.recv().await {
-            println!("Writing to pod stdin: {:?}", input);
             if let std::result::Result::Err(e) = stdin.write_all(input.as_bytes()).await {
                 eprintln!("Failed to write to stdin: {}", e);
                 break;

@@ -288,6 +288,8 @@ const DeploymentPage: FC = () => {
       ),
       okText: formatMessage({ id: "button.confirm" }),
       cancelText: formatMessage({ id: "button.cancel" }),
+      okButtonProps: { size: "small" },
+      cancelButtonProps: { size: "small" },
       onOk: async () => {
         try {
           await deleteDeployment(
@@ -330,8 +332,8 @@ const DeploymentPage: FC = () => {
   // Effects
   useEffect(() => {
     fetchDeployments();
-    const interval = setInterval(() => {
-      fetchDeployments(true);
+    const interval = setInterval(async () => {
+      await fetchDeployments(true);
     }, 5000);
     return () => clearInterval(interval);
   }, [namespace]);

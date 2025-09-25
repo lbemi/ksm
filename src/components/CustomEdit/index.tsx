@@ -4,6 +4,7 @@ import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import "./monaco-config";
 
 interface CustomEditProps {
+  className?: string;
   original: string;
   modified?: string;
   readOnly?: boolean;
@@ -24,9 +25,10 @@ export interface CustomEditRef {
 const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
   (
     {
+      className,
       original,
       readOnly = true,
-      height = 450,
+      height,
       language = "yaml",
       scrollEnd = false,
       modified,
@@ -47,10 +49,10 @@ const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
     const currentEditorContent = useRef<string>(original);
     const userEditedContent = useRef<string>(original);
 
-    // Helper function to check if value is number
-    const isNumber = (value: any): boolean => {
-      return /^[0-9]*$/.test(value);
-    };
+    useImperativeHandle(ref, () => ({
+      reset: resetEditorData,
+      getContent: getContent,
+    }));
 
     // 获取当前编辑器内容
     const getCurrentEditorContent = (): string => {
@@ -129,7 +131,7 @@ const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
         ...getEditorOptions(),
         modifiedAriaLabel: "Modified",
         originalAriaLabel: "Original",
-        // enableSplitViewResizing: false,
+        enableSplitViewResizing: false,
         renderSideBySide: renderSideBySide,
       });
 
@@ -241,7 +243,7 @@ const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
     //  update editor content
     useEffect(() => {
       updateEditorContent();
-    }, [original, modified, language, scrollEnd]);
+    }, [original, modified, language]);
 
     useEffect(() => {
       currentEditorContent.current = original;
@@ -249,11 +251,6 @@ const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
         userEditedContent.current = original;
       }
     }, [original]);
-
-    useImperativeHandle(ref, () => ({
-      reset: resetEditorData,
-      getContent: getContent,
-    }));
 
     useEffect(() => {
       return () => {
@@ -267,15 +264,19 @@ const CustomEdit = forwardRef<CustomEditRef, CustomEditProps>(
     }, []);
 
     return (
-      <div>
-        <div
-          ref={containerRef}
-          style={{
-            width: "100%",
-            height: isNumber(height) ? `${height}px` : height,
-          }}
-        />
-      </div>
+      <div
+        className={className}
+        ref={containerRef}
+        style={{
+          width: "100%",
+          height: height,
+          position: height ? undefined : "absolute",
+          top: "40px",
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
+      />
     );
   }
 );

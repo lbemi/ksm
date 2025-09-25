@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
@@ -20,9 +20,15 @@ interface TerminalProps {
   podName?: string;
   namespace?: string;
   container?: string;
+  height?: string | number;
 }
 
-const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
+const TerminalWindow = ({
+  podName,
+  namespace,
+  container,
+  height,
+}: TerminalProps) => {
   const params = useParams();
   const terminalRef = useRef<HTMLDivElement>(null);
   const terminalInstanceRef = useRef<Terminal | null>(null);
@@ -30,6 +36,8 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
   const wsRef = useRef<WebSocket | null>(null);
   const clientIdRef = useRef<string>("");
 
+  const [queryParams] = useSearchParams();
+  const initContainerName = queryParams.get("container");
   // 使用 props 或 URL 参数
   const finalPodName = podName || params.name;
   const finalNamespace = namespace || params.namespace;
@@ -47,6 +55,31 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
     token: { colorBgContainer },
   } = theme.useToken();
 
+  const panelHeight = document.getElementsByClassName("ant-splitter-panel")[1];
+  const [tabHeight, setTabHeight] = useState<number | string>(
+    panelHeight?.clientHeight - 32 || 300
+  );
+  // 处理窗口大小变化
+  const handleResize = () => {
+    setTimeout(() => {
+      if (fitAddonRef.current && terminalInstanceRef.current) {
+        fitAddonRef.current.fit();
+      }
+    }, 200);
+  };
+  if (!height) {
+    const resizeObserver = new ResizeObserver(() => {
+      let height = window.getComputedStyle(panelHeight).height;
+      setTabHeight(Number(height.replace("px", "")) - 32);
+      handleResize();
+    });
+    useEffect(() => {
+      resizeObserver.observe(panelHeight);
+      return () => {
+        resizeObserver.unobserve(panelHeight);
+      };
+    }, []);
+  }
   // 获取 Pod 容器信息
   const getPodContainerName = async (pod: Pod) => {
     const containerOptions: Array<SelectOptions> = [];
@@ -61,7 +94,9 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
     });
     setContainers(containerOptions);
 
-    if (containerOptions.length > 0 && !selectedContainer) {
+    if (initContainerName && initContainerName !== "undefined") {
+      setSelectedContainer(initContainerName);
+    } else if (containerOptions.length > 0 && !selectedContainer) {
       setSelectedContainer(containerOptions[0].value);
     }
   };
@@ -110,13 +145,11 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
     term.loadAddon(webLinksAddon);
     term.open(terminalRef.current);
 
-    // 确保终端正确渲染和自适应
     setTimeout(() => {
       if (fitAddon && terminalInstanceRef.current) {
         fitAddon.fit();
       }
     }, 50);
-    // 绿色信息提示
     term.write(
       "\x1b[32mWelcome to the terminal! \r\n\r\nPress Ctrl+D to disconnect\r\n\r\n"
     );
@@ -124,7 +157,6 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
     terminalInstanceRef.current = term;
     fitAddonRef.current = fitAddon;
 
-    // 设置终端容器焦点，确保能接收键盘事件
     setTimeout(() => {
       if (terminalRef.current) {
         terminalRef.current.focus();
@@ -148,30 +180,7 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
       }
     });
 
-    // 处理窗口大小变化
-    const handleResize = () => {
-      if (fitAddonRef.current && terminalInstanceRef.current) {
-        fitAddonRef.current.fit();
-      }
-    };
-
     window.addEventListener("resize", handleResize);
-
-    // 添加 ResizeObserver 来监听容器大小变化
-    let resizeObserver: ResizeObserver | null = null;
-    if (terminalRef.current) {
-      resizeObserver = new ResizeObserver(() => {
-        handleResize();
-      });
-      resizeObserver.observe(terminalRef.current);
-    }
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-    };
   };
 
   // 清理 WebSocket 连接
@@ -352,10 +361,11 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
   return (
     <div
       style={{
-        height: "100vh",
+        height: height ? height : tabHeight,
         display: "flex",
         flexDirection: "column",
         background: colorBgContainer,
+        minWidth: "800px",
       }}
     >
       {contextHolderMessage}
@@ -428,7 +438,6 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
           position: "relative",
           background: "#1e1e1e",
           overflow: "hidden",
-          minHeight: "400px",
         }}
       >
         {isLoading && (
@@ -451,11 +460,14 @@ const TerminalWindow = ({ podName, namespace, container }: TerminalProps) => {
           style={{
             width: "100%",
             height: "100%",
-            padding: "10px",
+            paddingLeft: "10px",
+            paddingTop: "10px",
             outline: "none",
           }}
         />
       </div>
+      {/* 底部空白 */}
+      <div style={{ height: "10px", backgroundColor: "#1e1e1e" }}></div>
     </div>
   );
 };

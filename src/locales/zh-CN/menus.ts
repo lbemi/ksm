@@ -25,4 +25,5 @@ export const zhCN_menu = {
   "theme.light": "亮色",
   "theme.dark": "暗黑",
   "theme.compact": "紧凑",
+  "menu.read": "查看",
 };

@@ -40,6 +40,7 @@ export const zhCN_common = {
   "button.waiting_logs": "等待日志",
   "button.containers": "容器",
   "button.download": "下载",
+  "button.yaml": "YAML",
 
   "message.success": "操作成功",
   "message.error": "操作失败",

@@ -1,4 +1,5 @@
-use chrono::{Duration, Utc};
+use std::time::Duration;
+
 use kube::{
     config::{KubeConfigOptions, Kubeconfig},
     Config,
@@ -25,15 +26,12 @@ pub async fn get_cluster(
             platform: "Unknown".to_string(),
             status: false,
         };
-        if let Ok(config) =
+        if let Ok(mut config) =
             Config::from_custom_kubeconfig(cluster_config, &KubeConfigOptions::default()).await
         {
+            config.connect_timeout = Some(Duration::from_secs(2));
             if let Ok(client) = utils::cluster::generate_client(&config) {
-                if let Ok(api_resource) = client
-                    .with_valid_until(Some(Utc::now() + Duration::seconds(1)))
-                    .apiserver_version()
-                    .await
-                {
+                if let Ok(api_resource) = client.apiserver_version().await {
                     info.version = api_resource.git_version;
                     info.platform = api_resource.platform;
                     info.status = true;

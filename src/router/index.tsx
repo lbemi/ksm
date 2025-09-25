@@ -167,10 +167,10 @@ export const router = createBrowserRouter([
   {
     //传递参数,name和namespace
     path: "/log/:name/:namespace",
-    element: <Log />,
+    element: <Log height={"100vh"} />,
   },
   {
     path: "/terminal/:name/:namespace",
-    element: <TerminalWindow />,
+    element: <TerminalWindow height={"100vh"} />,
   },
 ]);

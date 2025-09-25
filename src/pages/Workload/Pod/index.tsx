@@ -1,7 +1,7 @@
 import { useAppSelector } from "@/store/hook";
 import { Button, TableProps, Tag, Dropdown, Modal, message } from "antd";
 import { Pod, IPodStatus } from "kubernetes-models/v1";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useRef, useState } from "react";
 import {
   SyncOutlined,
   EyeOutlined,
@@ -17,42 +17,52 @@ import { IIoK8sApiCoreV1PodCondition } from "kubernetes-models/v1/PodCondition";
 import { IIoK8sApimachineryPkgApisMetaV1ObjectMeta } from "@kubernetes-models/apimachinery/apis/meta/v1/ObjectMeta";
 import getAge from "@/utils/k8s/date";
 import { kubernetes_request } from "@/api/cluster";
-import { getImages } from "@/utils/k8s/tools.tsx";
 import CustomContent from "@/components/CustomContent";
-import { invoke } from "@tauri-apps/api/core";
-import WebSocket from "@tauri-apps/plugin-websocket";
+import CustomFooter, { CustomFooterRef } from "@/components/Footer";
+import Link from "antd/es/typography/Link";
+import PodDetailDrawer from "./Detail";
+import { deletePod } from "@/api/pod";
+import { useLocale } from "@/locales";
+import ViewYaml from "@/components/ViewYaml";
+const { Text } = Typography;
 
 const PodPage: FC = () => {
   const [loading, setLoading] = useState(false);
   const [pods, setPods] = useState<Array<Pod>>([]);
   const namespace = useAppSelector((state) => state.kubernetes.namespace);
-  const [log, setLog] = useState("等待日志.... \n");
+  const footerRef = useRef<CustomFooterRef>(null);
+  const [selectedPod, setSelectedPod] = useState<Pod | null>(null);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [yamlVisible, setYamlVisible] = useState(false);
+  const [yamlData, setYamlData] = useState<Pod | null>(null);
+  const [modal, contextHolder] = Modal.useModal();
+  const { formatMessage } = useLocale();
+  const handleShowDetail = (pod: Pod) => {
+    setSelectedPod(pod);
+    setDrawerVisible(true);
+  };
+  const handleShowYaml = (pod: Pod) => {
+    setYamlData(pod);
+    console.log("yamlData--", yamlData);
+    setYamlVisible(true);
+  };
   const columns: TableProps<Pod>["columns"] = [
     {
-      title: "名称",
+      title: formatMessage({ id: "table.name" }),
       dataIndex: ["metadata", "name"],
       key: "name",
       width: 250,
       fixed: "left",
-      render: (text) => (
-        <div className="table-name-cell">
-          <Paragraph
-            copyable={{
-              text: text,
-              tooltips: ["复制名称", "已复制"],
-            }}
-            style={{ marginRight: 8, marginBottom: 0 }}
-          />
-          <span className="table-name-text" title={text}>
-            {text}
-          </span>
-        </div>
+      render: (text, record) => (
+        <Text ellipsis={{ tooltip: `${text}` }}>
+          <Link onClick={() => handleShowDetail(record)}>{text}</Link>
+        </Text>
       ),
     },
     ...(namespace === "all"
       ? [
           {
-            title: "命名空间",
+            title: formatMessage({ id: "table.namespace" }),
             dataIndex: ["metadata", "namespace"],
             key: "namespace",
             render: (text: string) => <div>{text}</div>,
@@ -60,46 +70,32 @@ const PodPage: FC = () => {
         ]
       : []),
     {
-      title: "状态",
+      title: formatMessage({ id: "table.status" }),
       dataIndex: ["status"],
       key: "status",
-      width: 120,
+      width: 130,
+      align: "center",
       render: (status, record) => (
         <div>{formatterPodStatus(status, record)}</div>
       ),
     },
     {
-      title: "容器IP",
+      title: formatMessage({ id: "table.pod_ip" }),
       dataIndex: ["status", "podIP"],
+      align: "center",
       key: "ip",
       render: (text) => <div>{text}</div>,
     },
-    {
-      title: "镜像",
-      dataIndex: ["spec", "containers"],
-      key: "image",
-      onCell: () => {
-        return {
-          style: {
-            maxWidth: 180,
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            cursor: "pointer",
-          },
-        };
-      },
-      render: (containers) => <div>{getImages(containers)}</div>,
-    },
 
     {
-      title: "所在节点",
+      title: formatMessage({ id: "table.node_ip" }),
       dataIndex: ["status", "hostIP"],
+      align: "center",
       key: "hostIP",
       render: (hostIP) => <div>{hostIP}</div>,
     },
     {
-      title: "Age",
+      title: formatMessage({ id: "table.age" }),
       dataIndex: "metadata",
       key: "creationTimestamp",
       render: (metadata: IIoK8sApimachineryPkgApisMetaV1ObjectMeta) => {
@@ -109,7 +105,7 @@ const PodPage: FC = () => {
       },
     },
     {
-      title: "操作",
+      title: formatMessage({ id: "table.action" }),
       key: "action",
       fixed: "right",
       dataIndex: "action",
@@ -119,29 +115,57 @@ const PodPage: FC = () => {
           <Dropdown
             menu={{
               items: [
-                { key: "detail", label: "详情", icon: <EyeOutlined /> },
-                { key: "edit", label: "编辑", icon: <EditOutlined /> },
+                {
+                  key: "detail",
+                  label: formatMessage({ id: "button.detail" }),
+                  icon: <EyeOutlined />,
+                  onClick: () => handleShowDetail(record),
+                },
+                {
+                  key: "edit",
+                  label: formatMessage({ id: "button.yaml" }),
+                  icon: <EditOutlined />,
+                  onClick: () => handleShowYaml(record),
+                },
                 {
                   key: "delete",
-                  label: "删除",
+                  label: formatMessage({ id: "button.delete" }),
                   icon: <DeleteOutlined />,
                   danger: true,
-                  onClick: () => handleDeletePod(record),
+                  onClick: () =>
+                    handleDelete(
+                      record.metadata?.name!,
+                      record.metadata?.namespace!
+                    ),
                 },
                 { type: "divider" },
-                { key: "terminal", label: "终端", icon: <SettingOutlined /> },
+                {
+                  key: "terminal",
+                  label: formatMessage({ id: "button.terminal" }),
+                  icon: <SettingOutlined />,
+                  onClick: () =>
+                    onAdd(
+                      "ssh",
+                      record.metadata?.name || "",
+                      record.metadata?.namespace || ""
+                    ),
+                },
                 {
                   key: "logs",
-                  label: "日志",
+                  label: formatMessage({ id: "button.log" }),
                   icon: <SettingOutlined />,
-                  onClick: () => handleLog(record),
+                  onClick: () =>
+                    onAdd(
+                      "log",
+                      record.metadata?.name || "",
+                      record.metadata?.namespace || ""
+                    ),
                 },
-                { key: "files", label: "文件", icon: <SettingOutlined /> },
               ],
             }}
           >
             <Button type="link" size="small">
-              更多 <DownOutlined />
+              {formatMessage({ id: "button.more" })} <DownOutlined />
             </Button>
           </Dropdown>
         </div>
@@ -149,8 +173,7 @@ const PodPage: FC = () => {
     },
   ];
 
-  const { Paragraph } = Typography;
-
+  const [messageApi, contextHolderMessage] = message.useMessage();
   const formatterPodStatus = (status: IPodStatus, pod: Pod) => {
     if (pod.metadata && pod.metadata.deletionTimestamp) {
       return (
@@ -263,27 +286,26 @@ const PodPage: FC = () => {
     );
   };
 
-  const handleDeletePod = (pod: Pod) => {
-    Modal.confirm({
-      title: "确认删除",
+  const handleDelete = (name: string, namespace: string) => {
+    modal.confirm({
+      title: formatMessage({ id: "button.delete" }),
       content: (
         <span>
-          您确定要删除 Pod{" "}
-          <span style={{ color: "red" }}>{pod.metadata?.name}</span> 吗？
+          {formatMessage({ id: "button.confirm_delete" })} Pod{" "}
+          <span style={{ color: "red" }}>{name}</span> ?
         </span>
       ),
-      okText: "确认",
-      cancelText: "取消",
+      okText: formatMessage({ id: "button.confirm" }),
+      cancelText: formatMessage({ id: "button.cancel" }),
+      okButtonProps: { size: "small" },
+      cancelButtonProps: { size: "small" },
       onOk: async () => {
         try {
-          await kubernetes_request(
-            "DELETE",
-            `/api/v1/namespaces/${pod.metadata?.namespace}/pods/${pod.metadata?.name}`
-          );
-          message.success(`Pod ${pod.metadata?.name} 删除成功`);
+          await deletePod(name, namespace);
+          messageApi.success(formatMessage({ id: "message.success" }));
           list_pods();
         } catch (error) {
-          message.error(`删除失败: ${error}`);
+          messageApi.error(`${formatMessage({ id: "message.error" })}`);
         }
       },
     });
@@ -303,7 +325,7 @@ const PodPage: FC = () => {
       const res = await kubernetes_request<Array<Pod>>("GET", url);
       setPods(res);
     } catch (error) {
-      message.error("获取Pod列表失败");
+      message.error(formatMessage({ id: "message.error" }));
     } finally {
       if (!refresh) {
         setLoading(false);
@@ -311,84 +333,12 @@ const PodPage: FC = () => {
     }
   };
 
-  // const [logWebsocket, setLogWebsocket] = useState<WebSocket | null>(null);
-  let logWebsocket: WebSocket | null = null;
-  const cleanupLogWebsocket = () => {
-    if (logWebsocket) {
-      try {
-        logWebsocket.disconnect();
-      } catch (error) {
-        console.error("清理logWebsocket失败", error);
-      }
-      logWebsocket = null;
-    }
-  };
-
-  useEffect(() => {
-    return () => {
-      cleanupLogWebsocket();
-    };
-  }, []);
-
-  const handleLog = async (pod: Pod) => {
-    setLog("");
-    cleanupLogWebsocket();
-
-    try {
-      const ws = await WebSocket.connect("ws://localhost:38012");
-      let text = "";
-      let clientId: string | undefined;
-      logWebsocket = ws;
-      ws.addListener((msg) => {
-        if (!clientId || clientId === "") {
-          ws.send(pod.metadata?.name || "");
-          let tmpId = msg.data?.toString();
-          const uuidRegex =
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-          if (uuidRegex.test(tmpId!)) {
-            clientId = tmpId;
-            // clientIdRef.current = clientId;
-            console.log("---Valid client ID received:", clientId);
-            // clientId = msg.data?.toString();
-          }
-          return;
-        }
-
-        // 处理 Ping 消息
-        if (msg.type === "Ping") {
-          ws.send(clientId); // 发送 Pong 响应
-          return;
-        }
-
-        if (msg.type === "Text") {
-          text = text + msg.data?.toString() + "\n";
-          setLog(text);
-        }
-      });
-
-      if (clientId && clientId !== "") {
-        await invoke("log_stream", {
-          podLogStream: {
-            namespace: pod.metadata?.namespace || "default",
-            container: pod.spec?.containers?.[0]?.name || "",
-            tail: 50,
-            follow: true,
-            timestamps: false,
-            pod: pod.metadata?.name || "",
-          },
-          clientId: clientId,
-        });
-      } else {
-        message.error("连接失败");
-      }
-    } catch (error) {
-      message.error("WebSocket连接失败");
-      cleanupLogWebsocket();
-    }
-  };
-
   useEffect(() => {
     list_pods();
+    const interval = setInterval(async () => {
+      await list_pods(true);
+    }, 3000);
+    return () => clearInterval(interval);
   }, [namespace]);
 
   const getFilteredPods = (searchText: string) => {
@@ -410,26 +360,38 @@ const PodPage: FC = () => {
     });
   };
 
-  const deletePods = () => {
-    setTimeout(() => {
-      console.log("deletePods--");
-      // setSelectedRowKeys([]);
-    }, 1000);
+  const onAdd = (action: "log" | "ssh", name: string, namespace: string) => {
+    footerRef.current?.add(action, name, namespace);
   };
 
   return (
     <>
+      {contextHolderMessage}
+      {contextHolder}
+      <ViewYaml
+        data={yamlData}
+        name={yamlData?.metadata?.name || ""}
+        visible={yamlVisible}
+        handleCancel={() => {
+          setYamlVisible(false);
+          setYamlData(null);
+        }}
+      />
       <CustomContent
         columns={columns}
         refresh={list_pods}
-        del={deletePods}
         filter={getFilteredPods}
         loading={loading}
       >
-        {/* <CustomFooter> */}
-        {/* <CustomEdit data={log} type="plainText" scrollEnd /> */}
-        {/* </CustomFooter> */}
+        <CustomFooter ref={footerRef} />
       </CustomContent>
+
+      <PodDetailDrawer
+        visible={drawerVisible}
+        onClose={() => setDrawerVisible(false)}
+        name={selectedPod?.metadata?.name || ""}
+        namespace={selectedPod?.metadata?.namespace || ""}
+      />
     </>
   );
 };

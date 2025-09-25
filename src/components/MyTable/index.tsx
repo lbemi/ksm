@@ -177,15 +177,14 @@ const MyTable: FC<MyTableProps<any>> = ({
     list_namespaces();
   }, []);
 
-  // 监听表格数据变化和窗口大小变化来检测滚动条
   useEffect(() => {
     checkScrollbarVisibility();
     const handleResize = () => {
-      setTimeout(checkScrollbarVisibility, 100); // 延迟检测，确保DOM更新完成
+      setTimeout(checkScrollbarVisibility, 100);
     };
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [filter(searchText)]); // 当数据变化时重新检测
+  }, [filter(searchText), scroll.y]);
 
   const rowSelection = () => {
     return (
@@ -223,7 +222,7 @@ const MyTable: FC<MyTableProps<any>> = ({
 
   return (
     <>
-      <div id="my-table" className={"my-table"}>
+      <div id="my-table" className="my-table relative">
         <div className={"table-header"}>
           <div className="left-section">
             <Button
@@ -326,7 +325,12 @@ const MyTable: FC<MyTableProps<any>> = ({
           <Affix
             offsetBottom={50}
             className="affix-bottom"
-            style={{ position: "absolute", right: 100 }}
+            style={{
+              position: "absolute",
+              right: 110,
+              bottom: 40,
+              zIndex: 1000,
+            }}
           >
             <MyIcon
               type="icon-top1"

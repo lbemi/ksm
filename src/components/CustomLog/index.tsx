@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import CustomEdit from "../CustomEdit";
 import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
@@ -20,8 +20,38 @@ interface SelectOptions {
   value: string;
   label: string;
 }
-const Log = () => {
+const Log = ({
+  name,
+  namespace,
+  height,
+}: {
+  name?: string;
+  namespace?: string;
+  height?: string | number;
+}) => {
+  const panelHeight = document.getElementsByClassName("ant-splitter-panel")[1];
+  const [tabHeight, setTabHeight] = useState<number | string>(
+    panelHeight?.clientHeight - 32 || 300
+  );
+
+  if (!height) {
+    const resizeObserver = new ResizeObserver(() => {
+      let height = window.getComputedStyle(panelHeight).height;
+      setTabHeight(Number(height.replace("px", "")) - 32);
+    });
+    useEffect(() => {
+      resizeObserver.observe(panelHeight);
+      return () => {
+        resizeObserver.unobserve(panelHeight);
+      };
+    }, []);
+  }
+
   const params = useParams();
+  if (!name || !namespace) {
+    name = params.name;
+    namespace = params.namespace;
+  }
   const [logs, setLogs] = useState<string>("");
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -33,11 +63,15 @@ const Log = () => {
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [pauseBt, setPauseBt] = useState<boolean>(false);
 
+  const logRef = useRef<string>("");
+
   const { formatMessage } = useLocale();
-  const { name, namespace } = params;
   const wsRef = useRef<WebSocket | null>(null);
   const pause = useRef<boolean>(false);
   const clean = useRef<boolean>(false);
+
+  const [queryParams] = useSearchParams();
+  const initContainerName = queryParams.get("container");
 
   const {
     token: { colorBgContainer },
@@ -52,7 +86,9 @@ const Log = () => {
     });
     setContainers(containerName);
 
-    if (containerName.length > 0) {
+    if (initContainerName && initContainerName !== "undefined") {
+      setContainer(initContainerName);
+    } else if (containerName.length > 0) {
       setContainer(containerName[0].value);
     }
   };
@@ -76,6 +112,8 @@ const Log = () => {
     pause.current = true;
     setPauseBt(true);
   };
+
+  const lineNumbers = useRef<number>(0);
   const startLogStream = async () => {
     if (pause.current) {
       pause.current = false;
@@ -98,12 +136,11 @@ const Log = () => {
         const timeout = setTimeout(() => {
           setIsLoading(false);
           reject(new Error(formatMessage({ id: "message.connecte_failed" })));
-        }, 5000); // 5秒超时
+        }, 5000);
 
         ws.addListener((msg) => {
           if (!clientId || clientId === "") {
             clientId = msg.data?.toString() || "";
-            // clientIdRef.current = clientId;
             clearTimeout(timeout);
             resolve(clientId);
             return;
@@ -119,27 +156,31 @@ const Log = () => {
               text = "";
               clean.current = false;
             }
+            lineNumbers.current++;
+            if (lineNumbers.current > 3000) {
+              lineNumbers.current = 0;
+              text = "";
+            }
             text = text + msg.data?.toString() + "\n";
             if (!pause.current) {
-              setLogs(text);
+              // setLogs(text);
+              logRef.current = text;
             }
           }
         });
       });
 
       try {
-        //等待cliend获取
         const receivedClientId = await waitForClientId;
         if (receivedClientId && receivedClientId !== "") {
           setIsConnected(true);
-          // 启动日志流
           invoke("log_stream", {
             podLogStream: {
               namespace: namespace,
-              container: container || "", // 使用选择的容器
-              tail: tail, // 使用选择的日志行数
-              follow: follow, // 使用选择的跟踪模式
-              timestamps: timestamp, // 使用选择的时间戳模式
+              container: container || "",
+              tail: tail,
+              follow: follow,
+              timestamps: timestamp,
               pod: name,
             },
             clientId: clientId,
@@ -168,7 +209,11 @@ const Log = () => {
 
   useEffect(() => {
     getPod();
+    const interval = setInterval(() => {
+      setLogs(logRef.current);
+    }, 1000);
     return () => {
+      clearInterval(interval);
       cleanupWebSocket();
     };
   }, [params.name, params.namespace]);
@@ -182,6 +227,8 @@ const Log = () => {
 
   const handleClearLogs = () => {
     clean.current = true;
+    logRef.current = "";
+    lineNumbers.current = 0;
     setLogs("");
   };
 
@@ -197,18 +244,16 @@ const Log = () => {
       formatMessage({ id: "message.download_logs_success" }) +
         ` ${fileName} (Saved to your browser's default download folder)`
     );
-    console.log(
-      `Log file saved as: ${fileName} (Check your browser's default download folder)`
-    );
   };
 
   return (
     <div
       style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
+        overflow: "hidden",
         background: colorBgContainer,
+        width: "100%",
+        minWidth: "1100px",
+        height: height ? height : tabHeight,
       }}
     >
       {contextHolderMessage}
@@ -298,17 +343,13 @@ const Log = () => {
           </Tooltip>
         </div>
       </div>
-
-      <div style={{ flex: 1, overflow: "hidden" }}>
-        <CustomEdit
-          original={logs || formatMessage({ id: "button.waiting_logs" })}
-          height={"calc(100vh - 40px)"}
-          readOnly={true}
-          language="json"
-          wordWrap
-          scrollEnd
-        />
-      </div>
+      <CustomEdit
+        original={logs || formatMessage({ id: "button.waiting_logs" })}
+        readOnly={true}
+        language="json"
+        wordWrap
+        scrollEnd
+      />
     </div>
   );
 };

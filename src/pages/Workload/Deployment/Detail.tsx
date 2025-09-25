@@ -38,19 +38,11 @@ import CustomEdit, { CustomEditRef } from "@/components/CustomEdit";
 // Utils and hooks
 import getAge, { dateFormat } from "@/utils/k8s/date";
 import { formatAnnotations, getImages, listImages } from "@/utils/k8s/tools";
-import { createWindow } from "@/utils/windows/actions";
 import { useLocale } from "@/locales";
 
 // Styles
 import "./index.scss";
-
-// Constants
-const WINDOW_CONFIG = {
-  x: 600,
-  y: 800,
-  width: 1000,
-  height: 640,
-} as const;
+import { createLogWindow, createTerminalWindow } from "@/api/pod";
 
 // Utility functions
 const buildLabelSelector = (matchLabels: Record<string, string>): string => {
@@ -701,22 +693,13 @@ const DeploymentDetailDrawer: React.FC<DeploymentDetailDrawerProps> = ({
   };
 
   const handleLog = async (pod: Pod) => {
-    await createWindow({
-      label: `${pod.metadata!.name}_log`,
-      title: `${pod.metadata!.name}_log`,
-      url: `/log/${pod.metadata!.name}/${pod.metadata!.namespace}`,
-      ...WINDOW_CONFIG,
-    });
+    await createLogWindow(pod.metadata!.name!, pod.metadata!.namespace!);
   };
 
   const handleTerminal = async (pod: Pod) => {
-    await createWindow({
-      label: `${pod.metadata!.name}_terminal`,
-      title: `${pod.metadata!.name}_terminal`,
-      url: `/terminal/${pod.metadata!.name}/${pod.metadata!.namespace}`,
-      ...WINDOW_CONFIG,
-    });
+    await createTerminalWindow(pod.metadata!.name!, pod.metadata!.namespace!);
   };
+
   const handleDiff = (replicaSet: ReplicaSet) => {
     setTempState({
       deployment: deployment.spec!.template!,
