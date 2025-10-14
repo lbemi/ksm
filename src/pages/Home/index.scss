@@ -1,0 +1,10 @@
+.container {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-size: 400% 400%;
+  height: 100vh;
+  border-top: 20px;
+}

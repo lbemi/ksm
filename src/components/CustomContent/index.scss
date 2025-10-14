@@ -1,0 +1,19 @@
+.ant-splitter-vertical > .ant-splitter-bar .ant-splitter-bar-collapse-bar {
+  height: 30px;
+  width: 50px;
+}
+
+.ant-splitter-vertical > .ant-splitter-bar .ant-splitter-bar-dragger::before {
+  width: 100%;
+  height: 4px;
+}
+
+.ant-splitter-bar-collapse-bar .ant-splitter-bar-collapse-bar-end {
+  height: 30px;
+  width: 50px;
+}
+
+.ant-splitter-vertical > .ant-splitter-bar .ant-splitter-bar-dragger::after {
+  width: 60px;
+  height: 4px;
+}

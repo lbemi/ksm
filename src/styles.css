@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  scrollbar-gutter: auto !important;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-weight: 550;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+img {
+  -webkit-user-drag: none;
+}
+
+
+
+
+/* Container Images */
+.container-images {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.container-images .ant-tag {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Table Name Cell */
+.table-name-cell {
+  display: flex;
+  align-items: center;
+}
+
+.table-name-cell .ant-typography {
+  margin-bottom: 0;
+}
+
+.table-name-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.table-name-text:hover {
+  color: #1890ff;
+  cursor: pointer;
+}
+
+
+/* Global Scrollbar Styles */
+::-webkit-scrollbar {
+  background: rgba(0, 0, 0, 0);
+  width: 6px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #68686825 !important;
+  border-radius: 4px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(91, 91, 91, 0.8);
+  border-radius: 4px;
+  width: 4px;
+}
+
+/* Drawer Styles */
+.ant-drawer .ant-drawer-content-wrapper {
+  margin-top: 36px;
+}
+
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-header {
+  border-bottom: none;
+  padding-bottom: 10px;
+}
+
+.ant-drawer .ant-drawer-content-wrapper .ant-drawer-body {
+  padding-top: 0;
+}
+

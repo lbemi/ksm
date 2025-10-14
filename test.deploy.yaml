@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-deploy
+  namespace: default
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: test-deploy
+  template:
+    metadata:
+      labels:
+        app: test-deploy
+    spec:
+      containers:
+        - name: test-deploy
+          image: registry.cn-hangzhou.aliyuncs.com/pixiuio/nginx
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 100m
+              memory: 100Mi
+            limits:
+              cpu: 200m
+              memory: 200Mi
+          env:
+            - name: TEST_ENV
+              value: test-value
+          volumeMounts:
+            - name: test-volume
+              mountPath: /data
+              readOnly: false
+      initContainers:
+        - name: test-init-container
+          image: nginx:latest
+          command: ["sh", "-c", "echo 'Hello, World!' > /data/hello.txt"]
+          volumeMounts:
+            - name: test-volume
+              mountPath: /data
+      volumes:
+        - name: test-volume
+          emptyDir: {}
