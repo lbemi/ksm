@@ -1,5 +1,6 @@
 import { Node } from "kubernetes-models/v1";
 import { AppsV1Url, kubeApi } from "./cluster";
+import { invoke } from "@tauri-apps/api/core";
 
 export interface ApiError {
   message: string;
@@ -28,37 +29,39 @@ export const getNode = async (name: string): Promise<Node> => {
     );
   }
 };
+// PATCH https://127.0.0.1:57032/api/v1/nodes/kind-3m-3s-worker3
+// Content-Type: application/strategic-merge-patch+json
 
 export const cordonNode = async (name: string): Promise<Node> => {
   try {
-    return await kubeApi.patch(
-      AppsV1Url,
-      "nodes",
-      {
+    return await invoke<Node>("proxy_request", {
+      method: "PATCH",
+      url: `/api/v1/nodes/${name}`,
+      body: {
         spec: { unschedulable: true },
       },
-      undefined,
-      name
-    );
+      headers: {
+        "Content-Type": "application/strategic-merge-patch+json",
+      },
+    });
   } catch (error) {
-    console.error(`Failed to cordon node ${name}:`, error);
     throw new Error(`Failed to cordon node ${name}. Please check permissions.`);
   }
 };
 
 export const uncordonNode = async (name: string): Promise<Node> => {
   try {
-    return await kubeApi.patch(
-      AppsV1Url,
-      "nodes",
-      {
+    return await invoke<Node>("proxy_request", {
+      method: "PATCH",
+      url: `/api/v1/nodes/${name}`,
+      body: {
         spec: { unschedulable: false },
       },
-      undefined,
-      name
-    );
+      headers: {
+        "Content-Type": "application/strategic-merge-patch+json",
+      },
+    });
   } catch (error) {
-    console.error(`Failed to uncordon node ${name}:`, error);
     throw new Error(
       `Failed to uncordon node ${name}. Please check permissions.`
     );
@@ -71,9 +74,75 @@ export const drainNode = async (name: string): Promise<Node> => {
     // For now, we'll just cordon the node
     return await cordonNode(name);
   } catch (error) {
-    console.error(`Failed to drain node ${name}:`, error);
     throw new Error(
       `Failed to drain node ${name}. Please check permissions and pod dependencies.`
+    );
+  }
+};
+
+// Taint management interfaces
+export interface Taint {
+  key: string;
+  value?: string;
+  effect: "NoSchedule" | "PreferNoSchedule" | "NoExecute";
+}
+
+export const addTaint = async (name: string, taint: Taint): Promise<Node> => {
+  try {
+    const currentNode = await getNode(name);
+    const currentTaints = currentNode.spec?.taints || [];
+
+    const existingTaintIndex = currentTaints.findIndex(
+      (t) => t.key === taint.key
+    );
+    let newTaints;
+
+    if (existingTaintIndex >= 0) {
+      newTaints = [...currentTaints];
+      newTaints[existingTaintIndex] = taint;
+    } else {
+      newTaints = [...currentTaints, taint];
+    }
+
+    return await invoke<Node>("proxy_request", {
+      method: "PATCH",
+      url: `/api/v1/nodes/${name}`,
+      body: {
+        spec: { taints: newTaints },
+      },
+      headers: {
+        "Content-Type": "application/strategic-merge-patch+json",
+      },
+    });
+  } catch (error) {
+    throw new Error(
+      `Failed to add taint to node ${name}. Please check permissions.`
+    );
+  }
+};
+
+export const removeTaint = async (
+  name: string,
+  taintKey: string
+): Promise<Node> => {
+  try {
+    const currentNode = await getNode(name);
+    const currentTaints = currentNode.spec?.taints || [];
+    const newTaints = currentTaints.filter((t) => t.key !== taintKey);
+
+    return await invoke<Node>("proxy_request", {
+      method: "PATCH",
+      url: `/api/v1/nodes/${name}`,
+      body: {
+        spec: { taints: newTaints },
+      },
+      headers: {
+        "Content-Type": "application/strategic-merge-patch+json",
+      },
+    });
+  } catch (error) {
+    throw new Error(
+      `Failed to remove taint from node ${name}. Please check permissions.`
     );
   }
 };

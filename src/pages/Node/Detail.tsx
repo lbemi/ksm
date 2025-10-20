@@ -12,11 +12,20 @@ import {
   Col,
   Card,
   Statistic,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Select,
+  Popconfirm,
+  message,
 } from "antd";
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
   QuestionCircleOutlined,
+  PlusOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 
 // Kubernetes types
@@ -25,6 +34,7 @@ import { Node } from "kubernetes-models/v1";
 // Utils and hooks
 import getAge, { dateFormat } from "@/utils/k8s/date";
 import { useLocale } from "@/locales";
+import { addTaint, removeTaint, Taint } from "@/api/node";
 
 const { Text } = Typography;
 
@@ -32,15 +42,19 @@ interface NodeDetailDrawerProps {
   visible: boolean;
   onClose: () => void;
   node: Node | null;
+  onNodeUpdate?: () => void;
 }
 
 const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   visible,
   onClose,
   node,
+  onNodeUpdate,
 }) => {
   const { formatMessage } = useLocale();
-
+  const [taintModalVisible, setTaintModalVisible] = React.useState(false);
+  const [taintForm] = Form.useForm();
+  const [messageApi, contextHolderMessage] = message.useMessage();
   if (!node) return null;
 
   const metadata = node.metadata || {};
@@ -52,21 +66,37 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
   const allocatable = status.allocatable || {};
   const taints = spec.taints || [];
 
-  const getConditionIcon = (status: string) => {
+  const getConditionIcon = (status: string, type: string) => {
     if (status === "True") {
-      return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      if (type === "Ready") {
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      } else {
+        return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
+      }
     } else if (status === "False") {
-      return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
+      if (type === "Ready") {
+        return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
+      } else {
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      }
     } else {
       return <QuestionCircleOutlined style={{ color: "#faad14" }} />;
     }
   };
 
-  const getConditionStatus = (status: string) => {
+  const getConditionStatus = (status: string, type: string) => {
     if (status === "True") {
-      return "success";
+      if (type === "Ready") {
+        return "success";
+      } else {
+        return "error";
+      }
     } else if (status === "False") {
-      return "error";
+      if (type === "Ready") {
+        return "error";
+      } else {
+        return "success";
+      }
     } else {
       return "warning";
     }
@@ -91,6 +121,30 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
     return roles.length > 0 ? roles : ["worker"];
   };
 
+  const handleAddTaint = async (values: Taint) => {
+    if (!node) return;
+
+    try {
+      await addTaint(node.metadata?.name || "", values);
+      onNodeUpdate?.();
+      taintForm.resetFields();
+      setTaintModalVisible(false);
+    } catch (error) {
+      messageApi.error(formatMessage({ id: "node.add_taint_failed" }));
+    }
+  };
+
+  const handleRemoveTaint = async (taintKey: string) => {
+    if (!node) return;
+
+    try {
+      await removeTaint(node.metadata?.name || "", taintKey);
+      onNodeUpdate?.();
+    } catch (error) {
+      console.error("Failed to remove taint:", error);
+    }
+  };
+
   const conditionsColumns = [
     {
       title: "Type",
@@ -102,12 +156,17 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
       title: "Status",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Space>
-          {getConditionIcon(status)}
-          <Badge status={getConditionStatus(status) as any} text={status} />
-        </Space>
-      ),
+      render: (status: string, record: any) => {
+        return (
+          <Space>
+            {getConditionIcon(status, record.type)}
+            <Badge
+              status={getConditionStatus(status, record.type) as any}
+              text={status}
+            />
+          </Space>
+        );
+      },
     },
     {
       title: "Reason",
@@ -160,17 +219,32 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
         return <Tag color={color}>{text}</Tag>;
       },
     },
+    {
+      title: "Action",
+      key: "action",
+      width: 100,
+      render: (_: any, record: any) => (
+        <Popconfirm
+          title={formatMessage({ id: "node.remove_taint_content" })}
+          onConfirm={() => handleRemoveTaint(record.key)}
+          okText="Yes"
+          cancelText="No"
+        >
+          <Button type="text" danger size="small" icon={<DeleteOutlined />} />
+        </Popconfirm>
+      ),
+    },
   ];
 
   return (
     <Drawer
       title={`Node Details: ${metadata.name}`}
       placement="right"
-      width={800}
+      width={"80%"}
       onClose={onClose}
       open={visible}
-      destroyOnClose
     >
+      {contextHolderMessage}
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Divider orientation="left" style={{ marginTop: 0 }}>
@@ -313,20 +387,29 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
           />
         </Col>
 
-        {taints.length > 0 && (
-          <Col span={24}>
-            <Divider orientation="left">
+        <Col span={24}>
+          <Divider orientation="left">
+            <Space>
               {formatMessage({ id: "table.node_taints" })}
-            </Divider>
-            <Table
-              size="small"
-              columns={taintsColumns}
-              dataSource={taints}
-              rowKey="key"
-              pagination={false}
-            />
-          </Col>
-        )}
+              <Button
+                type="link"
+                size="small"
+                icon={<PlusOutlined />}
+                onClick={() => setTaintModalVisible(true)}
+              >
+                {formatMessage({ id: "node.add_taint" })}
+              </Button>
+            </Space>
+          </Divider>
+          <Table
+            size="small"
+            columns={taintsColumns}
+            dataSource={taints}
+            rowKey="key"
+            pagination={false}
+            locale={{ emptyText: "No taints" }}
+          />
+        </Col>
 
         <Col span={24}>
           <Divider orientation="left">
@@ -354,6 +437,71 @@ const NodeDetailDrawer: React.FC<NodeDetailDrawerProps> = ({
           </Space>
         </Col>
       </Row>
+
+      <Modal
+        title={
+          formatMessage({ id: "node.add_taint_title" }) + " - " + metadata.name
+        }
+        open={taintModalVisible}
+        onCancel={() => {
+          setTaintModalVisible(false);
+          taintForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form form={taintForm} layout="vertical" onFinish={handleAddTaint}>
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_key" })}
+            name="key"
+            rules={[{ required: true, message: "Please input taint key" }]}
+          >
+            <Input placeholder="Enter taint key" />
+          </Form.Item>
+
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_effect" })}
+            name="effect"
+            rules={[{ required: true, message: "Please select taint effect" }]}
+          >
+            <Select
+              placeholder={formatMessage({
+                id: "node.add_taint_effect_select_placeholder",
+              })}
+            >
+              <Select.Option value="NoSchedule">NoSchedule</Select.Option>
+              <Select.Option value="PreferNoSchedule">
+                PreferNoSchedule
+              </Select.Option>
+              <Select.Option value="NoExecute">NoExecute</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_value" })}
+            name="value"
+          >
+            <Input placeholder="Enter taint value (optional)" />
+          </Form.Item>
+        </Form>
+        <Space>
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => taintForm.submit()}
+          >
+            {formatMessage({ id: "button.confirm" })}
+          </Button>
+          <Button
+            size="small"
+            onClick={() => {
+              setTaintModalVisible(false);
+              taintForm.resetFields();
+            }}
+          >
+            {formatMessage({ id: "button.cancel" })}
+          </Button>
+        </Space>
+      </Modal>
     </Drawer>
   );
 };

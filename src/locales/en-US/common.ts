@@ -71,4 +71,16 @@ export const enUS_common = {
   "terminal.pod_info_incomplete": "Pod information incomplete",
   "terminal.connection_timeout": "Connection timeout",
   "terminal.missing_parameters": "Missing required parameters",
+
+  // Node related
+  "node.add_taint": "Add Taint",
+  "node.remove_taint_content": "Are you sure you want to remove this taint?",
+  "node.add_taint_content": "Are you sure you want to add this taint?",
+  "node.add_taint_success": "Taint added successfully",
+  "node.add_taint_failed": "Failed to add taint",
+  "node.add_taint_title": "Add Taint",
+  "node.add_taint_key": "Taint Key",
+  "node.add_taint_value": "Taint Value",
+  "node.add_taint_effect": "Taint Effect",
+  "node.add_taint_effect_select_placeholder": "Please select taint effect",
 };

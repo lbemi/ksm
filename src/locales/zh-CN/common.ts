@@ -70,4 +70,16 @@ export const zhCN_common = {
   "terminal.pod_info_incomplete": "Pod 信息不完整",
   "terminal.connection_timeout": "连接超时",
   "terminal.missing_parameters": "缺少必要参数",
+
+  // Node related
+  "node.add_taint": "添加污点",
+  "node.remove_taint_content": "确定要删除这个污点吗？",
+  "node.add_taint_content": "确定要添加这个污点吗？",
+  "node.add_taint_success": "污点添加成功",
+  "node.add_taint_failed": "添加污点失败",
+  "node.add_taint_title": "添加污点",
+  "node.add_taint_key": "污点键",
+  "node.add_taint_value": "污点值",
+  "node.add_taint_effect": "污点效果",
+  "node.add_taint_effect_select_placeholder": "请选择污点效果",
 };

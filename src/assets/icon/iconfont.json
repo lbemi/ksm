@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "21855166",
+      "name": "namespace",
+      "font_class": "namespace",
+      "unicode": "e60f",
+      "unicode_decimal": 58895
+    },
+    {
       "icon_id": "2075352",
       "name": "新窗口",
       "font_class": "xinchuangkou",

@@ -9,6 +9,9 @@ import {
   message,
   Modal,
   Tag,
+  Form,
+  Input,
+  Select,
 } from "antd";
 import {
   DownOutlined,
@@ -17,6 +20,7 @@ import {
   PauseCircleOutlined,
   PlayCircleOutlined,
   ExclamationCircleOutlined,
+  TagOutlined,
 } from "@ant-design/icons";
 
 // Kubernetes models
@@ -26,7 +30,14 @@ import { Node } from "kubernetes-models/v1";
 import { useLocale } from "@/locales";
 import getAge from "@/utils/k8s/date";
 import MyTable from "@/components/MyTable";
-import { listNodes, cordonNode, uncordonNode, drainNode } from "@/api/node";
+import {
+  listNodes,
+  cordonNode,
+  uncordonNode,
+  drainNode,
+  addTaint,
+  Taint,
+} from "@/api/node";
 import NodeDetailDrawer from "./Detail";
 
 const { Text } = Typography;
@@ -112,6 +123,8 @@ const NodePage: FC = () => {
   const [nodes, setNodes] = useState<Array<Node>>([]);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
+  const [taintModalVisible, setTaintModalVisible] = useState(false);
+  const [taintForm] = Form.useForm();
   const { formatMessage } = useLocale();
   const [messageApi, contextHolderMessage] = message.useMessage();
   const [modal, contextHolder] = Modal.useModal();
@@ -122,7 +135,6 @@ const NodePage: FC = () => {
       const data = await listNodes();
       setNodes(data);
     } catch (error) {
-      console.error("Failed to fetch nodes:", error);
       messageApi.error("Failed to fetch nodes");
     } finally {
       setLoading(false);
@@ -207,6 +219,30 @@ const NodePage: FC = () => {
     [messageApi, fetchNodes]
   );
 
+  const handleManageTaints = useCallback((node: Node) => {
+    setSelectedNode(node);
+    setTaintModalVisible(true);
+  }, []);
+
+  const handleAddTaint = useCallback(
+    async (values: Taint) => {
+      if (!selectedNode) return;
+
+      try {
+        await addTaint(selectedNode.metadata?.name || "", values);
+        messageApi.success(
+          `Taint added to node ${selectedNode.metadata?.name} successfully`
+        );
+        taintForm.resetFields();
+        setTaintModalVisible(false);
+        fetchNodes();
+      } catch (error) {
+        messageApi.error("Failed to add taint");
+      }
+    },
+    [selectedNode, messageApi, taintForm, fetchNodes]
+  );
+
   const getActionItems = useCallback(
     (node: Node) => {
       const isUnschedulable = node.spec?.unschedulable;
@@ -237,6 +273,15 @@ const NodePage: FC = () => {
           type: "divider" as const,
         },
         {
+          key: "taints",
+          label: formatMessage({ id: "table.node_taints" }),
+          icon: <TagOutlined />,
+          onClick: () => handleManageTaints(node),
+        },
+        {
+          type: "divider" as const,
+        },
+        {
           key: "drain",
           label: formatMessage({ id: "table.node_drain" }),
           icon: <ExclamationCircleOutlined />,
@@ -257,6 +302,7 @@ const NodePage: FC = () => {
       handleCordon,
       handleUncordon,
       handleDrain,
+      handleManageTaints,
       modal,
     ]
   );
@@ -269,9 +315,14 @@ const NodePage: FC = () => {
       minWidth: 200,
       render: (text, record) => (
         <Space>
-          <Text ellipsis={{ tooltip: text }} style={{ maxWidth: 150 }}>
+          <Button
+            type="link"
+            size="small"
+            onClick={() => handleShowDetail(record)}
+            className="cursor-pointer"
+          >
             {text}
-          </Text>
+          </Button>
           {record.spec?.unschedulable && (
             <Tag color="orange">
               {formatMessage({ id: "table.node_unschedulable" })}
@@ -435,7 +486,75 @@ const NodePage: FC = () => {
         visible={drawerVisible}
         onClose={() => setDrawerVisible(false)}
         node={selectedNode}
+        onNodeUpdate={fetchNodes}
       />
+
+      <Modal
+        title={
+          formatMessage({ id: "node.add_taint_title" }) +
+          " - " +
+          selectedNode?.metadata?.name
+        }
+        open={taintModalVisible}
+        onCancel={() => {
+          setTaintModalVisible(false);
+          taintForm.resetFields();
+        }}
+        footer={null}
+        width={600}
+      >
+        <Form form={taintForm} layout="vertical" onFinish={handleAddTaint}>
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_key" })}
+            name="key"
+            rules={[{ required: true, message: "Please input taint key" }]}
+          >
+            <Input placeholder="Enter taint key" />
+          </Form.Item>
+
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_effect" })}
+            name="effect"
+            rules={[{ required: true, message: "Please select taint effect" }]}
+          >
+            <Select
+              placeholder={formatMessage({
+                id: "node.add_taint_effect_select_placeholder",
+              })}
+            >
+              <Select.Option value="NoSchedule">NoSchedule</Select.Option>
+              <Select.Option value="PreferNoSchedule">
+                PreferNoSchedule
+              </Select.Option>
+              <Select.Option value="NoExecute">NoExecute</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            label={formatMessage({ id: "node.add_taint_value" })}
+            name="value"
+          >
+            <Input placeholder="Enter taint value (optional)" />
+          </Form.Item>
+        </Form>
+        <Space>
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => taintForm.submit()}
+          >
+            {formatMessage({ id: "button.confirm" })}
+          </Button>
+          <Button
+            size="small"
+            onClick={() => {
+              setTaintModalVisible(false);
+              taintForm.resetFields();
+            }}
+          >
+            {formatMessage({ id: "button.cancel" })}
+          </Button>
+        </Space>
+      </Modal>
     </>
   );
 };
