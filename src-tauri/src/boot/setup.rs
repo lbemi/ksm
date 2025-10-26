@@ -48,10 +48,7 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // Manage both the AppData and Runtime
     app.manage(Mutex::new(app_data));
     app.manage(rt);
-    let handle = app.handle().clone();
-    // tauri::async_runtime::spawn(async move {
-    //     update(handle).await.unwrap();
-    // });
+
     #[cfg(all(desktop))]
     {
         create_tray(app.handle())?;
@@ -77,30 +74,6 @@ pub fn init(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
         .min_inner_size(1000.0, 600.0)
         .build()
         .expect("Failed to create core window");
-
-    Ok(())
-}
-async fn update(app: tauri::AppHandle) -> tauri_plugin_updater::Result<()> {
-    println!("checking for updates");
-    if let Some(update) = app.updater()?.check().await? {
-        let mut downloaded = 0;
-
-        // alternatively we could also call update.download() and update.install() separately
-        update
-            .download_and_install(
-                |chunk_length, content_length| {
-                    downloaded += chunk_length;
-                    println!("downloaded {downloaded} from {content_length:?}");
-                },
-                || {
-                    println!("download finished");
-                },
-            )
-            .await?;
-
-        println!("update installed");
-        app.restart();
-    }
 
     Ok(())
 }

@@ -6,6 +6,146 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "2118507",
+      "name": "参与讨论",
+      "font_class": "canyutaolun",
+      "unicode": "e65d",
+      "unicode_decimal": 58973
+    },
+    {
+      "icon_id": "3784214",
+      "name": "官网",
+      "font_class": "guanwang",
+      "unicode": "e615",
+      "unicode_decimal": 58901
+    },
+    {
+      "icon_id": "6598313",
+      "name": "bug-fill",
+      "font_class": "bug-fill",
+      "unicode": "e8e8",
+      "unicode_decimal": 59624
+    },
+    {
+      "icon_id": "6598314",
+      "name": "bug",
+      "font_class": "bug",
+      "unicode": "e8e9",
+      "unicode_decimal": 59625
+    },
+    {
+      "icon_id": "8136353",
+      "name": "交流",
+      "font_class": "jiaoliu",
+      "unicode": "e6b8",
+      "unicode_decimal": 59064
+    },
+    {
+      "icon_id": "8719754",
+      "name": "更新日志",
+      "font_class": "gengxinrizhi",
+      "unicode": "e65e",
+      "unicode_decimal": 58974
+    },
+    {
+      "icon_id": "18977921",
+      "name": "github",
+      "font_class": "github",
+      "unicode": "e737",
+      "unicode_decimal": 59191
+    },
+    {
+      "icon_id": "22894714",
+      "name": "github",
+      "font_class": "github1",
+      "unicode": "e673",
+      "unicode_decimal": 58995
+    },
+    {
+      "icon_id": "35171823",
+      "name": "讨论",
+      "font_class": "taolun",
+      "unicode": "e862",
+      "unicode_decimal": 59490
+    },
+    {
+      "icon_id": "11106841",
+      "name": "升级",
+      "font_class": "shengji",
+      "unicode": "e65b",
+      "unicode_decimal": 58971
+    },
+    {
+      "icon_id": "15644979",
+      "name": "升级",
+      "font_class": "shengji1",
+      "unicode": "e613",
+      "unicode_decimal": 58899
+    },
+    {
+      "icon_id": "18681361",
+      "name": "2-3升级",
+      "font_class": "2-3shengji",
+      "unicode": "e65c",
+      "unicode_decimal": 58972
+    },
+    {
+      "icon_id": "6061398",
+      "name": "开发者管理",
+      "font_class": "kaifazheguanli",
+      "unicode": "e658",
+      "unicode_decimal": 58968
+    },
+    {
+      "icon_id": "10710127",
+      "name": "开发者",
+      "font_class": "kaifazhe",
+      "unicode": "e6bd",
+      "unicode_decimal": 59069
+    },
+    {
+      "icon_id": "13084491",
+      "name": "prompt",
+      "font_class": "prompt",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "43217780",
+      "name": "about",
+      "font_class": "about",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "43884956",
+      "name": "关于",
+      "font_class": "a-shuxing1moren-3",
+      "unicode": "e612",
+      "unicode_decimal": 58898
+    },
+    {
+      "icon_id": "44854086",
+      "name": "大模型",
+      "font_class": "damoxing",
+      "unicode": "e65a",
+      "unicode_decimal": 58970
+    },
+    {
+      "icon_id": "45455320",
+      "name": "模型配置",
+      "font_class": "moxingpeizhi",
+      "unicode": "e74c",
+      "unicode_decimal": 59212
+    },
+    {
+      "icon_id": "45606652",
+      "name": "AI大模型",
+      "font_class": "AIdamoxing",
+      "unicode": "ea1b",
+      "unicode_decimal": 59931
+    },
+    {
       "icon_id": "21855166",
       "name": "namespace",
       "font_class": "namespace",

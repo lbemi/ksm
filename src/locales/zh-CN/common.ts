@@ -2,6 +2,7 @@ export const zhCN_common = {
   "common.update_title": "有更新可用",
 
   "button.check_update": "检查更新",
+  "button.is_latest_version": "已是最新版本",
   "button.update_now": "立即更新",
   "button.ignore_update": "忽略更新",
   "button.edit": "编辑",
@@ -47,6 +48,7 @@ export const zhCN_common = {
   "button.download": "下载",
   "button.yaml": "YAML",
   "button.create": "创建",
+  "button.open": "打开",
 
   "message.success": "操作成功",
   "message.error": "操作失败",

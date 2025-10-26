@@ -12,6 +12,7 @@ import PersistentVolumeClaimPage from "@/pages/Storage/PersistentVolumeClaims";
 import CustomResourceDefinitionsPage from "@/pages/CustomResource";
 import Log from "@/components/CustomLog";
 import TerminalWindow from "@/components/Terminal";
+import SettingLayout from "@/pages/Setting";
 
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const DeploymentView = lazy(() => import("@/pages/Workload/Deployment"));
@@ -19,7 +20,7 @@ const Pod = lazy(() => import("@/pages/Workload/Pod"));
 const StatefulSet = lazy(() => import("@/pages/Workload/StatefulSet"));
 const DaemonSet = lazy(() => import("@/pages/Workload/DaemonSet"));
 const Message = lazy(() => import("@/pages/Message"));
-const About = lazy(() => import("@/pages/About"));
+const About = lazy(() => import("@/pages/Setting/About"));
 const Service = lazy(() => import("@/pages/NetWork/Service"));
 const Ingress = lazy(() => import("@/pages/NetWork/Ingress"));
 const NodePage = lazy(() => import("@/pages/Node"));
@@ -35,12 +36,23 @@ export const router = createBrowserRouter([
     element: <About />,
   },
   {
+    path: "/setting",
+    element: <GeekLayout />,
+    children: [
+      {
+        index: true,
+        path: "home",
+        element: <SettingLayout />,
+      },
+    ],
+  },
+  {
     path: "/kubernetes",
     element: <GeekLayout />,
     children: [
       {
         index: true,
-        path: "/kubernetes/dashboard",
+        path: "dashboard",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <Dashboard />
@@ -48,7 +60,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "/kubernetes/node",
+        path: "node",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <NodePage />
@@ -56,7 +68,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "/kubernetes/namespace",
+        path: "namespace",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <NamespacePage />
@@ -122,7 +134,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "/kubernetes/config",
+        path: "config",
         children: [
           {
             path: "configmap",
@@ -143,7 +155,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "/kubernetes/task",
+        path: "task",
         children: [
           {
             path: "job",
@@ -156,7 +168,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "/kubernetes/storage",
+        path: "storage",
         children: [
           {
             path: "storageclass",
@@ -173,7 +185,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: "/kubernetes/crd",
+        path: "crd",
         element: <CustomResourceDefinitionsPage />,
       },
     ],

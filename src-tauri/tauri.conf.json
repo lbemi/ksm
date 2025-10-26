@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
   "productName": "ksm",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "identifier": "ksm.lbemi.app",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -15,7 +15,7 @@
       "csp": null,
       "capabilities": []
     },
-    "macOSPrivateApi": false
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

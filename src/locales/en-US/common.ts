@@ -3,6 +3,7 @@ export const enUS_common = {
 
   "button.check_update": "Check Update",
   "button.update_now": "Update Now",
+  "button.is_latest_version": "Is Latest Version",
   "button.ignore_update": "Ignore Update",
   "button.edit": "Edit",
   "button.delete": "Delete",
@@ -17,6 +18,7 @@ export const enUS_common = {
   "button.close": "Close",
   "button.confirm": "Confirm",
   "button.edit_yaml": "Edit YAML",
+  "button.open": "Open",
   "button.redeploy": "ReDeploy",
   "button.scale": "Scale",
   "button.customColumn": "Custom Column",

@@ -1,5 +1,4 @@
 import { FC } from "react";
-import CreateAboutWindow from "@/pages/About/window";
 import { Dropdown, MenuProps } from "antd";
 import { useAppDispatch } from "@/store/hook";
 import { setTheme } from "@/store/modules/theme";
@@ -7,8 +6,11 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { useLocale } from "@/locales";
 import MyIcon from "../MyIcon";
-const Setting: FC = () => {
+import { useNavigate } from "react-router-dom";
+const Setting: FC<{ setCollapsed: () => void }> = ({ setCollapsed }) => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
   const { theme, compact, locale } = useSelector(
     (state: RootState) => state.theme
   );
@@ -46,6 +48,10 @@ const Setting: FC = () => {
     }
     window.location.reload();
   };
+  const redirectToSetting = () => {
+    navigate("/setting/home");
+    setCollapsed();
+  };
 
   return (
     <>
@@ -82,7 +88,7 @@ const Setting: FC = () => {
         </Dropdown>
         <MyIcon
           type="icon-xitongguanli"
-          onClick={CreateAboutWindow}
+          onClick={redirectToSetting}
           className=" cursor-pointer"
         />
       </div>

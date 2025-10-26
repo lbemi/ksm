@@ -29,28 +29,9 @@ export const installUpdate = async () => {
       },
     });
     if (update) {
-      let downloaded = 0;
-      let contentLength = 0;
-      await update
-        .downloadAndInstall((event) => {
-          switch (event.event) {
-            case "Started":
-              contentLength = event.data.contentLength || 0;
-              console.log(`started downloading ${contentLength} bytes`);
-              break;
-            case "Progress":
-              downloaded += event.data.chunkLength;
-              const percentage = Math.round((downloaded / 1000) * 100);
-              console.log(`下载进度: ${percentage}%`);
-              break;
-            case "Finished":
-              console.log("download finished");
-              break;
-          }
-        })
-        .then(async () => {
-          await relaunch();
-        });
+      await update.downloadAndInstall().then(async () => {
+        await relaunch();
+      });
     }
   } catch (error) {
     console.error(error);

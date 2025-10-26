@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 3756452 */
-  src: url('iconfont.woff2?t=1760927649688') format('woff2'),
-       url('iconfont.woff?t=1760927649688') format('woff'),
-       url('iconfont.ttf?t=1760927649688') format('truetype');
+  src: url('iconfont.woff2?t=1761479972760') format('woff2'),
+       url('iconfont.woff?t=1761479972760') format('woff'),
+       url('iconfont.ttf?t=1761479972760') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,86 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-canyutaolun:before {
+  content: "\e65d";
+}
+
+.icon-guanwang:before {
+  content: "\e615";
+}
+
+.icon-bug-fill:before {
+  content: "\e8e8";
+}
+
+.icon-bug:before {
+  content: "\e8e9";
+}
+
+.icon-jiaoliu:before {
+  content: "\e6b8";
+}
+
+.icon-gengxinrizhi:before {
+  content: "\e65e";
+}
+
+.icon-github:before {
+  content: "\e737";
+}
+
+.icon-github1:before {
+  content: "\e673";
+}
+
+.icon-taolun:before {
+  content: "\e862";
+}
+
+.icon-shengji:before {
+  content: "\e65b";
+}
+
+.icon-shengji1:before {
+  content: "\e613";
+}
+
+.icon-2-3shengji:before {
+  content: "\e65c";
+}
+
+.icon-kaifazheguanli:before {
+  content: "\e658";
+}
+
+.icon-kaifazhe:before {
+  content: "\e6bd";
+}
+
+.icon-prompt:before {
+  content: "\e610";
+}
+
+.icon-about:before {
+  content: "\e611";
+}
+
+.icon-a-shuxing1moren-3:before {
+  content: "\e612";
+}
+
+.icon-damoxing:before {
+  content: "\e65a";
+}
+
+.icon-moxingpeizhi:before {
+  content: "\e74c";
+}
+
+.icon-AIdamoxing:before {
+  content: "\ea1b";
 }
 
 .icon-namespace:before {

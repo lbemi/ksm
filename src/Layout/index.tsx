@@ -150,7 +150,6 @@ const GeekLayout = () => {
 
   const handleOnSelect = (key: string, keyPath: string[]) => {
     setSelectKeys(keyPath);
-    handleMenuOpenChange(keyPath);
     navigate(key);
   };
   const handleMenuOpenChange = (keys: string[]) => {
@@ -192,6 +191,10 @@ const GeekLayout = () => {
       document.removeEventListener("selectstart", handleSelectStart);
     };
   }, []);
+  const handleSetCollapsed = () => {
+    setCollapsed(!collapsed);
+    setLeft(collapsed ? "138px" : "53px");
+  };
   return (
     <>
       <CheckUpdate />
@@ -230,10 +233,7 @@ const GeekLayout = () => {
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-              onClick={() => {
-                setCollapsed(!collapsed);
-                setLeft(collapsed ? "138px" : "53px");
-              }}
+              onClick={handleSetCollapsed}
             />
           </div>
 
@@ -248,7 +248,7 @@ const GeekLayout = () => {
               {localStorage.getItem("activeCluster")}
             </Tag>
           </Typography.Text>
-          <Settings />
+          <Settings setCollapsed={handleSetCollapsed} />
         </Header>
         <Divider style={{ margin: "0" }} />
         <Layout>
